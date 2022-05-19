@@ -23,10 +23,7 @@ def read_active_data(root_path:str, dynamics:list, n_subjects:int, choice_dict:d
 
 def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> list:
     if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
-        '''
-        CHANGE THIS CHECK TO JUST SKIP TRIALS WHERE THIS HAPPENS, AS WE ALLOW FOR NEGATIVE WEALTH (KIN ADDITIVE)
-        '''
-        raise ValueError(f"Isoelastic utility function not defined for negative values")
+        return None, None
 
     func = lambda x : (((((w+x1)**(1-x))/(1-x) + ((w+x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
                     - ((((w+x3)**(1-x))/(1-x) + ((w+x4)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x)) )
