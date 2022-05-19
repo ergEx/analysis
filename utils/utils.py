@@ -51,35 +51,3 @@ def is_statewise_dominated(gamble_pair) -> bool:
     return (np.greater_equal(max(gamble_pair[0]), max(gamble_pair[1])) and np.greater_equal(min(gamble_pair[0]), min(gamble_pair[1])) or
            np.greater_equal(max(gamble_pair[1]), max(gamble_pair[0])) and np.greater_equal(min(gamble_pair[1]), min(gamble_pair[0])) )
 
-
-def plot_indifference_eta(choices:list[list],x1:list[list],x2:list[list],x3:list[list],x4:list[list], w:list[list], filenames:list, ax, dynamic:str, left:int) -> None:
-    tick_place = [0]
-    tick_names = []
-    trial_counter = 0
-    for subject in range(len(filenames)):
-        trial_counter_participant = 0
-        if subject == 4: #Participant who did not meet the threshold of correct nobrainers
-            continue
-        else:
-            tick_names.append(f'Participant {subject + 1}')
-        statewise_dominated_counter = 0
-        for ii, choice in enumerate(choices[subject]):
-            if is_statewise_dominated([[x1[subject][ii], x2[subject][ii]],[x3[subject][ii], x4[subject][ii]]]):
-                statewise_dominated_counter += 1
-                continue
-            trial_counter += 1
-            trial_counter_participant += 1
-            root_dyn, func_dyn = indiference_eta(x1[subject][ii], x2[subject][ii], x3[subject][ii], x4[subject][ii], w[subject][ii], left)
-            min_max_dyn = calculate_min_v_max(root_dyn, func_dyn, choice=choice)
-
-            ax.plot(root_dyn, trial_counter, marker=min_max_dyn['sign'], color = min_max_dyn['color'])
-        ax.axhline(trial_counter, linestyle='--', linewidth=1, color='k')
-        tick_place.append(trial_counter - trial_counter_participant / 2)
-    if dynamic == 'Additive':
-        ax.set_yticks(tick_place[1:])
-        ax.set_yticklabels(tick_names, minor=False)
-    else:
-        ax.axes.yaxis.set_visible(False)
-
-    ax.set_xlabel('Riskaversion ($\eta$)')
-    ax.set_title(dynamic)
