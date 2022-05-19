@@ -3,74 +3,29 @@ import pandas as pd
 import os
 from scipy import misc
 
-def retrieve_keypress(df):
-    '''
-    HAS NOT YET BEEN MODIFYED FOR NEW EXPERIMENT!
-    '''
-    '''
-    Retrieve keypresses and recode into accept/reject left side gamble
-    '''
-    sublst = []
-    for k in range(len(np.array(df['KP_Final']))):
-        if np.isnan(np.array(df['KPlate'][k])):#if no late keypress
-            if np.array(df['KP_Final'])[k] == 9:
-                sublst.append(1)
-            elif np.array(df['KP_Final'])[k] == 8:
-                sublst.append(0)
-            else:
-                sublst.append(float('nan'))
-        else:
-            if np.array(df['KPlate'])[k] == 9:
-                sublst.append(1)
-            elif np.array(df['KPlate'])[k] == 8:
-                sublst.append(0)
-            else:
-                print('found unexpected value')
 
-    df['choice'] = sublst
-    return df, sublst
 
-def read_active_data(root_path:str, path_extension:str, session:str, wealth:str = 'starting'):
-    '''
-    HAS NOT YET BEEN MODIFYED FOR NEW EXPERIMENT!
-    '''
-    filenames = []
-    choices = []
-    x1 = []
-    x2 = []
-    x3 = []
-    x4 = []
-    w = []
-    for filename in os.listdir(os.path.join(root_path, path_extension, session)):
-        if filename.endswith(".txt"):
-            filenames.append(filename)
+def read_active_data(root_path:str, dynamics:list, n_subjects:int, choice_dict:dict = {'right': 1, 'left': 0}):
+   print('Reading active data - not fully implemented')
+   # dfs = dict()
+   # for dynamic in dynamics:
+   #     dynamic_dfs = dict()
+   #     for subject in range(n_subjects):
+   #         data = pd.read_csv(os.path.join(root_path, dynamic, subject),sep='\t') #not done with path
+   #         subject_df = data[data['Stream'] == 'Math'].reset_index() #not done with values
 
-            data = pd.read_csv(os.path.join(root_path, path_extension, session, filename),sep='\t')
-            _, sublst = retrieve_keypress(data)
-
-            choices.append(sublst)
-
-            if wealth == 'starting':
-                x1.append(data.x1)
-                x2.append(data.x2)
-                x3.append(data.x3)
-                x4.append(data.x4)
-                w.append(data.earnings)
-            elif wealth == 'current':
-                x1.append(data.dx1)
-                x2.append(data.dx2)
-                x3.append(data.dx3)
-                x4.append(data.dx4)
-                w.append(data.wealth)
-
-    return choices,x1,x2,x3,x4,w,filenames
+   #         for column in ['Name','Name2']: #change column names
+   #             subject_df[column] = subject_df[column].map(choice_dict)
+   #
+   #         dynamic_dfs[subject] = subject_df
+   #     dfs[dynamic] = dynamic_dfs
+   # return dfs
 
 def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> list:
     if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
         '''
         CHANGE THIS CHECK TO JUST SKIP TRIALS WHERE THIS HAPPENS, AS WE ALLOW FOR NEGATIVE WEALTH (KIN ADDITIVE)
         '''
-        print(x1,x2,x3,x4)
         raise ValueError(f"Isoelastic utility function not defined for negative values")
 
     func = lambda x : (((((w+x1)**(1-x))/(1-x) + ((w+x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
