@@ -39,9 +39,9 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -
 def calculate_min_v_max(root:float, func, choice:int) -> dict:
     dx = misc.derivative(func,root)
     if dx<0:
-        return {'color':'orange','sign':'>', 'val':'max'} if choice==0 else {'color':'b','sign':'<', 'val':'min'}
+        return {'color':'orange','sign':'>', 'val': 0} if choice==1 else {'color':'b','sign':'<', 'val': 1}
     else:
-        return {'color':'orange','sign':'>', 'val':'max'} if choice==1 else {'color':'b','sign':'<', 'val':'min'}
+        return {'color':'orange','sign':'>', 'val': 0} if choice==0 else {'color':'b','sign':'<', 'val': 1}
 
 def is_statewise_dominated(gamble_pair) -> bool:
     """Decision if a gamble is strictly statewise dominated by the other gamble in a gamble pair"""
