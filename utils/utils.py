@@ -3,23 +3,22 @@ import pandas as pd
 import os
 from scipy import misc
 
-
-
-def read_active_data(root_path:str, dynamics:list, n_subjects:int, choice_dict:dict = {'right': 1, 'left': 0}):
-   print('Reading active data - not fully implemented')
-   # dfs = dict()
-   # for dynamic in dynamics:
-   #     dynamic_dfs = dict()
-   #     for subject in range(n_subjects):
-   #         data = pd.read_csv(os.path.join(root_path, dynamic, subject),sep='\t') #not done with path
-   #         subject_df = data[data['Stream'] == 'Math'].reset_index() #not done with values
-
-   #         for column in ['Name','Name2']: #change column names
-   #             subject_df[column] = subject_df[column].map(choice_dict)
-   #
-   #         dynamic_dfs[subject] = subject_df
-   #     dfs[dynamic] = dynamic_dfs
-   # return dfs
+def read_active_data_to_df(root_path:str,
+                           dynamics:list[str],
+                           subject_numbers:list[int],
+                           run:int = 1,
+                           choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str,dict[int,pd.DataFrame]]:
+    dfs = dict()
+    for dynamic in dynamics:
+        dynamic_text = {'Additive': '0d0', 'Multiplicative': '1d0'}
+        dynamic_dfs = dict()
+        for subject in subject_numbers:
+            data = pd.read_csv(os.join_path(root_path, f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events'),sep='\t')
+            subject_df = data[data['event_type'] == 'Response'].reset_index()
+            subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
+            dynamic_dfs[subject] = subject_df
+        dfs[dynamic] = dynamic_dfs
+    return dfs
 
 def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> list:
     if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
