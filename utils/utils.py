@@ -1,7 +1,8 @@
+from typing import Any
 import numpy as np
 import pandas as pd
 import os
-from scipy import misc
+from scipy import misc, io
 
 def read_active_data_to_df(root_path:str,
                            dynamics:list[str],
@@ -19,6 +20,48 @@ def read_active_data_to_df(root_path:str,
             dynamic_dfs[subject] = subject_df
         dfs[dynamic] = dynamic_dfs
     return dfs
+
+def read_active_data_to_dict(root_path:str,
+                             dynamics:list[str],
+                             subject_numbers:list[int],
+                             run:int = 1,
+                             choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str, Any]:
+    print('Not implemented yet')
+    datadict = dict()
+    for dynamic in dynamics:
+        dynamic_specs = {'Additive':       {'text': '0d0', 'lambd': 0.0, 'txt_append': '_add'},
+                         'Multiplicative': {'text': '1d0', 'lambd': 1.0, 'txt_append': '_mul'}}
+        for subject in subject_numbers:
+            data = pd.read_csv(os.join_path(root_path, f'sub-{subject}_ses-lambd{dynamic_specs[dynamic]['text']}_task-active_run-{run}_events'),sep='\t')
+            subject_df = data[data['event_type'] == 'Response'].reset_index()
+            subject_df['response_button'] = subject_df['response_button'].map(choice_dict)]
+
+            '''
+            Append which session first (has not been decided yet)
+            '''
+            if subject > 500:
+                datadict.setdefault('MultiplicativeSessionFirst',[]).append(1)
+            else:
+                datadict.setdefault('MultiplicativeSessionFirst',[]).append(0)
+
+            '''
+            Retrieve growth rates and wealth and add to dictionary
+            '''
+            datadict.setdefault('gr1_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_left_up']))
+            datadict.setdefault('gr1_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_left_down']))
+            datadict.setdefault('gr2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_up']))
+            datadict.setdefault('gr2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_down']))
+
+            datadict.setdefault('wealth'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['wealth']))
+
+            '''
+            Retrieve keypresses and recode into accept/reject left side gamble
+            '''
+            datadict.setdefault('choice'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['response_button']))
+    return datadict
+    #io.savemat(os.path.join(root_path,f'all_data.mat'),datadict,oned_as='row')
+    #np.savez(os.path.join(root_path,f'all_data.mat.npz'),datadict = datadict)
+
 
 def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> list:
     if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
