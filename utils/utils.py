@@ -108,7 +108,6 @@ def read_active_data_to_dict(root_path:str,
                              subject_numbers:list[int],
                              run:int = 1,
                              choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str, any]:
-    print('Not implemented yet')
     datadict = dict()
     for dynamic in dynamics:
         dynamic_specs = {'Additive':       {'text': '0d0', 'lambd': 0.0, 'txt_append': '_add'},
@@ -133,6 +132,10 @@ def read_active_data_to_dict(root_path:str,
             datadict.setdefault('gr1_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_left_down']))
             datadict.setdefault('gr2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_up']))
             datadict.setdefault('gr2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_down']))
+            datadict.setdefault('x1_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_left_up']), dynamic_specs[dynamic]['lambd']))
+            datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_left_down']), dynamic_specs[dynamic]['lambd']))
+            datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_right_up']), dynamic_specs[dynamic]['lambd']))
+            datadict.setdefault('x2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_right_down']), dynamic_specs[dynamic]['lambd']))
 
             datadict.setdefault('wealth'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['wealth']))
 
