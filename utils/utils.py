@@ -65,7 +65,7 @@ def inverse_isoelastic_utility(u:np.ndarray, eta:float) -> np.ndarray:
         x[u > bound] = np.power(u[u > bound] * (1 - eta) + 1, 1 / (1 - eta))
     return x
 
-def wealth_change(x:np.array, gamma:np.array, lambd:float):
+def wealth_change(x:np.array, gamma:np.array, lambd:float) -> np.ndarray:
     """Apply isoelastic wealth change.
     Args:
         x (array):
