@@ -1,0 +1,58 @@
+# Fit condition specific params for isoelastic model for each subject
+
+model{
+
+##LIKELIHOOD
+for (i in 1:nSubjects){
+for (c in 1:nDynamics){
+for (t in 1:nTrials){
+    u[i,c,t]      = ( pow(w[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
+
+    u1[i,c,t]     = ( pow(w1_1[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])  #transform wealth update for upper left into utility
+    u2[i,c,t]     = ( pow(w1_2[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])
+    u3[i,c,t]     = ( pow(w2_1[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])
+    u4[i,c,t]     = ( pow(w2_2[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])
+
+    du1[i,c,t]    = u1[i,c,t] - u[i,c,t]  #computes change in utility
+    du2[i,c,t]    = u2[i,c,t] - u[i,c,t]
+    du3[i,c,t]    = u3[i,c,t] - u[i,c,t]
+    du4[i,c,t]    = u4[i,c,t] - u[i,c,t]
+
+    edug1[i,c,t]  = ( du1[i,c,t] + du2[i,c,t] ) / 2  #computes expected change in utiluty for each gamble
+    edug2[i,c,t]  = ( du3[i,c,t] + du4[i,c,t] ) / 2
+
+    deu[i,c,t]    = edug1[i,c,t] - edug2[i,c,t]                   #computes difference in expected change in utility
+    sdeu[i,c,t]   = -1 * beta[i,c] * deu[i,c,t]                   #scaled by sensitivity parameter
+    tmp[i,c,t]    = ( 1 ) / ( 1 + (exp(sdeu[i,c,t]) ) )           #choice probability
+    theta[i,c,t]  = max( 0.000001 , min(0.999999 , tmp[i,c,t]) )  #ensure 0 < cp < 1
+    y[i,c,t]      ~ dbern(theta[i,c,t])                           #computes bernoulli distributed choice
+
+}# end of trials
+}# end of conditions
+}# end of subjects
+
+
+## PRIORS
+for (i in 1:nSubjects){
+    for (c in 1:nConditions){
+        log_beta[i,c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled from normal hyperprior
+        beta[i,c]      = exp(log_beta[i,c])                      # transforms from logspace, now lognormally distributed prior
+        eta[i,c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta
+    }#end of conditions
+}#end of subjects
+
+
+##HYPERPRIORS
+for (c in 1:nConditions){
+        #beta parameter
+        mu_log_beta[c]       ~ dunif(muLogBetaL,muLogBetaU)         #mean of log beta
+        tau_log_beta[c]      = pow(sigma_log_beta[c],-2)            #precision on log beta
+        sigma_log_beta[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
+
+        #eta parameter
+        mu_eta[c]                ~ dunif(muEtaL,muEtaU)       #mean of eta
+        tau_eta[c]               = pow(sigma_eta[c],-2)       #precision of eta
+        sigma_eta[c]             ~ dunif(sigmaEtaL,sigmaEtaU  #std on eta
+}#end of conditions
+}
+
