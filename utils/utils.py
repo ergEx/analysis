@@ -5,6 +5,87 @@ import pandas as pd
 from scipy import misc
 
 
+def isoelastic_utility(x:np.ndarray, eta:float) -> np.ndarray:
+    """Isoelastic utility for a given wealth.
+    Args:
+        x (array):
+            Wealth vector.
+        eta (float):
+            Risk-aversion.
+    Returns:
+        Vector of utilities corresponding to wealths. For log utility if wealth
+        is less or equal to zero, smallest float possible is returned. For other
+        utilites if wealth is less or equal to zero, smallest possible utility,
+        i.e., specicfic lower bound is returned.
+    """
+    if eta > 1:
+        return ValueError("Not implemented for eta > 1!")
+
+    if np.isscalar(x):
+        x = np.asarray((x, ))
+
+    u = np.zeros_like(x, dtype=float)
+
+    if np.isclose(eta, 1):
+        u[x > 0] = np.log(x[x > 0])
+        u[x <= 0] = np.finfo(float).min
+    elif np.isclose(eta, 0): #allow negative values in additive dynamic
+        u[x > 0] = (np.power(x[x > 0], 1-eta) - 1) / (1 - eta)
+    else:
+        bound = (-1) / (1 - eta)
+        u[x > 0] = (np.power(x[x > 0], 1-eta) - 1) / (1 - eta)
+        u[x <= 0] = bound
+    return u
+
+def inverse_isoelastic_utility(u:np.ndarray, eta:float) -> np.ndarray:
+    """Inverse isoelastic utility function mapping from utility to wealth.
+    Args:
+        u (array):
+            Utility vector.
+        eta (float):
+            Risk-aversion.
+    Returns:
+        Vector of wealths coresponding to utilities.
+    """
+
+    if eta > 1:
+        return ValueError("Not implemented for eta > 1!")
+
+    if np.isscalar(u):
+        u = np.asarray((u, ))
+
+    x = np.zeros_like(u, dtype=float)
+
+    if np.isclose(eta, 1):
+        x = np.exp(u)
+    elif np.isclose(eta, 0): #allow for negative values in additive dynamic
+        x = np.power(u * (1 - eta) + 1, 1 / (1 - eta))
+    else:
+        bound = (-1) / (1 - eta)
+        x[u > bound] = np.power(u[u > bound] * (1 - eta) + 1, 1 / (1 - eta))
+    return x
+
+def wealth_change(x:np.array, gamma:np.array, lambd:float):
+    """Apply isoelastic wealth change.
+    Args:
+        x (array):
+            Initial wealth vector.
+        gamma (gamma):
+            Growth rates.
+        lambd (float):
+            Wealth dynamic.
+    Returns:
+        Vector of updated wealths.
+    """
+
+    if np.isscalar(x):
+        x = np.asarray((x, ))
+
+    if np.isscalar(gamma):
+        gamma = np.asarray((gamma, ))
+
+    return inverse_isoelastic_utility(isoelastic_utility(x, lambd) + gamma, lambd)
+
 def read_active_data_to_df(root_path:str,
                            dynamics:list[str],
                            subject_ids:list[int],
