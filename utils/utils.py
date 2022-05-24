@@ -1,19 +1,21 @@
+import os
+
 import numpy as np
 import pandas as pd
-import os
 from scipy import misc
+
 
 def read_active_data_to_df(root_path:str,
                            dynamics:list[str],
-                           subject_numbers:list[int],
+                           subject_ids:list[int],
                            run:int = 1,
                            choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str,dict[int,pd.DataFrame]]:
     dfs = dict()
     for dynamic in dynamics:
         dynamic_text = {'Additive': '0d0', 'Multiplicative': '1d0'}
         dynamic_dfs = dict()
-        for subject in subject_numbers:
-            data = pd.read_csv(os.join_path(root_path, f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events'),sep='\t')
+        for subject in subject_ids:
+            data = pd.read_csv(os.path.join(root_path, f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events.tsv'),sep='\t')
             subject_df = data[data['event_type'] == 'Response'].reset_index()
             subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
             dynamic_dfs[subject] = subject_df
@@ -31,7 +33,7 @@ def read_active_data_to_dict(root_path:str,
         dynamic_specs = {'Additive':       {'text': '0d0', 'lambd': 0.0, 'txt_append': '_add'},
                          'Multiplicative': {'text': '1d0', 'lambd': 1.0, 'txt_append': '_mul'}}
         for subject in subject_numbers:
-            data = pd.read_csv(os.join_path(root_path, f'sub-{subject}_ses-lambd{dynamic_specs[dynamic]["text"]}_task-active_run-{run}_events'),sep='\t')
+            data = pd.read_csv(os.path.join(root_path, f'sub-{subject}_ses-lambd{dynamic_specs[dynamic]["text"]}_task-active_run-{run}_events.tsv'),sep='\t')
             subject_df = data[data['event_type'] == 'Response'].reset_index()
             subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
 
