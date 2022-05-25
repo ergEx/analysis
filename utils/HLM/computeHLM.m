@@ -17,7 +17,6 @@ function computeHLM(runModelNum,synthMode,nDynamics,nBurnin,nSamples,nThin,nChai
 % subjList    - list of subject numbers to include
 % whichJAGS   - sets which copy of matjags to run
 % runPlots    - sets whether to plot data/illustrations(1) or to suppress (0)
-% synthMode   - sets whether to simulate data (0), run on real data (1), synthetic data for parameter recovery (2-10)
 % doParallel  - sets whether to run chains in parallel
 % startDir    - path from which everything is relative to
 
@@ -34,29 +33,31 @@ switch synthMode
     case {1}, dataSource = 'all_data_experiment.mat';    %Real data
     case {2}, dataSource = 'all_data_synthetic_0d0.mat'; %Synthetic data type specified in title
 end
-load(fullfile(dataDir,dataSource))
+vars = {'x1_1_add', 'x1_2_add', 'x2_1_add', 'x2_2_add', 'choice_add', 'w_add', ...
+        'x1_1_mul', 'x1_2_mul', 'x2_1_mul', 'x2_2_mul', 'choice_mul', 'w_mul'};
+load(fullfile(dataDir,dataSource),vars{:})
 
 %% Choose JAGS file
 switch runModelNum
-    case {1}, modelName = 'JAGS_parameter_estimation.txt';
+    case {1}, modelName = 'JAGS_parameter_estimation';
 end
 
 %% Set key variables
 nTrials = 299;
-doDIC=0;                     %compute Deviance information criteria? This is the hierarchical equivalent of an AIC, the lower the better
-nSubjects=length(subjList);  %number of agents
+doDIC = 0;                     %compute Deviance information criteria? This is the hierarchical equivalent of an AIC, the lower the better
+nSubjects = length(subjList);  %number of agents
 
 %% Set bounds of hyperpriors
 %hard code the upper and lower bounds of hyperpriors, typically uniformly
 %distributed in log space. These values will be imported to JAGS.
 
 %beta - prior on log since cannot be less than 0; note same bounds used for independent priors on all utility models
-muLogBetaL=-2.3;muLogBetaU=3.4;muLogBetaM=(muLogBetaL+muLogBetaU)/2; %bounds on mean of distribution log beta
-sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);sigmaLogBetaM=(sigmaLogBetaL+sigmaLogBetaU)/2;%bounds on the std of distribution of log beta
+muLogBetaL = -2.3; muLogBetaU = 3.4; %bounds on mean of distribution log beta
+sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);  %bounds on the std of distribution of log beta
 
 %eta
-muEtaL=-2.5;muEtaU=2.5;muEtaM=(muEtaL+muEtaU)/2;%bounds on mean of distribution of eta
-sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);sigmaEtaM=(sigmaEtaL+sigmaEtaU)/2;%bounds on std of eta
+muEtaL = -2.5; muEtaU = 2.5;  %bounds on mean of distribution of eta
+sigmaEtaL = 0.01; sigmaEtaU = sqrt(((muEtaU-muEtaL)^2)/12);  %bounds on std of eta
 
 %% Print information for user
 disp('**************');
@@ -70,7 +71,7 @@ disp('**************');
 %initialise matrices with nan values of size subjects x dynamics x trials
 dim = nan(nSubjects,nDynamics,nTrials);          %specify the dimension
 choice = dim;                                    %initialise choice data matrix
-w = dim                                          %initialise wealth matrix
+w = dim;                                         %initialise wealth matrix
 w1_1 = dim; w1_2 = dim; w2_1 = dim; w2_2 = dim;  %initialise wealth_change matrices
 
 %% Compile choice & gamble data
@@ -81,23 +82,22 @@ w1_1 = dim; w1_2 = dim; w2_1 = dim; w2_2 = dim;  %initialise wealth_change matri
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
 for i = 1:nSubjects
     for c = 1:nDynamics
-        trialInds=1:nTrials;
+        trialInds = 1:nTrials;
         switch c
             case {1} %eta = 0
-                choice(i,c,trialInds)=choice_add{i}(trialInds);
-                w1_1(i,c,trialInds)=x1_add{i}(trialInds);
-                w1_2(i,c,trialInds)=x2_add{i}(trialInds);
-                w2_1(i,c,trialInds)=x3_add{i}(trialInds);
-                w2_2(i,c,trialInds)=x4_add{i}(trialInds);
-                w(i,c,trialInds) = wealth_add{i}(trialInds);
-
+                choice(i,c,trialInds) = choice_add{i}(trialInds);
+                w1_1(i,c,trialInds) = w1_1_add{i}(trialInds);
+                w1_2(i,c,trialInds) = w1_2_add{i}(trialInds);
+                w2_1(i,c,trialInds) = w2_1_add{i}(trialInds);
+                w2_2(i,c,trialInds) = w2_2_add{i}(trialInds);
+                w(i,c,trialInds) = w_add{i}(trialInds);
             case {2}% eta=1
-                choice(i,c,trialInds)=choice_mul{i}(trialInds);
-                x1_1(i,c,trialInds)=x1_mul{i}(trialInds);
-                x1_2(i,c,trialInds)=x2_mul{i}(trialInds);
-                x2_1(i,c,trialInds)=x3_mul{i}(trialInds);
-                x2_2(i,c,trialInds)=x4_mul{i}(trialInds);
-                w(i,c,trialInds) = wealth_current_mul{i}(trialInds);
+                choice(i,c,trialInds) = choice_mul{i}(trialInds);
+                w1_1(i,c,trialInds) = w1_1_mul{i}(trialInds);
+                w1_2(i,c,trialInds) = w1_2_mul{i}(trialInds);
+                w2_1(i,c,trialInds) = w2_1_mul{i}(trialInds);
+                w2_2(i,c,trialInds) = w2_2_mul{i}(trialInds);
+                w(i,c,trialInds) = w_mul{i}(trialInds);
         end %switch
     end %c
 end %i
@@ -118,10 +118,10 @@ dataStruct = struct(...
             'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
 for i = 1:nChains
-    monitorParameters = {'beta', 'eta'}
+    monitorParameters = {'beta', 'eta'};
     %monitorParameters = {'y','w','beta','eta','w1_1','w1_2','w2_1','w2_2'}; %To be used for debugging
     S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-end
+end %i
 
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
