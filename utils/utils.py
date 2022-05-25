@@ -90,8 +90,9 @@ def read_active_data_to_df(root_path:str,
                            dynamics:list[str],
                            subject_ids:list[int],
                            run:int = 1,
-                           choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str,dict[int,pd.DataFrame]]:
+                           choice_dict:dict = {'right': 1, 'left': 0}) -> tuple(dict[str,dict[int,pd.DataFrame]] , pd.DataFrame):
     dfs = dict()
+    full_df = pd.DataFrame()
     for dynamic in dynamics:
         dynamic_text = {'Additive': '0d0', 'Multiplicative': '1d0'}
         dynamic_dfs = dict()
@@ -100,8 +101,9 @@ def read_active_data_to_df(root_path:str,
             subject_df = data[data['event_type'] == 'Response'].reset_index()
             subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
             dynamic_dfs[subject] = subject_df
+            full_df = pd.concat([full_df, subject_df])
         dfs[dynamic] = dynamic_dfs
-    return dfs
+    return dfs, full_df
 
 def read_active_data_to_dict(root_path:str,
                              dynamics:list[str],
@@ -147,8 +149,7 @@ def read_active_data_to_dict(root_path:str,
     #io.savemat(os.path.join(root_path,f'all_data.mat'),datadict,oned_as='row')
     #np.savez(os.path.join(root_path,f'all_data.mat.npz'),datadict = datadict)
 
-
-def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> list:
+def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> tuple(float, function):
     if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
         return None, None
 
@@ -163,7 +164,7 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -
         else:
             return x, func
 
-def calculate_min_v_max(root:float, func, choice:int) -> dict:
+def calculate_min_v_max(root:float, func:function, choice:int) -> dict[str, any]:
     dx = misc.derivative(func,root)
     if dx<0:
         return {'color':'orange','sign':'>', 'val': 0} if choice==1 else {'color':'b','sign':'<', 'val': 1}
