@@ -128,21 +128,28 @@ def read_active_data_to_dict(root_path:str,
                 datadict.setdefault('MultiplicativeSessionFirst',[]).append(0)
 
             '''
-            Retrieve growth rates and wealth and add to dictionary
+            Retrieve growth rates
             '''
             datadict.setdefault('gr1_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_left_up']))
             datadict.setdefault('gr1_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_left_down']))
             datadict.setdefault('gr2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_up']))
             datadict.setdefault('gr2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_down']))
+
+            '''
+            Transform growth dates into wealth changes
+            '''
             datadict.setdefault('x1_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_left_up']), dynamic_specs[dynamic]['lambd']))
             datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_left_down']), dynamic_specs[dynamic]['lambd']))
             datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_right_up']), dynamic_specs[dynamic]['lambd']))
             datadict.setdefault('x2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_right_down']), dynamic_specs[dynamic]['lambd']))
 
+            '''
+            Retrive wealth
+            '''
             datadict.setdefault('wealth'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['wealth']))
 
             '''
-            Retrieve keypresses and recode into accept/reject left side gamble
+            Retrieve keypresses
             '''
             datadict.setdefault('choice'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['response_button']))
     return datadict
