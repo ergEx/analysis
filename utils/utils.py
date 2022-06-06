@@ -89,33 +89,30 @@ def wealth_change(x:np.array, gamma:np.array, lambd:float) -> np.ndarray:
 def read_active_data_to_df(root_path:str,
                            dynamics:list[str],
                            subject_ids:list[int],
-                           run:int = 1,
-                           choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
+                           run:int = 1) -> pd.DataFrame:
     full_df = pd.DataFrame()
     for dynamic in dynamics:
         dynamic_text = {'Additive': '0d0', 'Multiplicative': '1d0'}
         for subject in subject_ids:
             data = pd.read_csv(os.path.join(root_path, 'data', f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events.tsv'),sep='\t')
             subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
-            subject_df['response_button_map'] = subject_df['response_button'].map(choice_dict)
-            subject_df = add_info_to_df(subject_df)
+
+            subject_df = add_info_to_df(subject_df, subject)
             full_df = pd.concat([full_df, subject_df])
     return full_df.reset_index(drop=True)
 
 def read_active_data_to_dict(root_path:str,
                              dynamics:list[str],
-                             subject_numbers:list[int],
-                             run:int = 1,
-                             choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str, any]:
+                             subject_ids:list[int],
+                             run:int = 1) -> dict[str, any]:
     dynamic_specs = {'Additive': {'text': '0d0', 'txt_append': '_add'},
                      'Multiplicative': {'text': '1d0', 'txt_append': '_mul'}}
     datadict = dict()
     for dynamic in dynamics:
-        for subject in subject_numbers:
-            data = pd.read_csv(os.path.join(root_path, f'sub-{subject}_ses-lambd{dynamic_specs[dynamic]["text"]}_task-active_run-{run}_events.tsv'),sep='\t')
+        for subject in subject_ids:
+            data = pd.read_csv(os.path.join(root_path, 'data', f'sub-{subject}_ses-lambd{dynamic_specs[dynamic]["text"]}_task-active_run-{run}_events.tsv'),sep='\t')
             subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
-            subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
-            subject_df = add_info_to_df(subject_df)
+            subject_df = add_info_to_df(subject_df, subject)
 
             '''
             Append which session first (has not been decided yet)
@@ -149,17 +146,15 @@ def read_active_data_to_dict(root_path:str,
             '''
             Retrieve keypresses
             '''
-            datadict.setdefault('choice'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['response_button_map']))
+            datadict.setdefault('choice'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['selected_side_map']))
     return datadict
-    #io.savemat(os.path.join(root_path,f'all_data.mat'),datadict,oned_as='row')
-    #np.savez(os.path.join(root_path,f'all_data.mat.npz'),datadict = datadict)
 
 def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int = -25) -> list[float, any]:
-    if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
+    if x1<0 or x2<0 or x3<0 or x4<0:
         return None, None
 
-    func = lambda x : (((((w + x1)**(1-x))/(1-x) + ((w + x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
-                    -  ((((w + x3)**(1-x))/(1-x) + ((w + x4)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x)) )
+    func = lambda x : (((((x1)**(1-x))/(1-x) + ((x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
+                    -  ((((x3)**(1-x))/(1-x) + ((x4)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x)) )
 
     ##if we use fsolve:
     #from scipy.optimize import fsolve
@@ -188,7 +183,10 @@ def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
     return (np.greater_equal(max(gamble_pair[0]), max(gamble_pair[1])) and np.greater_equal(min(gamble_pair[0]), min(gamble_pair[1])) or
            np.greater_equal(max(gamble_pair[1]), max(gamble_pair[0])) and np.greater_equal(min(gamble_pair[1]), min(gamble_pair[0])) )
 
-def add_info_to_df(df:pd.DataFrame) -> pd.DataFrame:
+def add_info_to_df(df:pd.DataFrame, subject:int, choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
+    df['selected_side_map'] = df['selected_side'].map(choice_dict)
+    df['subject_id'] = [subject]*len(df)
+
     x1_1 = []
     x1_2 = []
     x2_1 = []
@@ -211,7 +209,7 @@ def add_info_to_df(df:pd.DataFrame) -> pd.DataFrame:
         root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3], trial.wealth)
         if root is not None:
             indif_etas.append(round(root,2))
-            tmp = calculate_min_v_max(root, func, trial.selected_side)
+            tmp = calculate_min_v_max(root, func, trial.selected_side_map)
             min_max_sign.append(tmp['sign'])
             min_max_color.append(tmp['color'])
             min_max_val.append(tmp['val'])
@@ -219,7 +217,6 @@ def add_info_to_df(df:pd.DataFrame) -> pd.DataFrame:
             indif_etas.append(np.nan)
             min_max_sign.append(np.nan)
             min_max_color.append(np.nan)
-            min_max_val.append(np.nan)
             min_max_val.append(np.nan)
 
     df['x1_1'] = x1_1
@@ -229,5 +226,6 @@ def add_info_to_df(df:pd.DataFrame) -> pd.DataFrame:
     df['indif_eta'] = indif_etas
     df['min_max_sign'] = min_max_sign
     df['min_max_color'] = min_max_color
-    df['min_max_cal'] = min_max_val
+    df['min_max_val'] = min_max_val
+
     return df
