@@ -90,34 +90,32 @@ def read_active_data_to_df(root_path:str,
                            dynamics:list[str],
                            subject_ids:list[int],
                            run:int = 1,
-                           choice_dict:dict = {'right': 1, 'left': 0}) -> list[dict[str,dict[int,pd.DataFrame]] , pd.DataFrame]:
-    dfs = dict()
+                           choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
     full_df = pd.DataFrame()
     for dynamic in dynamics:
         dynamic_text = {'Additive': '0d0', 'Multiplicative': '1d0'}
-        dynamic_dfs = dict()
         for subject in subject_ids:
-            data = pd.read_csv(os.path.join(root_path, f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events.tsv'),sep='\t')
-            subject_df = data[data['event_type'] == 'Response'].reset_index()
-            subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
-            dynamic_dfs[subject] = subject_df
+            data = pd.read_csv(os.path.join(root_path, 'data', f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events.tsv'),sep='\t')
+            subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
+            subject_df['response_button_map'] = subject_df['response_button'].map(choice_dict)
+            subject_df = add_info_to_df(subject_df)
             full_df = pd.concat([full_df, subject_df])
-        dfs[dynamic] = dynamic_dfs
-    return dfs, full_df
+    return full_df.reset_index(drop=True)
 
 def read_active_data_to_dict(root_path:str,
                              dynamics:list[str],
                              subject_numbers:list[int],
                              run:int = 1,
                              choice_dict:dict = {'right': 1, 'left': 0}) -> dict[str, any]:
+    dynamic_specs = {'Additive': {'text': '0d0', 'txt_append': '_add'},
+                     'Multiplicative': {'text': '1d0', 'txt_append': '_mul'}}
     datadict = dict()
     for dynamic in dynamics:
-        dynamic_specs = {'Additive':       {'text': '0d0', 'lambd': 0.0, 'txt_append': '_add'},
-                         'Multiplicative': {'text': '1d0', 'lambd': 1.0, 'txt_append': '_mul'}}
         for subject in subject_numbers:
             data = pd.read_csv(os.path.join(root_path, f'sub-{subject}_ses-lambd{dynamic_specs[dynamic]["text"]}_task-active_run-{run}_events.tsv'),sep='\t')
-            subject_df = data[data['event_type'] == 'Response'].reset_index()
+            subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
             subject_df['response_button'] = subject_df['response_button'].map(choice_dict)
+            subject_df = add_info_to_df(subject_df)
 
             '''
             Append which session first (has not been decided yet)
@@ -136,12 +134,12 @@ def read_active_data_to_dict(root_path:str,
             datadict.setdefault('gr2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['gamma_right_down']))
 
             '''
-            Transform growth dates into wealth changes
+           Retrieve wealth changes
             '''
-            datadict.setdefault('x1_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_left_up']), dynamic_specs[dynamic]['lambd']))
-            datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_left_down']), dynamic_specs[dynamic]['lambd']))
-            datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_right_up']), dynamic_specs[dynamic]['lambd']))
-            datadict.setdefault('x2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(wealth_change(np.array(subject_df['wealth']), np.array(subject_df['gamma_right_down']), dynamic_specs[dynamic]['lambd']))
+            datadict.setdefault('x1_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['x1_1']))
+            datadict.setdefault('x1_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['x1_2']))
+            datadict.setdefault('x2_1'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['x2_1']))
+            datadict.setdefault('x2_2'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['x2_2']))
 
             '''
             Retrive wealth
@@ -151,18 +149,25 @@ def read_active_data_to_dict(root_path:str,
             '''
             Retrieve keypresses
             '''
-            datadict.setdefault('choice'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['response_button']))
+            datadict.setdefault('choice'+dynamic_specs[dynamic]['txt_append'],[]).append(np.array(subject_df['response_button_map']))
     return datadict
     #io.savemat(os.path.join(root_path,f'all_data.mat'),datadict,oned_as='row')
     #np.savez(os.path.join(root_path,f'all_data.mat.npz'),datadict = datadict)
 
-def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int) -> list[float, any]:
+def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int = -25) -> list[float, any]:
     if w+x1<0 or w+x2<0 or w+x3<0 or w+x4<0:
         return None, None
 
-    func = lambda x : (((((w+x1)**(1-x))/(1-x) + ((w+x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
-                    - ((((w+x3)**(1-x))/(1-x) + ((w+x4)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x)) )
-    for i,x in enumerate(np.linspace(left,100,1000)):
+    func = lambda x : (((((w + x1)**(1-x))/(1-x) + ((w + x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
+                    -  ((((w + x3)**(1-x))/(1-x) + ((w + x4)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x)) )
+
+    ##if we use fsolve:
+    #from scipy.optimize import fsolve
+    #root_initial_guess = -20
+    #root = fsolve(func, root_initial_guess)
+    #return root, func
+
+    for i,x in enumerate(np.linspace(left,50,1000)):
         if x == 1:
             continue
         tmp = func(x)
@@ -178,8 +183,51 @@ def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
     else:
         return {'color':'orange','sign':'>', 'val': 0} if choice==0 else {'color':'b','sign':'<', 'val': 1}
 
-def is_statewise_dominated(gamble_pair) -> bool:
+def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
     """Decision if a gamble is strictly statewise dominated by the other gamble in a gamble pair"""
     return (np.greater_equal(max(gamble_pair[0]), max(gamble_pair[1])) and np.greater_equal(min(gamble_pair[0]), min(gamble_pair[1])) or
            np.greater_equal(max(gamble_pair[1]), max(gamble_pair[0])) and np.greater_equal(min(gamble_pair[1]), min(gamble_pair[0])) )
 
+def add_info_to_df(df:pd.DataFrame) -> pd.DataFrame:
+    x1_1 = []
+    x1_2 = []
+    x2_1 = []
+    x2_2 = []
+    indif_etas = []
+    min_max_sign = []
+    min_max_color = []
+    min_max_val = []
+    for _, ii in enumerate(df.index):
+        trial = df.loc[ii, :]
+        x_updates = wealth_change(x=trial.wealth,
+                                  gamma=[trial.gamma_left_up, trial.gamma_left_down,
+                                        trial.gamma_right_up, trial.gamma_right_down],
+                                        lambd=trial.eta)
+        x1_1.append(x_updates[0] - trial.wealth)
+        x1_2.append(x_updates[1] - trial.wealth)
+        x2_1.append(x_updates[2] - trial.wealth)
+        x2_2.append(x_updates[3] - trial.wealth)
+
+        root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3], trial.wealth)
+        if root is not None:
+            indif_etas.append(round(root,2))
+            tmp = calculate_min_v_max(root, func, trial.selected_side)
+            min_max_sign.append(tmp['sign'])
+            min_max_color.append(tmp['color'])
+            min_max_val.append(tmp['val'])
+        else:
+            indif_etas.append(np.nan)
+            min_max_sign.append(np.nan)
+            min_max_color.append(np.nan)
+            min_max_val.append(np.nan)
+            min_max_val.append(np.nan)
+
+    df['x1_1'] = x1_1
+    df['x1_2'] = x1_2
+    df['x2_1'] = x2_1
+    df['x2_2'] = x2_2
+    df['indif_eta'] = indif_etas
+    df['min_max_sign'] = min_max_sign
+    df['min_max_color'] = min_max_color
+    df['min_max_cal'] = min_max_val
+    return df
