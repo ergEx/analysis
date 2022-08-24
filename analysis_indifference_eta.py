@@ -106,4 +106,4 @@ for dynamic_idx, dynamic in enumerate(set(df.eta)):
 plt.tight_layout()
 plt.show()
 
-df.to_csv(os.path.join(root_path, 'data', 'logistic_regression_output.csv'), sep='\t')
+df_output.to_csv(os.path.join(root_path, 'data', 'logistic_regression_output.csv'), sep='\t')
