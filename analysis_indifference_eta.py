@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -108,3 +109,4 @@ plt.tight_layout()
 plt.show()
 
 df_output.to_csv(os.path.join(root_path, 'data', 'logistic_regression_output.csv'), sep='\t')
+df_output.to_csv(os.path.join(root_path, 'data', 'backup', f'logistic_regression_output{datetime.now().strftime("%Y%m%d-%H%M%S")}.csv'), sep='\t')
