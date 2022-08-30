@@ -58,10 +58,11 @@ plt.show()
 df = df.query('indif_eta.notnull()', engine='python')
 #Logistic regression
 fig_subject, ax_subject = plt.subplots(len(set(df.subject_id)),len(set(df.eta)),figsize = (12,5))
-df_output = pd.DataFrame(columns=('Subject','Dynamic','Risk_aversion_estimate'))
+df_output = pd.DataFrame(columns=('Subject','Risk_aversion_estimate_add','Risk_aversion_estimate_mul'))
 
-for dynamic_idx, dynamic in enumerate(set(df.eta)):
-    for subject_idx, subject in enumerate(set(df.subject_id)):
+for subject_idx, subject in enumerate(set(df.subject_id)):
+    risk_aversion_estimate = dict()
+    for dynamic_idx, dynamic in enumerate(set(df.eta)):
         df_tmp = df.query('eta == @dynamic and subject_id == @subject').reset_index(drop=True)
         df_tmp = df_tmp.sort_values(by=['indif_eta'])
         x = np.array(df_tmp.indif_eta)
@@ -73,12 +74,12 @@ for dynamic_idx, dynamic in enumerate(set(df.eta)):
         pred = model.predict(X_test)
         se = np.sqrt(np.array([xx@model.cov_params()@xx for xx in X_test]))
 
-        df_results = pd.DataFrame({'x':x_test, 'pred':pred, 'ymin': expit(logit(pred) - 1.96*se), 'ymax': expit(logit(pred) + 1.96*se)})
+        tmp = {'x':x_test, 'pred':pred, 'ymin': expit(logit(pred) - 1.96*se), 'ymax': expit(logit(pred) + 1.96*se)}
 
-        ax_subject[subject_idx,dynamic_idx].fill_between(x_test, df_results.ymin, df_results.ymax, where=df_results.ymax >= df_results.ymin,
+        ax_subject[subject_idx,dynamic_idx].fill_between(x_test, tmp['ymin'], tmp['ymax'], where=tmp['ymax'] >= tmp['ymin'],
                  facecolor='grey', interpolate=True, alpha=0.5,label='95 % confidence interval')
 
-        ax_subject[subject_idx,dynamic_idx].plot(df_results.x,df_results.pred,color='black')
+        ax_subject[subject_idx,dynamic_idx].plot(tmp['x'],tmp['pred'],color='black')
 
         sns.regplot(x=x,
                     y=y,
@@ -100,9 +101,9 @@ for dynamic_idx, dynamic in enumerate(set(df.eta)):
                                                 xlabel = 'Indifference eta',
                                                 yticks = [0, 0.5, 1],
                                                 ylim = (-0.25, 1.25))
-
-        new_row = {'Subject':subject,'Dynamic':dynamic,'Risk_aversion_estimate':-model.params[0]/model.params[1]}
-        df_output = df_output.append(new_row, ignore_index=True)
+        risk_aversion_estimate[dynamic] = -model.params[0]/model.params[1]
+    new_row = {'Subject':subject,'Risk_aversion_estimate_add':risk_aversion_estimate[0.0],'Risk_aversion_estimate_mul':risk_aversion_estimate[1.0]}
+    df_output = df_output.append(new_row, ignore_index=True)
 plt.tight_layout()
 plt.show()
 
