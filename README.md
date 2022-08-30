@@ -31,10 +31,9 @@
 - [X] Create framework to get MAP estimates
 - [X] Create framework to plot distributions
 - [ ] Split plots into seperate for each parameter for each condition
-  - [ ] eta: for eta_mul add etaM to eta
-  - [ ] etaM: Mainly a check that it is 0 for additive
+  - [X] eta: for eta_mul add etaM to eta
   - [ ] beta
-- [ ] Create JASP file with t-test on etaM
+- [X] Create JASP file with t-test on eta
 
 #### Step 4
 - [ ] Check model selection from HLM (step 4) runs
