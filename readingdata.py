@@ -9,22 +9,25 @@ import scipy.io
 import utils
 
 root_path = os.path.join(os.path.dirname(__file__),)
-subject_ids = [0,1]
-dynamics = ['Additive','Multiplicative']
+design_variant = 'test'
+condition_specs = {'condition':['Multiplicative','Additive'], 'lambda':[1,0], 'bids_text': ['1d0','0d0']}
+subject_specs = {'id':['000','001','002','003','004','005','006','007'], 'first_run': [[0,1],[0,1],[0,1],[0,1],[0,1],[0,1],[0,1]]}
 run = 1
 
 #CSV
 df = pd.DataFrame()
-for dynamic in dynamics:
-    dynamic_text = {'Additive': '0d0', 'Multiplicative': '1d0'}
-    for subject in subject_ids:
-        data = pd.read_csv(os.path.join(root_path, 'data','experiment_output',f'sub-{subject}_ses-lambd{dynamic_text[dynamic]}_task-active_run-{run}_events.tsv'),sep='\t')
-        subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
+for c,condition in enumerate(condition_specs['dynamic']):
+    for i,subject in enumerate(subject_specs['id']):
+        data = pd.read_csv(os.path.join(root_path, 'data','experiment_output',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i]}',f'sub-{subject}_ses-{subject_specs["first_run"][i]}_task-active_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
 
+        subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
         subject_df = utils.add_info_to_df(subject_df, subject)
         df = pd.concat([df, subject_df])
 df.to_csv(os.path.join(root_path, 'data', 'all_data.csv'), sep='\t')
 
+import sys
+
+sys.exit(1)
 #.mat
 dynamic_specs = {'Additive': {'text': '0d0', 'txt_append': '_add'},
                  'Multiplicative': {'text': '1d0', 'txt_append': '_mul'}}
