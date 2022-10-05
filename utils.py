@@ -90,23 +90,25 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int = 
     if x1<0 or x2<0 or x3<0 or x4<0:
         return None, None
 
-    func = lambda x : (((((x1)**(1-x))/(1-x) + ((x2)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x))
-                    -  ((((x3)**(1-x))/(1-x) + ((x4)**(1-x))/(1-x))/2 - ((w)**(1-x))/(1-x)) )
+    func = lambda x : (((((x1)**(1-x)-1)/(1-x) + ((x2)**(1-x)-1)/(1-x))/2 - ((w)**(1-x)-1)/(1-x))
+                    -  ((((x3)**(1-x)-1)/(1-x) + ((x4)**(1-x)-1)/(1-x))/2 - ((w)**(1-x)-1)/(1-x)) )
 
     ##if we use fsolve:
     #from scipy.optimize import fsolve
     #root_initial_guess = -20
     #root = fsolve(func, root_initial_guess)
     #return root, func
-
-    for i,x in enumerate(np.linspace(left,50,1000)):
-        if x == 1:
-            continue
-        tmp = func(x)
-        if i == 0 or np.sign(prev) == np.sign(tmp):
-            prev = tmp
-        else:
-            return x, func
+    try:
+        for i,x in enumerate(np.linspace(left,50,1000)):
+            if x == 1:
+                continue
+            tmp = func(x)
+            if i == 0 or np.sign(prev) == np.sign(tmp):
+                prev = tmp
+            else:
+                return x, func
+    except:
+        return None, None
 
 def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
     dx = misc.derivative(func,root)
