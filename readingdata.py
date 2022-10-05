@@ -11,7 +11,7 @@ import utils
 root_path = os.path.join(os.path.dirname(__file__),)
 design_variant = 'test'
 condition_specs = {'condition':['Multiplicative','Additive'], 'lambda':[1,0], 'bids_text': ['1d0','0d0'],'txt_append':['_mul','_add']}
-subject_specs = {'id':['000','001','002','003','004','005','006','007'], 'first_run': [[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]}
+subject_specs = {'id':['000','001','002','003','004','005','006','007'], 'first_run':[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]}
 run = 1
 
 #CSV
@@ -19,8 +19,6 @@ df = pd.DataFrame()
 datadict = dict()
 for c,condition in enumerate(condition_specs['condition']):
     for i,subject in enumerate(subject_specs['id']):
-        print(condition,subject)
-        print(root_path, 'data','experiment_output',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-active_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv')
         data = pd.read_csv(os.path.join(root_path, 'data','experiment_output',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-active_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
 
         subject_df = data.query('event_type == "WealthUpdate"').reset_index(drop=True)
@@ -63,6 +61,6 @@ for c,condition in enumerate(condition_specs['condition']):
         Retrieve keypresses
         '''
         datadict.setdefault(f'choice{condition_specs["txt_append"][c]}',[]).append(np.array(subject_df['selected_side_map']))
-df.to_csv(os.path.join(root_path, 'data','experiment_output',design_variant, 'all_data.csv'), sep='\t')
+df.to_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_data.csv'),sep='\t')
 scipy.io.savemat(os.path.join(os.path.join(root_path,'data','experiment_output',design_variant,'all_data.mat')),datadict,oned_as='row')
 np.savez(os.path.join(os.path.join(root_path,'data','experiment_output',design_variant,'all_data.mat.npz')),datadict = datadict)
