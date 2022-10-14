@@ -36,7 +36,7 @@ for c,condition in enumerate(condition_specs['condition']):
         subject_df = utils.add_info_to_df(subject_df, subject)
 
         ##CSV
-        active_phase_ = pd.concat([active_phase_df, subject_df])
+        active_phase_df = pd.concat([active_phase_df, subject_df])
 
         ##.mat
 
