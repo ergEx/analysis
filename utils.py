@@ -86,12 +86,12 @@ def wealth_change(x:np.array, gamma:np.array, lambd:float) -> np.ndarray:
 
     return inverse_isoelastic_utility(isoelastic_utility(x, lambd) + gamma, lambd)
 
-def indiference_eta(x1:float, x2:float, x3:float, x4:float, w:float, left:int = -25) -> list[float, any]:
+def indiference_eta(x1:float, x2:float, x3:float, x4:float, left:int = -25) -> list[float, any]:
     if x1<0 or x2<0 or x3<0 or x4<0:
         return None, None
 
-    func = lambda x : (((((x1)**(1-x)-1)/(1-x) + ((x2)**(1-x)-1)/(1-x))/2 - ((w)**(1-x)-1)/(1-x))
-                    -  ((((x3)**(1-x)-1)/(1-x) + ((x4)**(1-x)-1)/(1-x))/2 - ((w)**(1-x)-1)/(1-x)) )
+    func = lambda x : ((isoelastic_utility(x1,x) + isoelastic_utility(x2,x))
+                     - (isoelastic_utility(x3,x) + isoelastic_utility(x4,x))/2)
 
     ##if we use fsolve:
     #from scipy.optimize import fsolve
@@ -145,7 +145,7 @@ def add_info_to_df(df:pd.DataFrame, subject:int, choice_dict:dict = {'right': 1,
         x2_1.append(x_updates[2] - trial.wealth)
         x2_2.append(x_updates[3] - trial.wealth)
 
-        root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3], trial.wealth)
+        root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3])
         if root is not None:
             indif_etas.append(round(root,2))
             tmp = calculate_min_v_max(root, func, trial.selected_side_map)
