@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 from scipy import misc
+from scipy.optimize import fsolve
 
 
 def isoelastic_utility(x:np.ndarray, eta:float) -> np.ndarray:
@@ -18,8 +19,6 @@ def isoelastic_utility(x:np.ndarray, eta:float) -> np.ndarray:
         utilites if wealth is less or equal to zero, smallest possible utility,
         i.e., specicfic lower bound is returned.
     """
-    if eta > 1:
-        return ValueError("Not implemented for eta > 1!")
 
     if np.isscalar(x):
         x = np.asarray((x, ))
@@ -86,29 +85,28 @@ def wealth_change(x:np.array, gamma:np.array, lambd:float) -> np.ndarray:
 
     return inverse_isoelastic_utility(isoelastic_utility(x, lambd) + gamma, lambd)
 
-def indiference_eta(x1:float, x2:float, x3:float, x4:float, left:int = -25) -> list[float, any]:
+def indiference_eta(x1:float, x2:float, x3:float, x4:float) -> list:
+    """Calculates indiference_etas for gamble pairs, ie. at which riskaversion is an agent indifferent between the choices
+    Args:
+        x1 (float): after trial wealth if upper left is realized
+        x2 (float): after trial wealth if lower left is realized
+        x3 (float): after trial wealth if upper right is realized
+        x4 (float): after trial wealth if lower right is realized
+
+    Returns:
+        Indifference eta (float).
+    """
     if x1<0 or x2<0 or x3<0 or x4<0:
+        print(x1,x2,x3,x4)
         return None, None
+        raise ValueError(f"Isoelastic utility function not defined for negative values")
 
-    func = lambda x : ((isoelastic_utility(x1,x) + isoelastic_utility(x2,x))
-                     - (isoelastic_utility(x3,x) + isoelastic_utility(x4,x))/2)
+    func = lambda x : ((isoelastic_utility(x1,x)+ isoelastic_utility(x2,x)) / 2
+                     - (isoelastic_utility(x3,x)+ isoelastic_utility(x4,x)) / 2)
+    root_initial_guess = -20
+    root = fsolve(func, root_initial_guess)
 
-    ##if we use fsolve:
-    #from scipy.optimize import fsolve
-    #root_initial_guess = -20
-    #root = fsolve(func, root_initial_guess)
-    #return root, func
-    try:
-        for i,x in enumerate(np.linspace(left,50,1000)):
-            if x == 1:
-                continue
-            tmp = func(x)
-            if i == 0 or np.sign(prev) == np.sign(tmp):
-                prev = tmp
-            else:
-                return x, func
-    except:
-        return None, None
+    return root, func
 
 def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
     dx = misc.derivative(func,root)
@@ -147,8 +145,8 @@ def add_info_to_df(df:pd.DataFrame, subject:int, choice_dict:dict = {'right': 1,
 
         root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3])
         if root is not None:
-            indif_etas.append(round(root,2))
-            tmp = calculate_min_v_max(root, func, trial.selected_side_map)
+            indif_etas.append(round(root[0],2))
+            tmp = calculate_min_v_max(root[0], func, trial.selected_side_map)
             min_max_sign.append(tmp['sign'])
             min_max_color.append(tmp['color'])
             min_max_val.append(tmp['val'])
