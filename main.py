@@ -5,13 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import statsmodels.api
-from mpl_toolkits import mplot3d
-from scipy.special import expit, logit
-from sklearn.metrics import confusion_matrix
-from statsmodels.tools import add_constant
+
+from utils import logistic_regression
 
 RESET = 45
+n_passive_runs = 3
 root_path = os.path.dirname(__file__)
 design_variant = 'test'
 
@@ -20,34 +18,31 @@ condition_specs = {0.0:'Additive', 1.0:'Multiplicative'}
 passive_phase_df = pd.read_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_passive_phase_data.csv'), sep='\t')
 active_phase_df = pd.read_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_active_phase_data.csv'), sep='\t')
 
-logistic_regression_outout = pd.DataFrame(columns=['Subject',
-                                                   'Risk_aversion_estimate_Additive_low_conf',
-                                                   'Risk_aversion_estimate_Additive',
-                                                   'Risk_aversion_estimate_Additive_upper_conf',
-                                                   'Risk_aversion_estimate_Multiplicative_low_conf',
-                                                   'Risk_aversion_estimate_Multiplicative',
-                                                   'Risk_aversion_estimate_Multiplicative_upper_conf'])
+logistic_regression_input = np.empty([len(set(passive_phase_df['participant_id'])),7])
 
-for c,condition in enumerate(set(passive_phase_df['eta'])):
-    for i,subject in enumerate(set(passive_phase_df['participant_id'])):
-        save_path = os.path.join(root_path, 'figs', design_variant, str(subject))
-        if not os.path.isdir(save_path):
-            os.makedirs(save_path)
+save_path = os.path.join(root_path, 'figs', design_variant)
+if not os.path.isdir(save_path):
+    os.makedirs(save_path)
+
+for i,subject in enumerate(set(passive_phase_df['participant_id'])):
+    logistic_regression_input[i,0] = subject
+    fig, ax = plt.subplots(2,9, figsize=(20,7))
+    fig.suptitle('Subject {subject}')
+    for c,condition in enumerate(condition_specs.keys()):
+        ax[c,0].text(1, 3, f'{condition_specs[condition]}',fontsize = 14, rotation=45)
+        ax[c,0].set(xlim =(0, 8), ylim =(0, 8))
+        ax[c,0].axis('off')
 
         '''PASIVE PHASE'''
         passive_subject_df = passive_phase_df.query('participant_id == @subject and eta == @condition').reset_index(drop=True)
-        fig, ax = plt.subplots(1,1)
-        ax.plot(passive_subject_df.trial, passive_subject_df.wealth)
-        ax.set(title=f'Passive phase \nSubject {subject}, Condition: {condition_specs[condition]}',
+        ax[c,1].plot(passive_subject_df.trial, passive_subject_df.wealth)
+        ax[c,1].set(title=f'Passive wealth',
                xlabel='Trial',
                ylabel='Wealth')
-        for reset_idx in range(1,4):
-            ax.axvline(x=RESET*reset_idx,color='grey',linestyle='--')
-        ax.plot([], label="Reset",color='grey',linestyle='--')
-        ax.legend()
-
-        fig.savefig(os.path.join(save_path, f'Passive_trajectory_{condition_specs[condition]}.png'))
-        plt.close(fig)
+        for reset_idx in range(1,n_passive_runs):
+            ax[c,1].axvline(x=RESET*reset_idx,color='grey',linestyle='--')
+        ax[c,1].plot([], label="Reset",color='grey',linestyle='--')
+        ax[c,1].legend()
 
         '''ACTIVE PHASE'''
         active_subject_df = active_phase_df.query('no_response != True and participant_id == @subject and eta == @condition').reset_index(drop=True)
@@ -61,98 +56,92 @@ for c,condition in enumerate(set(passive_phase_df['eta'])):
                   or active_subject_df.var1_2[i] < active_subject_df.var3_4[i] and active_subject_df.selected_side_map[i] == 1) else 0 for i in range(len(active_subject_df))]
         active_subject_df['choose_high_variance'] = tmp
 
+        #Active trajectory
+        ax[c,2].plot(active_subject_df.trial, active_subject_df.wealth)
+        ax[c,2].set(title=f'Active wealth',
+               xlabel='Trial',
+               ylabel='Wealth')
+
+        #Additive choice probabilities
+        '''NOT IMPLEMENTED'''
+        ax[c,3].plot()
+        ax[c,3].set(title=f'Add choice prob')
+
+        #Multiplicative choice probabilities
+        '''Not IMPLEMENTED'''
+        ax[c,4].plot()
+        ax[c,4].set(title=f'Mul choice prob')
+
         #Indifference eta plots
-        fig, ax = plt.subplots(1,1)
         for ii, choice in enumerate(active_subject_df['selected_side_map']):
             trial = active_subject_df.loc[ii,:]
             if np.isnan(trial.indif_eta):
                 continue
 
-            ax.axvline(condition, linestyle='--', linewidth=1, color='k')
+            ax[c,5].axvline(condition, linestyle='--', linewidth=1, color='k')
 
-            ax.plot(trial.indif_eta, ii, marker=trial.min_max_sign, color=trial.min_max_color)
+            ax[c,5].plot(trial.indif_eta, ii, marker=trial.min_max_sign, color=trial.min_max_color)
 
-            ax.set(title = f'Indifference eta \nSubject {subject}, Condition: {condition_specs[condition]}',
+            ax[c,5].set(title = f'Indifference eta',
                    xlabel = 'Riskaversion ($\eta$)')
 
-            ax.axes.yaxis.set_visible(False)
+            ax[c,5].axes.yaxis.set_visible(False)
 
-        fig.savefig(os.path.join(save_path, f'Indifference_eta_{condition_specs[condition]}.png'))
-        ax.set_xlim([-2,3])
-        fig.savefig(os.path.join(save_path, f'Indifference_eta_zoom_{condition_specs[condition]}.png'))
-        plt.close(fig)
+        #Choice probabilities in different indifference eta regions
+        ax[c,6].plot()
+        ax[c,6].set(title=f'Indif eta choice prob.')
 
         #Indifference eta logistic regression
-        fig, ax = plt.subplots(1,1)
+
         df_tmp = active_subject_df.query('indif_eta.notnull()', engine='python')
-        model = statsmodels.api.Logit(np.array(df_tmp.min_max_val), add_constant(np.array(df_tmp.indif_eta))).fit(disp=0)
-        x_test = np.linspace(min(df_tmp.indif_eta), max(df_tmp.indif_eta), len(df_tmp.indif_eta)*5)
-        X_test = add_constant(x_test)
-        pred = model.predict(X_test)
-        se = np.sqrt(np.array([xx@model.cov_params()@xx for xx in X_test]))
 
-        tmp = {'x':x_test, 'pred':pred, 'ymin': expit(logit(pred) - 1.96*se), 'ymax': expit(logit(pred) + 1.96*se)}
+        x_test, pred, ymin, ymax, idx_m, idx_l, idx_h = logistic_regression(df_tmp)
 
-        ax.fill_between(x_test, tmp['ymin'], tmp['ymax'], where=tmp['ymax'] >= tmp['ymin'],
+
+        ax[c,7].fill_between(x_test, ymin, ymax, where=ymax >= ymin,
                     facecolor='grey', interpolate=True, alpha=0.5,label='95 % confidence interval')
 
-        ax.plot(tmp['x'],tmp['pred'],color='black')
+        ax[c,7].plot(x_test,pred,color='black')
 
         sns.regplot(x=np.array(df_tmp.indif_eta),
                     y=np.array(df_tmp.min_max_val),
                     fit_reg=False,
                     y_jitter=0.05,
-                    ax=ax,
+                    ax=ax[c,7],
                     label='data',
                     color='grey',
                     scatter_kws={'alpha': 1, 's':20})
 
-        ax.axhline(y=0.5,color='grey',linestyle='--')
+        ax[c,7].axhline(y=0.5,color='grey',linestyle='--')
 
-        ax.set(title=f'Subject {subject}, dynamic = {condition_specs[condition]}',
-               ylabel = 'y',
+        ax[c,7].set(title=f'Logistic regression',
+               ylabel = '',
                xlabel = 'Indifference eta',
                yticks = [0, 0.5, 1],
                ylim = (-0.25, 1.25))
 
-        fig.savefig(os.path.join(save_path, f'Indifference_eta_logistic_regression_{condition_specs[condition]}.png'))
-        ax.set_xlim([-3,4])
-        fig.savefig(os.path.join(save_path, f'Indifference_eta_logistic_regression_zoom_{condition_specs[condition]}.png'))
-        plt.close(fig)
+        logistic_regression_input[i,3*c+1] = x_test[idx_h]
+        logistic_regression_input[i,3*c+2] = x_test[idx_m]
+        logistic_regression_input[i,3*c+3] = x_test[idx_l]
 
-        idx_m = min([i for i in range(len(tmp['pred'])) if tmp['pred'][i] > 0.5]) if len([i for i in range(len(tmp['pred'])) if tmp['pred'][i] > 0.5]) > 0 else len(tmp['x']) -1
-        idx_l = min([i for i in range(len(tmp['ymin'])) if tmp['ymin'][i] > 0.5]) if len([i for i in range(len(tmp['ymin'])) if tmp['ymin'][i] > 0.5]) > 0 else len(tmp['x']) -1
-        idx_h = min([i for i in range(len(tmp['ymax'])) if tmp['ymax'][i] > 0.5]) if len([i for i in range(len(tmp['ymax'])) if tmp['ymax'][i] > 0.5]) > 0 else len(tmp['x']) -1
+        #HLM model
+        '''NOT IMPLEMENTED'''
+        ax[c,8].plot()
+        ax[c,8].set(title=f'HLM model')
+        if not os.path.isfile(os.path.join(root_path,'data','experiment_output',design_variant,'bayesian_model_output')):
+            print('HLM mordel output not found!')
+            continue
 
-        if c == 0:
-            logistic_regression_outout.loc[i] = pd.Series(dtype=float)
-        logistic_regression_outout.at[i,'Subject'] = subject
-        logistic_regression_outout.at[i,f'Risk_aversion_estimate_{condition_specs[condition]}_low_conf'] = tmp['x'][idx_h]
-        logistic_regression_outout.at[i,f'Risk_aversion_estimate_{condition_specs[condition]}'] = tmp['x'][idx_m]
-        logistic_regression_outout.at[i,f'Risk_aversion_estimate_{condition_specs[condition]}_upper_conf'] = tmp['x'][idx_l]
-
-        #Two variable logistic regression
-        model =  statsmodels.api.Logit(active_subject_df[['choose_high_variance']], active_subject_df[['dEV', 'dvar' ]]).fit()
-
-        pred = model.predict(active_subject_df[['dEV', 'dvar' ]])
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        xline = np.linspace(min(active_subject_df.dEV), max(active_subject_df.dEV), len(active_subject_df.dEV))
-        yline = np.linspace(min(active_subject_df.dvar),max(active_subject_df.dvar),len(active_subject_df.dvar))
-        zline = pred
-        ax.plot3D(xline, yline, zline, 'gray')
-        ax.set(title = f'Subject {subject}, dynamic = {condition_specs[condition]}',
-               xlabel = '$\Delta$EV',
-               ylabel = '$\Delta$var',
-               zlabel = 'Choice probability',
-               zlim = [0,1])
-        fig.savefig(os.path.join(save_path, f'two_variable_logistic_regression_{condition_specs[condition]}.png'))
-
-        #Signal detection
-        df_tmp = active_subject_df.query('response_time_optimal.notnull() and response_time_optimal != 0', engine='python')
-        conf_matrix = confusion_matrix(df_tmp.response_time_optimal.map({-1:0,1:1}), df_tmp.selected_side_map)
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_path, f'Subject {subject}'))
 
 
-
+logistic_regression_outout = pd.DataFrame(logistic_regression_input,
+                                          columns=['Subject',
+                                                   'Risk_aversion_estimate_Additive_low_conf',
+                                                   'Risk_aversion_estimate_Additive',
+                                                   'Risk_aversion_estimate_Additive_upper_conf',
+                                                   'Risk_aversion_estimate_Multiplicative_low_conf',
+                                                   'Risk_aversion_estimate_Multiplicative',
+                                                   'Risk_aversion_estimate_Multiplicative_upper_conf'])
 logistic_regression_outout.to_csv(os.path.join(root_path,'data','experiment_output',design_variant, 'logistic_regression_output.csv'), sep='\t')
