@@ -20,7 +20,7 @@ datadict = dict()
 for c,condition in enumerate(condition_specs['condition']):
     for i,subject in enumerate(subject_specs['id']):
         '''Passive phase data'''
-        for run in range(1,5):
+        for run in range(1,n_passive_runs):
             passive_phase_data = pd.read_csv(os.path.join(root_path, 'data','experiment_output',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-passive_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
 
             subject_df = passive_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
