@@ -2,8 +2,11 @@ import os
 
 import numpy as np
 import pandas as pd
+import statsmodels.api
 from scipy import misc
 from scipy.optimize import fsolve
+from scipy.special import expit, logit
+from statsmodels.tools import add_constant
 
 
 def isoelastic_utility(x:np.ndarray, eta:float) -> np.ndarray:
@@ -166,3 +169,19 @@ def add_info_to_df(df:pd.DataFrame, subject:int, choice_dict:dict = {'right': 1,
     df['min_max_val'] = min_max_val
 
     return df
+
+def logistic_regression(df):
+    model = statsmodels.api.Logit(np.array(df.min_max_val), add_constant(np.array(df.indif_eta))).fit(disp=0)
+    x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), len(df.indif_eta)*5)
+    X_test = add_constant(x_test)
+    pred = model.predict(X_test)
+    se = np.sqrt(np.array([xx@model.cov_params()@xx for xx in X_test]))
+
+    ymin = expit(logit(pred) - 1.96*se)
+    ymax = expit(logit(pred) + 1.96*se)
+
+    idx_m = min([i for i in range(len(pred)) if pred[i] > 0.5]) if len([i for i in range(len(pred)) if pred[i] > 0.5]) > 0 else len(x_test) -1
+    idx_l = min([i for i in range(len(ymin)) if ymin[i] > 0.5]) if len([i for i in range(len(ymin)) if ymin[i] > 0.5]) > 0 else len(x_test) -1
+    idx_h = min([i for i in range(len(ymax)) if ymax[i] > 0.5]) if len([i for i in range(len(ymax)) if ymax[i] > 0.5]) > 0 else len(x_test) -1
+
+    return x_test, pred, ymin, ymax, idx_m, idx_l, idx_h
