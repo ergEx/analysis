@@ -1,4 +1,4 @@
-function computeHLM(runModelNum,synthMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir)
+function computeHLM(runModelNum,dataMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -8,7 +8,7 @@ function computeHLM(runModelNum,synthMode,nBurnin,nSamples,nThin,nChains,subjLis
 % takes as input the following:
 
 % runModelNum - set which model to run; parameter estimation (1) or model selection (2)
-% synthMode   - sets whether to run on real data (1) or synthetic data for parameter recovery (2-3; see setHLM.m for info on differences)
+% synthMode   - sets which data to run on; see setHLM.m for info on differences
 % nBurnin     - specifies how many burn in samples to run
 % nSamples    - specifies the number of samples to run
 % nThin       - specifies the thinnning number
@@ -17,38 +17,37 @@ function computeHLM(runModelNum,synthMode,nBurnin,nSamples,nThin,nChains,subjLis
 % whichJAGS   - sets which copy of matjags to run
 % doParallel  - sets whether to run chains in parallel
 % startDir    - root directory for the repo
+% dataVersion - which experimental setup the data comes from 
 
 %% Set paths
 cd(startDir);%move to starting directory
+matjagsdir=fullfile(startDir,'/HLM_utils/matjags');
+addpath(matjagsdir)
 jagsDir=fullfile(startDir,'/HLM_utils/JAGS');
-dataDir=fullfile(startDir,'/data');
+addpath(jagsDir)
+dataDir=fullfile(startDir,'/data',dataVersion);
+addpath(dataDir)
 samplesDir=[startDir,'/data/samples_stats'];
 
 %% Choose & load data
-switch synthMode
+switch dataMode
     case {1}
-        data = 'all_data.mat';
-        nTrials = 299;
-    case {2}
-        data = 'synth_data_model_recovery.mat';
-        nTrials = 243;
-    case {3}
-        data = 'synth_data_parameter_recovery'
+        data = ;
 end
+load('all_active_phase_data.mat')
 
 %% Choose JAGS file
 switch runModelNum
     case {1}
-        modelName = 'JAGS_parameter_recovery';
+        modelName = 'JAGS_parameter_estimation';
     case {2,4}
         modelName = 'JAGS_model_selection';
 end
 
 %% Set key variables
-nTrials=90 #number of trials
 nConditions=2;%number of dynamics
 doDIC=0;%compute Deviance information criteria? This is the hierarchical equivalent of an AIC, the lower the better
-nSubjects=length(subjList);%number of subjects
+nSubjects=length(subjList{1});%number of subjects
 
 %% Set bounds of hyperpriors
 %hard code the upper and lower bounds of hyperpriors, typically uniformly
@@ -76,7 +75,7 @@ disp('**************');
 
 %% Initialise matrices
 %initialise matrices with nan values of size subjects x conditions x trials
-dim = nan(nSubjects,nDynamics,nTrials); %specify the dimension
+dim = nan(nSubjects,nConditions,nTrials); %specify the dimension
 choice = dim; %initialise choice data matrix
 g1=dim; g2=dim; g3=dim; g4=dim;%initialise growth-rates
 w=dim;%initialise wealth
@@ -88,35 +87,34 @@ w=dim;%initialise wealth
 %allows jags to work since doesn't work for partial observation. This does not affect
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
 
-for i = 1:nSubjects
-    for c = 1:nDynamics
-        trialInds=1:nTrials;
-        switch c
-            case {1} %eta = 0
-                choice(i,c,trialInds)=choice_add{i}(trialInds);
-                dx1(i,c,trialInds)=dx1_add{i}(trialInds);%wealth change for outcome 1
-                dx2(i,c,trialInds)=dx2_add{i}(trialInds);%same for outcome 2 etc.
-                dx3(i,c,trialInds)=dx3_add{i}(trialInds);
-                dx4(i,c,trialInds)=dx4_add{i}(trialInds);
-                w(i,c,trialInds) = wealth{i}(trialInds);
+for c = 1:nConditions
+    trialInds=1:nTrials;
+    switch c
+        case {1} %eta = 0
+            choice(:,c,trialInds)=choice_add(:,trialInds);
+            g1(:,c,trialInds)=gr1_1_add(:,trialInds);%wealth change for outcome 1
+            g2(:,c,trialInds)=gr1_2_add(:,trialInds);%same for outcome 2 etc.
+            g3(:,c,trialInds)=gr2_1_add(:,trialInds);
+            g4(:,c,trialInds)=gr2_2_add(:,trialInds);
+            w(:,c,trialInds) = wealth_add(:,trialInds);
 
-            case {2}% eta=1
-                choice(i,c,trialInds)=choice_mul{i}(trialInds);
-                dx1(i,c,trialInds)=dx1_mul{i}(trialInds);%assign changes in wealth dx for outcome 1
-                dx2(i,c,trialInds)=dx2_mul{i}(trialInds);%same for outcome 2 etc.
-                dx3(i,c,trialInds)=dx3_mul{i}(trialInds);
-                dx4(i,c,trialInds)=dx4_mul{i}(trialInds);
-                w(i,c,trialInds) = wealth{i}(trialInds);
-        end %switch
-    end %c
-end %i
+        case {2}% eta=1
+            choice(:,c,trialInds)=choice_mul(:,trialInds);
+            g1(:,c,trialInds)=gr1_1_mul(:,trialInds);%assign changes in wealth dx for outcome 1
+            g2(:,c,trialInds)=gr1_2_mul(:,trialInds);%same for outcome 2 etc.
+            g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
+            g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
+            w(:,c,trialInds) = wealth_mul(:,trialInds);
+    end %switch
+end %c
 
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
-disp([num2str(length(find(isnan(dx1)))),'_nans in gambles 1 matrix'])% nans in gamble matrices do, since model will not run
-disp([num2str(length(find(isnan(dx2)))),'_nans in gambles 2 matrix'])
-disp([num2str(length(find(isnan(dx3)))),'_nans in gambles 3 matrix'])
-disp([num2str(length(find(isnan(dx4)))),'_nans in gambles 4 matrix'])
+disp([num2str(length(find(isnan(g1)))),'_nans in gambles 1 matrix'])% nans in gamble matrices do, since model will not run
+disp([num2str(length(find(isnan(g2)))),'_nans in gambles 2 matrix'])
+disp([num2str(length(find(isnan(g3)))),'_nans in gambles 3 matrix'])
+disp([num2str(length(find(isnan(g4)))),'_nans in gambles 4 matrix'])
+disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 
 %% Configure data structure for graphical model & parameters to monitor
 %everything you want jags to use
@@ -124,7 +122,7 @@ switch runModelNum
     case {1}
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                    'wealths',w,'dx1',dx1,'dx2',dx2,'dx3',dx3,'dx4',dx4,'y',choice,...
+                    'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,'y',choice,...
                     'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
                     'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
@@ -137,14 +135,13 @@ switch runModelNum
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
                     'wealths',w,'dx1',dx1,'dx2',dx2,'dx3',dx3,'dx4',dx4,'y',choice,...
                     'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-                    'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,
-                    'muEtaML',muEtaML,'muEtaMU',muEtaMU,'sigmaEtaML',sigmaEtaML,'sigmaEtaMU',sigmaEtaMU);
+                    'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
         for i = 1:nChains
             monitorParameters = {'beta','eta','etaM'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end
-
+end 
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
 
@@ -169,7 +166,7 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save([msamplesDir, modelName,'_',data],'samples','-v7.3')
+save([samplesDir, modelName,'_',data],'samples','-v7.3')
 
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output

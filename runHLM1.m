@@ -3,7 +3,7 @@
 % It provides the following inputs when calling setHLM:
 
 % runModelNum - set which model to run; parameter estimation (1) or model selection (2),
-% synthMode   - sets whether to run on real data (1) or synthetic data for parameter recovery (2-3; see setHLM.m for info on differences)
+% synthMode   - sets which data to run on; see setHLM.m for info on differences,
 % whichJAGS   - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals  - sets the order of qualities to run
 % doParallel  - whether to run chains in parallel
@@ -18,10 +18,10 @@ addpath(fullfile(startDir,'/HLM_utils'));
 
 %% Specify variables
 runModelNum = 1;
-synthMode = 1;
+dataMode = 1;
 whichJAGS = 1;
 whichQuals = 1:1;
 doParallel = 0;
 
 %% Call setHLM
-setHLM(runModelNum,synthMode,whichJAGS,whichQuals,doParallel,startDir)
+setHLM(runModelNum,dataMode,whichJAGS,whichQuals,doParallel,startDir)
