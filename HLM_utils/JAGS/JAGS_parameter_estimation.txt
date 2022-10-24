@@ -4,22 +4,12 @@ model{
 
 ##LIKELIHOOD
 for (i in 1:nSubjects){
-for (c in 1:nDynamics){
+for (c in 1:nConditions){
 for (t in 1:nTrials){
     u[i,c,t]      = ( pow(w[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
 
-    u1[i,c,t]     = ( pow(w1_1[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])  #transform wealth update for upper left into utility
-    u2[i,c,t]     = ( pow(w1_2[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])
-    u3[i,c,t]     = ( pow(w2_1[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])
-    u4[i,c,t]     = ( pow(w2_2[i,c,t], (1 - eta[i,c])) -1 ) / (1 - eta[i,c])
-
-    du1[i,c,t]    = u1[i,c,t] - u[i,c,t]  #computes change in utility
-    du2[i,c,t]    = u2[i,c,t] - u[i,c,t]
-    du3[i,c,t]    = u3[i,c,t] - u[i,c,t]
-    du4[i,c,t]    = u4[i,c,t] - u[i,c,t]
-
-    edug1[i,c,t]  = ( du1[i,c,t] + du2[i,c,t] ) / 2  #computes expected change in utiluty for each gamble
-    edug2[i,c,t]  = ( du3[i,c,t] + du4[i,c,t] ) / 2
+    edug1[i,c,t]  = ( g1[i,c,t] + g2[i,c,t] ) / 2  #computes expected change in utiluty for each gamble
+    edug2[i,c,t]  = ( g3[i,c,t] + g4[i,c,t] ) / 2
 
     deu[i,c,t]    = edug1[i,c,t] - edug2[i,c,t]                   #computes difference in expected change in utility
     sdeu[i,c,t]   = -1 * beta[i,c] * deu[i,c,t]                   #scaled by sensitivity parameter
@@ -52,7 +42,6 @@ for (c in 1:nConditions){
         #eta parameter
         mu_eta[c]                ~ dunif(muEtaL,muEtaU)       #mean of eta
         tau_eta[c]               = pow(sigma_eta[c],-2)       #precision of eta
-        sigma_eta[c]             ~ dunif(sigmaEtaL,sigmaEtaU  #std on eta
+        sigma_eta[c]             ~ dunif(sigmaEtaL,sigmaEtaU) #std on eta
 }#end of conditions
 }
-
