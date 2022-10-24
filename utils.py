@@ -100,7 +100,6 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float) -> list:
         Indifference eta (float).
     """
     if x1<0 or x2<0 or x3<0 or x4<0:
-        #print(x1,x2,x3,x4)
         return None, None
         #raise ValueError(f"Isoelastic utility function not defined for negative values")
 
@@ -126,8 +125,11 @@ def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
 def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
     df['selected_side_map'] = df['selected_side'].map(choice_dict)
     df['subject_id'] = [subject]*len(df)
-    new_info = np.zeros([df.shape[0],8])
-    new_info_col_names = ['x1_1','x1_2','x2_1','x2_2','indif_eta','min_max_sign','min_max_color','min_max_val']
+    new_info = np.zeros([df.shape[0],16])
+    new_info_col_names = ['x1_1','x1_2','x2_1','x2_2',
+                          'indif_eta','min_max_sign','min_max_color','min_max_val',
+                          'add_gamma1_1','add_gamma1_2','add_gamma2_1','add_gamma2_2',
+                          'mul_gamma1_1','mul_gamma1_2','mul_gamma2_1','mul_gamma2_2']
 
     for i, ii in enumerate(df.index):
         trial = df.loc[ii, :]
@@ -143,6 +145,9 @@ def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 1,
             new_info[i,5:8] = calculate_min_v_max(root[0], func, trial.selected_side_map)
         else:
             new_info[i,4:8] = np.array([np.nan,np.nan,np.nan,np.nan])
+
+        new_info[i,8:12]  = isoelastic_utility(x_updates, 0) - isoelastic_utility(trial.wealth, 0)
+        new_info[i,12:16] = isoelastic_utility(x_updates, 1) - isoelastic_utility(trial.wealth, 1)
 
     col_names = list(df.columns) + new_info_col_names
     df = pd.concat([df, pd.DataFrame(new_info)], axis=1)
