@@ -73,6 +73,7 @@ for i,subject in enumerate(set(passive_phase_df['participant_id'])):
         ax[c,4].set(title=f'Mul choice prob')
 
         #Indifference eta plots
+        plot_specs = {'color':{0:'orange', 1: 'b'}, 'sign':{0:'>', 1:'<'}}
         for ii, choice in enumerate(active_subject_df['selected_side_map']):
             trial = active_subject_df.loc[ii,:]
             if np.isnan(trial.indif_eta):
@@ -80,7 +81,7 @@ for i,subject in enumerate(set(passive_phase_df['participant_id'])):
 
             ax[c,5].axvline(condition, linestyle='--', linewidth=1, color='k')
 
-            ax[c,5].plot(trial.indif_eta, ii, marker=trial.min_max_sign, color=trial.min_max_color)
+            ax[c,5].plot(trial.indif_eta, ii, marker=plot_specs['sign'][trial.min_max_sign], color=plot_specs['color'][trial.min_max_color])
 
             ax[c,5].set(title = f'Indifference eta',
                    xlabel = 'Riskaversion ($\eta$)')

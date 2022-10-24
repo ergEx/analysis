@@ -100,9 +100,9 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float) -> list:
         Indifference eta (float).
     """
     if x1<0 or x2<0 or x3<0 or x4<0:
-        print(x1,x2,x3,x4)
+        #print(x1,x2,x3,x4)
         return None, None
-        raise ValueError(f"Isoelastic utility function not defined for negative values")
+        #raise ValueError(f"Isoelastic utility function not defined for negative values")
 
     func = lambda x : ((isoelastic_utility(x1,x)+ isoelastic_utility(x2,x)) / 2
                      - (isoelastic_utility(x3,x)+ isoelastic_utility(x4,x)) / 2)
@@ -114,60 +114,39 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float) -> list:
 def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
     dx = misc.derivative(func,root)
     if dx<0:
-        return {'color':'orange','sign':'>', 'val': 0} if choice==1 else {'color':'b','sign':'<', 'val': 1}
+        return np.array([0,0,0]) if choice==1 else np.array([1,1,1])
     else:
-        return {'color':'orange','sign':'>', 'val': 0} if choice==0 else {'color':'b','sign':'<', 'val': 1}
+        return np.array([0,0,0]) if choice==0 else np.array([1,1,1])
 
 def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
     """Decision if a gamble is strictly statewise dominated by the other gamble in a gamble pair"""
     return (np.greater_equal(max(gamble_pair[0]), max(gamble_pair[1])) and np.greater_equal(min(gamble_pair[0]), min(gamble_pair[1])) or
            np.greater_equal(max(gamble_pair[1]), max(gamble_pair[0])) and np.greater_equal(min(gamble_pair[1]), min(gamble_pair[0])) )
 
-def add_info_to_df(df:pd.DataFrame, subject:int, choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
+def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
     df['selected_side_map'] = df['selected_side'].map(choice_dict)
     df['subject_id'] = [subject]*len(df)
+    new_info = np.zeros([df.shape[0],8])
+    new_info_col_names = ['x1_1','x1_2','x2_1','x2_2','indif_eta','min_max_sign','min_max_color','min_max_val']
 
-    x1_1 = []
-    x1_2 = []
-    x2_1 = []
-    x2_2 = []
-    indif_etas = []
-    min_max_sign = []
-    min_max_color = []
-    min_max_val = []
-    for _, ii in enumerate(df.index):
+    for i, ii in enumerate(df.index):
         trial = df.loc[ii, :]
         x_updates = wealth_change(x=trial.wealth,
                                   gamma=[trial.gamma_left_up, trial.gamma_left_down,
                                         trial.gamma_right_up, trial.gamma_right_down],
                                         lambd=trial.eta)
-        x1_1.append(x_updates[0] - trial.wealth)
-        x1_2.append(x_updates[1] - trial.wealth)
-        x2_1.append(x_updates[2] - trial.wealth)
-        x2_2.append(x_updates[3] - trial.wealth)
+        new_info[i,0:4] = x_updates - trial.wealth
 
         root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3])
         if root is not None:
-            indif_etas.append(round(root[0],2))
-            tmp = calculate_min_v_max(root[0], func, trial.selected_side_map)
-            min_max_sign.append(tmp['sign'])
-            min_max_color.append(tmp['color'])
-            min_max_val.append(tmp['val'])
+            new_info[i,4] = round(root[0],2)
+            new_info[i,5:8] = calculate_min_v_max(root[0], func, trial.selected_side_map)
         else:
-            indif_etas.append(np.nan)
-            min_max_sign.append(np.nan)
-            min_max_color.append(np.nan)
-            min_max_val.append(np.nan)
+            new_info[i,4:8] = np.array([np.nan,np.nan,np.nan,np.nan])
 
-    df['x1_1'] = x1_1
-    df['x1_2'] = x1_2
-    df['x2_1'] = x2_1
-    df['x2_2'] = x2_2
-    df['indif_eta'] = indif_etas
-    df['min_max_sign'] = min_max_sign
-    df['min_max_color'] = min_max_color
-    df['min_max_val'] = min_max_val
-
+    col_names = list(df.columns) + new_info_col_names
+    df = pd.concat([df, pd.DataFrame(new_info)], axis=1)
+    df.columns = col_names
     return df
 
 def logistic_regression(df):
