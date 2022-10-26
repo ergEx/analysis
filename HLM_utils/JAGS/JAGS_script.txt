@@ -40,7 +40,7 @@ for (c in 1:nConditions){
         sigma_log_beta[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
 
         #eta parameter
-        mu_eta[c]                ~ dunif(muEtaL,muEtaU)       #mean of eta
+        mu_eta[c]                ~ dunif(muEtaL[c],muEtaU)       #mean of eta
         tau_eta[c]               = pow(sigma_eta[c],-2)       #precision of eta
         sigma_eta[c]             ~ dunif(sigmaEtaL,sigmaEtaU) #std on eta
 }#end of conditions

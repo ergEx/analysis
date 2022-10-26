@@ -1,4 +1,4 @@
-function computeHLM(runModelNum,dataMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
+function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -7,8 +7,10 @@ function computeHLM(runModelNum,dataMode,nBurnin,nSamples,nThin,nChains,subjList
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% runModelNum - set which model to run; parameter estimation (1) or model selection (2)
-% synthMode   - sets which data to run on; see setHLM.m for info on differences
+% dataMode    - set whether to simulate data or estimate based on choice data; Choice data (2) or no choice data (2)
+% synthMode   - sets how to simulate data (only relevant for no choice data); (1) Pure additive agents
+%                                                                             (2) Pure Multiplicative agents
+%                                                                             (3) Condition specific agents (additive and multiplicative)
 % nBurnin     - specifies how many burn in samples to run
 % nSamples    - specifies the number of samples to run
 % nThin       - specifies the thinnning number
@@ -17,7 +19,12 @@ function computeHLM(runModelNum,dataMode,nBurnin,nSamples,nThin,nChains,subjList
 % whichJAGS   - sets which copy of matjags to run
 % doParallel  - sets whether to run chains in parallel
 % startDir    - root directory for the repo
-% dataVersion - which experimental setup the data comes from 
+% version     - which version of experimental setup to run on; (1) Synthetic data
+%                                                               (2) One gamble version
+%                                                               (3) Two gamble version
+%                                                               (4) Two gamble version w. wealth controls
+%                                                               (5) Two gamble version w. different additive c
+%                                                               (6) Two gamble version w. hidden wealth
 
 %% Set paths
 cd(startDir);%move to starting directory
@@ -31,23 +38,22 @@ samplesDir=[startDir,'/data/samples_stats'];
 
 %% Choose & load data
 switch dataMode
-    case {1}
-        data = ;
+    case {1} %Full data
+        mode = 'estimate data';
+        load('all_active_phase_data.mat')
+    case {2} %No response data
+        mode = 'Simulate data';
+        load('active_input_data.mat'
 end
-load('all_active_phase_data.mat')
+
 
 %% Choose JAGS file
-switch runModelNum
-    case {1}
-        modelName = 'JAGS_parameter_estimation';
-    case {2,4}
-        modelName = 'JAGS_model_selection';
-end
+modelName = 'JAGS_script'
 
 %% Set key variables
 nConditions=2;%number of dynamics
 doDIC=0;%compute Deviance information criteria? This is the hierarchical equivalent of an AIC, the lower the better
-nSubjects=length(subjList{1});%number of subjects
+nSubjects=length(subjList);%number of subjects
 
 %% Set bounds of hyperpriors
 %hard code the upper and lower bounds of hyperpriors, typically uniformly
@@ -57,18 +63,31 @@ nSubjects=length(subjList{1});%number of subjects
 muLogBetaL=-2.3;muLogBetaU=3.4; %bounds on mean of distribution log beta
 sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on the std of distribution of log beta
 
-%eta
-muEtaL=-2.5;muEtaU=2.5;%bounds on mean of distribution of eta
-sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
-
-%etaM - prior on log since we are only interested in testing positive change
-muLogetaML=-2.3;muLogetaMU=3.4; %bounds on mean of distribution log etaM
-sigmaLogetaML=0.01;sigmaLogetaMU=sqrt(((muLogetaMU-muLogetaML)^2)/12);%bounds on the std of distribution of log etaM
+switch dataMode
+    case{1} %estimate parameters
+        %eta
+        muEtaL=(-2.5,-2.5);muEtaU=(2.5,2.5);%bounds on mean of distribution of eta
+        sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
+    case{2} %simulate choice data
+        switch synthMode
+            case {1}
+                %eta
+                muEtaL=(-0.01,-0.01);muEtaU=(0.01,0.01);%bounds on mean of distribution of eta
+                sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
+            case {2}
+                %eta
+                muEtaL=(0.99,0.99);muEtaU=(1.01,1.01);%bounds on mean of distribution of eta
+                sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
+            case {3}
+                %eta
+                muEtaL=(-0.01,0.99);muEtaU=(0.01,1.01);%bounds on mean of distribution of eta
+                sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
+        end %switch synthMode
+end %switch dataMode
 
 %% Print information for user
 disp('**************');
-disp(['JAGS script: ', modelName])
-disp(['on: ', data])
+disp(['Mode: ', mdoe])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
 disp('**************');
@@ -92,16 +111,16 @@ for c = 1:nConditions
     switch c
         case {1} %eta = 0
             choice(:,c,trialInds)=choice_add(:,trialInds);
-            g1(:,c,trialInds)=gr1_1_add(:,trialInds);%wealth change for outcome 1
-            g2(:,c,trialInds)=gr1_2_add(:,trialInds);%same for outcome 2 etc.
+            g1(:,c,trialInds)=gr1_1_add(:,trialInds);
+            g2(:,c,trialInds)=gr1_2_add(:,trialInds);
             g3(:,c,trialInds)=gr2_1_add(:,trialInds);
             g4(:,c,trialInds)=gr2_2_add(:,trialInds);
             w(:,c,trialInds) = wealth_add(:,trialInds);
 
         case {2}% eta=1
             choice(:,c,trialInds)=choice_mul(:,trialInds);
-            g1(:,c,trialInds)=gr1_1_mul(:,trialInds);%assign changes in wealth dx for outcome 1
-            g2(:,c,trialInds)=gr1_2_mul(:,trialInds);%same for outcome 2 etc.
+            g1(:,c,trialInds)=gr1_1_mul(:,trialInds);
+            g2(:,c,trialInds)=gr1_2_mul(:,trialInds);
             g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
             g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
             w(:,c,trialInds) = wealth_mul(:,trialInds);
@@ -110,7 +129,7 @@ end %c
 
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
-disp([num2str(length(find(isnan(g1)))),'_nans in gambles 1 matrix'])% nans in gamble matrices do, since model will not run
+disp([num2str(length(find(isnan(g1)))),'_nans in gambles 1 matrix'])% nans in gamble matrices do
 disp([num2str(length(find(isnan(g2)))),'_nans in gambles 2 matrix'])
 disp([num2str(length(find(isnan(g3)))),'_nans in gambles 3 matrix'])
 disp([num2str(length(find(isnan(g4)))),'_nans in gambles 4 matrix'])
@@ -118,7 +137,7 @@ disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 
 %% Configure data structure for graphical model & parameters to monitor
 %everything you want jags to use
-switch runModelNum
+switch dataMode
     case {1}
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
@@ -133,15 +152,15 @@ switch runModelNum
     case {2}
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                    'wealths',w,'dx1',dx1,'dx2',dx2,'dx3',dx3,'dx4',dx4,'y',choice,...
+                    'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,...
                     'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
                     'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
         for i = 1:nChains
-            monitorParameters = {'beta','eta','etaM'};
+            monitorParameters = {'y','beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end
-end 
+end
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
 

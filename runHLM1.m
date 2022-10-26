@@ -2,11 +2,19 @@
 
 % It provides the following inputs when calling setHLM:
 
-% runModelNum - set which model to run; parameter estimation (1) or model selection (2),
-% synthMode   - sets which data to run on; see setHLM.m for info on differences,
+% dataMode    - set whether to simulate data or estimate based on choice data; Choice data (2) or no choice data (2)
+% synthMode   - sets how to simulate data (only relevant for no choice data); (1) Pure additive agents
+%                                                                             (2) Pure Multiplicative agents
+%                                                                             (3) Condition specific agents (additive and multiplicative)
 % whichJAGS   - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals  - sets the order of qualities to run
 % doParallel  - whether to run chains in parallel
+% version     - which version of experimental setup to run on; (1) Synthetic data
+%                                                               (2) One gamble version
+%                                                               (3) Two gamble version
+%                                                               (4) Two gamble version w. wealth controls
+%                                                               (5) Two gamble version w. different additive c
+%                                                               (6) Two gamble version w. hidden wealth
 
 % The idea is that this is written into by the user, then called by a
 % cluster job via the terminal:
@@ -17,11 +25,12 @@ restoredefaultpath
 addpath(fullfile(startDir,'/HLM_utils'));
 
 %% Specify variables
-runModelNum = 1;
 dataMode = 1;
+synthMode = 1;
 whichJAGS = 1;
 whichQuals = 1:1;
 doParallel = 0;
+version = 1;
 
 %% Call setHLM
-setHLM(runModelNum,dataMode,whichJAGS,whichQuals,doParallel,startDir)
+setHLM(dataMode,synthMode,whichJAGS,whichQuals,doParallel,startDir,version)
