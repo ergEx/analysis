@@ -15,8 +15,13 @@ design_variant = 'test'
 
 condition_specs = {0.0:'Additive', 1.0:'Multiplicative'}
 
-passive_phase_df = pd.read_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_passive_phase_data.csv'), sep='\t')
-active_phase_df = pd.read_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_active_phase_data.csv'), sep='\t')
+passive_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'all_passive_phase_data.csv'), sep='\t')
+active_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'all_active_phase_data.csv'), sep='\t')
+
+if not os.path.isfile(os.path.join(root_path,'data',design_variant,'bayesian_model_output')):
+    print('HLM mordel output not found!')
+else:
+    pass #read_HLM_data (NOT IMPLEMENTE!)
 
 logistic_regression_input = np.empty([len(set(passive_phase_df['participant_id'])),7])
 
@@ -129,9 +134,8 @@ for i,subject in enumerate(set(passive_phase_df['participant_id'])):
         '''NOT IMPLEMENTED'''
         ax[c,8].plot()
         ax[c,8].set(title=f'HLM model')
-        if not os.path.isfile(os.path.join(root_path,'data','experiment_output',design_variant,'bayesian_model_output')):
-            print('HLM mordel output not found!')
-            continue
+
+
 
     fig.tight_layout()
     fig.savefig(os.path.join(save_path, f'Subject {subject}'))
@@ -145,4 +149,4 @@ logistic_regression_outout = pd.DataFrame(logistic_regression_input,
                                                    'Risk_aversion_estimate_Multiplicative_low_conf',
                                                    'Risk_aversion_estimate_Multiplicative',
                                                    'Risk_aversion_estimate_Multiplicative_upper_conf'])
-logistic_regression_outout.to_csv(os.path.join(root_path,'data','experiment_output',design_variant, 'logistic_regression_output.csv'), sep='\t')
+logistic_regression_outout.to_csv(os.path.join(root_path,'data',design_variant, 'logistic_regression_output.csv'), sep='\t')

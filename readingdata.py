@@ -10,9 +10,9 @@ import utils
 
 root_path = os.path.join(os.path.dirname(__file__),)
 design_variant = 'test'
-condition_specs = {'condition':['Multiplicative','Additive'], 'lambda':[1,0], 'bids_text': ['1d0','0d0'],'txt_append':['_mul','_add']}
-subject_specs = {'id':['000','001','002','003','004','005','006','007'], 'first_run':[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]}
-
+condition_specs = {'condition':['Additive','Multiplicative'], 'lambda':[0,1], 'bids_text': ['0d0','1d0'],'txt_append':['_add','_mul']}
+subject_specs = {'id':['000','001','002','003','004','005','006',], 'first_run':[[2,1],[2,1],[1,2],[2,1],[2,1],[2,1],[2,1]]}
+n_passive_runs = 4
 
 passive_phase_df = pd.DataFrame()
 active_phase_df = pd.DataFrame()
@@ -21,7 +21,7 @@ for c,condition in enumerate(condition_specs['condition']):
     for i,subject in enumerate(subject_specs['id']):
         '''Passive phase data'''
         for run in range(1,n_passive_runs):
-            passive_phase_data = pd.read_csv(os.path.join(root_path, 'data','experiment_output',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-passive_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
+            passive_phase_data = pd.read_csv(os.path.join(root_path, 'data',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-passive_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
 
             subject_df = passive_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
             subject_df = subject_df.query('part == 0').reset_index(drop=True)
@@ -39,7 +39,7 @@ for c,condition in enumerate(condition_specs['condition']):
         active_phase_df = pd.concat([active_phase_df, subject_df])
 
         ##.mat
-
+        subject_df = subject_df.query('indif_eta.notna()', engine="python").reset_index(drop=True)
         #Append which session first (has not been decided yet)
         if subject_specs['first_run'][i][0] == 1:
             datadict.setdefault('MultiplicativeSessionFirst',[]).append(1)
@@ -64,7 +64,7 @@ for c,condition in enumerate(condition_specs['condition']):
         #Retrieve keypresses
         datadict.setdefault(f'choice{condition_specs["txt_append"][c]}',[]).append(np.array(subject_df['selected_side_map']))
 
-passive_phase_df.to_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_passive_phase_data.csv'),sep='\t')
-active_phase_df.to_csv(os.path.join(root_path,'data','experiment_output',design_variant,'all_active_phase_data.csv'),sep='\t')
-scipy.io.savemat(os.path.join(os.path.join(root_path,'data','experiment_output',design_variant,'all_active_phase_data.mat')),datadict,oned_as='row')
-np.savez(os.path.join(os.path.join(root_path,'data','experiment_output',design_variant,'all_active_phase_data.mat.npz')),datadict = datadict)
+passive_phase_df.to_csv(os.path.join(root_path,'data',design_variant,'all_passive_phase_data.csv'),sep='\t')
+active_phase_df.to_csv(os.path.join(root_path,'data',design_variant,'all_active_phase_data.csv'),sep='\t')
+scipy.io.savemat(os.path.join(os.path.join(root_path,'data',design_variant,'all_active_phase_data.mat')),datadict,oned_as='row')
+np.savez(os.path.join(os.path.join(root_path,'data',design_variant,'all_active_phase_data.mat.npz')),datadict = datadict)
