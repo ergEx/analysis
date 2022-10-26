@@ -34,7 +34,7 @@ jagsDir=fullfile(startDir,'/HLM_utils/JAGS');
 addpath(jagsDir)
 dataDir=fullfile(startDir,'/data',dataVersion);
 addpath(dataDir)
-samplesDir=[startDir,'/data/samples_stats'];
+samplesDir=[startDir,'/data',dataVersion,'/samples_stats'];
 
 %% Choose & load data
 switch dataMode
