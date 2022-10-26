@@ -8,9 +8,10 @@ function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % takes as input the following:
 
 % dataMode    - set whether to simulate data or estimate based on choice data; Choice data (2) or no choice data (2)
-% synthMode   - sets how to simulate data (only relevant for no choice data); (1) Pure additive agents
-%                                                                             (2) Pure Multiplicative agents
-%                                                                             (3) Condition specific agents (additive and multiplicative)
+% synthMode   - sets how to simulate data (only relevant for no choice data); (1) Real data
+%                                                                             (2) Pure additive agents
+%                                                                             (3) Pure Multiplicative agents
+%                                                                             (4) Condition specific agents (additive and multiplicative)
 % nBurnin     - specifies how many burn in samples to run
 % nSamples    - specifies the number of samples to run
 % nThin       - specifies the thinnning number
@@ -33,19 +34,30 @@ addpath(matjagsdir)
 jagsDir=fullfile(startDir,'/HLM_utils/JAGS');
 addpath(jagsDir)
 dataDir=fullfile(startDir,'/data',dataVersion);
-addpath(dataDir)
-samplesDir=[startDir,'/data',dataVersion,'/samples_stats'];
+simulationDir=fullfile(startDir,'/data',dataVersion,'simulations');
 
 %% Choose & load data
 switch dataMode
-    case {1} %Full data
-        mode = 'estimate data';
-        load('all_active_phase_data.mat')
+    mode = 'estimate data';
+    case {1} %Includes choice data
+        switch synthMode
+            case {1}
+                dataSource = 'real_data'
+                load(dataDir, 'all_active_phase_data.mat')
+            case {2}
+                dataSource = 'simulated_additive_agents'
+                load(simulationDir,'additive_agents')
+            case {3}
+                dataSource = 'simulated_multiplicative_agents'
+                load(simulationDir,'multiplicative_agents')
+            case{4}
+                dataSource = 'simulated_multiplicative_agents'
+                load(simulationDir,'EE_agents')
+        end %switch synthMode
     case {2} %No response data
         mode = 'Simulate data';
-        load('active_input_data.mat'
-end
-
+        load(dataDir,'all_active_phase_data.mat')
+end %switch dataMode
 
 %% Choose JAGS file
 modelName = 'JAGS_script'
@@ -71,14 +83,17 @@ switch dataMode
     case{2} %simulate choice data
         switch synthMode
             case {1}
+                sim = 'additive_agents'
                 %eta
                 muEtaL=(-0.01,-0.01);muEtaU=(0.01,0.01);%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
             case {2}
+                sim = 'multiplicative_agents';
                 %eta
                 muEtaL=(0.99,0.99);muEtaU=(1.01,1.01);%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
             case {3}
+                sim = 'EE_agents';
                 %eta
                 muEtaL=(-0.01,0.99);muEtaU=(0.01,1.01);%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
@@ -87,7 +102,7 @@ end %switch dataMode
 
 %% Print information for user
 disp('**************');
-disp(['Mode: ', mdoe])
+disp(['Mode: ', mode])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
 disp('**************');
@@ -148,7 +163,7 @@ switch dataMode
         for i = 1:nChains
             monitorParameters = {'beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-        end
+        end %i
     case {2}
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
@@ -159,8 +174,9 @@ switch dataMode
         for i = 1:nChains
             monitorParameters = {'y','beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-        end
-end
+        end %i
+end %switch dataMode
+
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
 
@@ -185,7 +201,11 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save([samplesDir, modelName,'_',data],'samples','-v7.3')
+switch dataMode
+    case {1}
+        save([dataDir, 'parameter_estimation',dataSource],'samples','-v7.3')
+    case {2}
+        save([simulationDir, sim],'samples','-v7.3')
 
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output
