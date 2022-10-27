@@ -38,20 +38,20 @@ simulationDir=fullfile(startDir,'/data',dataVersion,'simulations');
 
 %% Choose & load data
 switch dataMode
-    mode = 'estimate data';
     case {1} %Includes choice data
+        mode = 'estimate data';
         switch synthMode
             case {1}
-                dataSource = 'real_data'
+                dataSource = 'real_data';
                 load(fullfile(dataDir, 'all_active_phase_data.mat'))
             case {2}
-                dataSource = 'simulated_additive_agents'
+                dataSource = 'simulated_additive_agents';
                 load(fullfile(simulationDir,'additive_agents'))
             case {3}
-                dataSource = 'simulated_multiplicative_agents'
+                dataSource = 'simulated_multiplicative_agents';
                 load(fillfile(simulationDir,'multiplicative_agents'))
             case{4}
-                dataSource = 'simulated_multiplicative_agents'
+                dataSource = 'simulated_multiplicative_agents';
                 load(fullfile(simulationDir,'EE_agents'))
         end %switch synthMode
     case {2} %No response data
@@ -60,7 +60,7 @@ switch dataMode
 end %switch dataMode
 
 %% Choose JAGS file
-modelName = 'JAGS_script'
+modelName = 'JAGS_script';
 
 %% Set key variables
 nConditions=2;%number of dynamics
@@ -78,24 +78,24 @@ sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on
 switch dataMode
     case{1} %estimate parameters
         %eta
-        muEtaL=(-2.5,-2.5);muEtaU=(2.5,2.5);%bounds on mean of distribution of eta
-        sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
+        muEtaL=[-2.5,-2.5];muEtaU=[2.5,2.5];%bounds on mean of distribution of eta
+        sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU(1)-muEtaL(1))^2)/12);%bounds on std of eta
     case{2} %simulate choice data
         switch synthMode
             case {1}
-                sim = 'additive_agents'
+                sim = 'additive_agents';
                 %eta
-                muEtaL=(-0.01,-0.01);muEtaU=(0.01,0.01);%bounds on mean of distribution of eta
+                muEtaL=[-0.01,-0.01];muEtaU=[0.01,0.01];%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
             case {2}
                 sim = 'multiplicative_agents';
                 %eta
-                muEtaL=(0.99,0.99);muEtaU=(1.01,1.01);%bounds on mean of distribution of eta
+                muEtaL=[0.99,0.99];muEtaU=[1.01,1.01];%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
             case {3}
                 sim = 'EE_agents';
                 %eta
-                muEtaL=(-0.01,0.99);muEtaU=(0.01,1.01);%bounds on mean of distribution of eta
+                muEtaL=[-0.01,0.99];muEtaU=[0.01,1.01];%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
         end %switch synthMode
 end %switch dataMode
@@ -206,7 +206,7 @@ switch dataMode
         save([dataDir, 'parameter_estimation',dataSource],'samples','-v7.3')
     case {2}
         save([simulationDir, sim],'samples','-v7.3')
-
+end %switch dataMode
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output
 disp('samples:'),disp(samples);%print out structure of samples output

@@ -42,12 +42,12 @@ nTrials{4} = 120;
 nTrials{5} = 120;
 nTrials{6} = 120;
 
-k% Specifies dir for experimental version
+% Specifies dir for experimental version
 dataVersion{1} = 'simulations';
 dataVersion{2} = ''; %One gamble version
 dataVersion{3} = ''; %Two gamble version
 dataVersion{4} = ''; %Two gamble version w. wealth controls
-dataVersion{5} = ''; %Two gamble version w. different additive c
+dataVersion{5} = 'two_gamble_new_c'; %Two gamble version w. different additive c
 dataVersion{6} = ''; %Two gamble version w. hidden wealth
 
 %% Runs HLMs sequentially
