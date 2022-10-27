@@ -43,20 +43,20 @@ switch dataMode
         switch synthMode
             case {1}
                 dataSource = 'real_data'
-                load(dataDir, 'all_active_phase_data.mat')
+                load(fullfile(dataDir, 'all_active_phase_data.mat'))
             case {2}
                 dataSource = 'simulated_additive_agents'
-                load(simulationDir,'additive_agents')
+                load(fullfile(simulationDir,'additive_agents'))
             case {3}
                 dataSource = 'simulated_multiplicative_agents'
-                load(simulationDir,'multiplicative_agents')
+                load(fillfile(simulationDir,'multiplicative_agents'))
             case{4}
                 dataSource = 'simulated_multiplicative_agents'
-                load(simulationDir,'EE_agents')
+                load(fullfile(simulationDir,'EE_agents'))
         end %switch synthMode
     case {2} %No response data
         mode = 'Simulate data';
-        load(dataDir,'all_active_phase_data.mat')
+        load(fullfile(dataDir,'all_active_phase_data.mat'))
 end %switch dataMode
 
 %% Choose JAGS file
@@ -153,7 +153,7 @@ disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 %% Configure data structure for graphical model & parameters to monitor
 %everything you want jags to use
 switch dataMode
-    case {1}
+    case {1} %estimate
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
                     'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,'y',choice,...
@@ -164,7 +164,7 @@ switch dataMode
             monitorParameters = {'beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
-    case {2}
+    case {2} %simulate
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
                     'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,...
@@ -172,7 +172,7 @@ switch dataMode
                     'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
         for i = 1:nChains
-            monitorParameters = {'y','beta','eta'};
+            monitorParameters = {'y','g1','g2','g3','g4','w','beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
 end %switch dataMode
