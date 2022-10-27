@@ -6,12 +6,13 @@ import numpy as np
 import pandas as pd
 import scipy.io
 
+import sub_specs
 import utils
 
 root_path = os.path.join(os.path.dirname(__file__),)
 design_variant = 'test'
 condition_specs = {'condition':['Additive','Multiplicative'], 'lambda':[0,1], 'bids_text': ['0d0','1d0'],'txt_append':['_add','_mul']}
-subject_specs = {'id':['000','001','002','003','004','005','006',], 'first_run':[[2,1],[2,1],[1,2],[2,1],[2,1],[2,1],[2,1]]}
+subject_specs = sub_specs.sub_specs(design_variant)
 n_passive_runs = 4
 
 passive_phase_df = pd.DataFrame()
@@ -68,3 +69,7 @@ passive_phase_df.to_csv(os.path.join(root_path,'data',design_variant,'all_passiv
 active_phase_df.to_csv(os.path.join(root_path,'data',design_variant,'all_active_phase_data.csv'),sep='\t')
 scipy.io.savemat(os.path.join(os.path.join(root_path,'data',design_variant,'all_active_phase_data.mat')),datadict,oned_as='row')
 np.savez(os.path.join(os.path.join(root_path,'data',design_variant,'all_active_phase_data.mat.npz')),datadict = datadict)
+
+simulation_path = os.path.join(root_path, 'data',design_variant,'simulations')
+if not os.path.isdir(simulation_path):
+    os.makedirs(simulation_path)
