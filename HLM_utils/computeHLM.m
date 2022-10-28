@@ -1,4 +1,4 @@
-function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
+function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,maxnTrials)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -7,11 +7,11 @@ function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% dataMode    - set whether to simulate data or estimate based on choice data; Choice data (2) or no choice data (2)
-% synthMode   - sets how to simulate data (only relevant for no choice data); (1) Real data
-%                                                                             (2) Pure additive agents
-%                                                                             (3) Pure Multiplicative agents
-%                                                                             (4) Condition specific agents (additive and multiplicative)
+% dataMode    - set whether to simulate data or estimate based on choice data; Choice data (1) or no choice data (2)
+% synthMode   - sets how to simulate data ; (1) Real data
+%                                           (2) Pure additive agents
+%                                           (3) Pure Multiplicative agents
+%                                           (4) Condition specific agents (additive and multiplicative)
 % nBurnin     - specifies how many burn in samples to run
 % nSamples    - specifies the number of samples to run
 % nThin       - specifies the thinnning number
@@ -83,16 +83,18 @@ switch dataMode
     case{2} %simulate choice data
         switch synthMode
             case {1}
+                warning('Synthmode 1 not possible if no choice data is provided')
+            case {2}
                 sim = 'additive_agents';
                 %eta
                 muEtaL=[-0.01,-0.01];muEtaU=[0.01,0.01];%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
-            case {2}
+            case {3}
                 sim = 'multiplicative_agents';
                 %eta
                 muEtaL=[0.99,0.99];muEtaU=[1.01,1.01];%bounds on mean of distribution of eta
                 sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
-            case {3}
+            case {4}
                 sim = 'EE_agents';
                 %eta
                 muEtaL=[-0.01,0.99];muEtaU=[0.01,1.01];%bounds on mean of distribution of eta
@@ -109,10 +111,11 @@ disp('**************');
 
 %% Initialise matrices
 %initialise matrices with nan values of size subjects x conditions x trials
-dim = nan(nSubjects,nConditions,nTrials); %specify the dimension
+dim = nan(nSubjects,nConditions,maxnTrials); %specify the dimension
 choice = dim; %initialise choice data matrix
 g1=dim; g2=dim; g3=dim; g4=dim;%initialise growth-rates
 w=dim;%initialise wealth
+nTrials = nan(nSubjects,nConditions);
 
 %% Compile choice & gamble data
 % Jags cannot deal with partial observations, so we need to specify gamble info for all nodes. This doesn't change anything.
@@ -121,26 +124,40 @@ w=dim;%initialise wealth
 %allows jags to work since doesn't work for partial observation. This does not affect
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
 
-for c = 1:nConditions
-    trialInds=1:nTrials;
-    switch c
-        case {1} %eta = 0
-            choice(:,c,trialInds)=choice_add(:,trialInds);
-            g1(:,c,trialInds)=gr1_1_add(:,trialInds);
-            g2(:,c,trialInds)=gr1_2_add(:,trialInds);
-            g3(:,c,trialInds)=gr2_1_add(:,trialInds);
-            g4(:,c,trialInds)=gr2_2_add(:,trialInds);
-            w(:,c,trialInds) = wealth_add(:,trialInds);
-
-        case {2}% eta=1
-            choice(:,c,trialInds)=choice_mul(:,trialInds);
-            g1(:,c,trialInds)=gr1_1_mul(:,trialInds);
-            g2(:,c,trialInds)=gr1_2_mul(:,trialInds);
-            g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
-            g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
-            w(:,c,trialInds) = wealth_mul(:,trialInds);
-    end %switch
-end %c
+if dataMode == 1 && syntmode != 1
+    nTrials = samples.nTrials;
+    choice = sampels.y;
+    g1 = samples.g1;
+    g2 = samples.g2;
+    g3 = samples.g3;
+    g4 = samples.g4;
+    w = samples.w;
+else
+    for c = 1:nConditions
+        switch c
+            case {1} %eta = 0
+                for i = 1:nSubjects
+                nTrials(i,c) = length(choice_add{i});
+                trialInds=1:nTrials(i,c);
+                choice(i,c,trialInds)=choice_add{i}(trialInds);
+                g1(i,c,trialInds)=gr1_1_add{i}(trialInds);
+                g2(i,c,trialInds)=gr1_2_add{i}(trialInds);
+                g3(i,c,trialInds)=gr2_1_add{i}(trialInds);
+                g4(i,c,trialInds)=gr2_2_add{i}(trialInds);
+                w(i,c,trialInds) = wealth_add{i}(trialInds);
+                end %i
+            case {2}% eta=1
+                nTrials(i,c) = length(choice_mul(i,:));
+                trialInds=1:nTrials;
+                choice(:,c,trialInds)=choice_mul(:,trialInds);
+                g1(:,c,trialInds)=gr1_1_mul(:,trialInds);
+                g2(:,c,trialInds)=gr1_2_mul(:,trialInds);
+                g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
+                g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
+                w(:,c,trialInds) = wealth_mul(:,trialInds);
+        end %switch
+    end %c
+end %if
 
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
@@ -203,9 +220,9 @@ toc % end clock
 disp('saving samples...')
 switch dataMode
     case {1}
-        save([dataDir, 'parameter_estimation',dataSource],'samples','-v7.3')
+        save(fullfile(dataDir, sprintf('parameter_estimation',dataSource),'samples'),'-v7.3')
     case {2}
-        save([simulationDir, sim],'samples','-v7.3')
+        save(fullfile(simulationDir, sim),'samples','-v7.3')
 end %switch dataMode
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output
