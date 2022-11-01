@@ -10,10 +10,10 @@ import sub_specs
 import utils
 
 root_path = os.path.join(os.path.dirname(__file__),)
-design_variant = 'test'
+design_variant = 'two_gamble_new_c'
 condition_specs = {'condition':['Additive','Multiplicative'], 'lambda':[0,1], 'bids_text': ['0d0','1d0'],'txt_append':['_add','_mul']}
 subject_specs = sub_specs.sub_specs(design_variant)
-n_passive_runs = 4
+n_passive_runs = 3
 
 passive_phase_df = pd.DataFrame()
 active_phase_df = pd.DataFrame()
@@ -30,7 +30,7 @@ for c,condition in enumerate(condition_specs['condition']):
 
         '''Active phase data'''
         run = 1
-        active_phase_data = pd.read_csv(os.path.join(root_path, 'data','experiment_output',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-active_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
+        active_phase_data = pd.read_csv(os.path.join(root_path, 'data',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-active_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
 
         subject_df = active_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
 
@@ -40,7 +40,8 @@ for c,condition in enumerate(condition_specs['condition']):
         active_phase_df = pd.concat([active_phase_df, subject_df])
 
         ##.mat
-        subject_df = subject_df.query('indif_eta.notna()', engine="python").reset_index(drop=True)
+        subject_df.loc[np.isnan(subject_df['indif_eta']), 'selected_side_map'] = np.nan
+
         #Append which session first (has not been decided yet)
         if subject_specs['first_run'][i][0] == 1:
             datadict.setdefault('MultiplicativeSessionFirst',[]).append(1)

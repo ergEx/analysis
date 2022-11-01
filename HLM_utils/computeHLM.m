@@ -1,4 +1,4 @@
-function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,maxnTrials)
+function computeHLM(inferenceMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,Trials)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -7,20 +7,18 @@ function computeHLM(dataMode,synthMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% dataMode    - set whether to simulate data or estimate based on choice data; Choice data (1) or no choice data (2)
-% synthMode   - sets how to simulate data ; (1) Real data
-%                                           (2) Pure additive agents
-%                                           (3) Pure Multiplicative agents
-%                                           (4) Condition specific agents (additive and multiplicative)
-% nBurnin     - specifies how many burn in samples to run
-% nSamples    - specifies the number of samples to run
-% nThin       - specifies the thinnning number
-% nChains     - specifies number of chains
-% subjList    - list of subject numbers to include
-% whichJAGS   - sets which copy of matjags to run
-% doParallel  - sets whether to run chains in parallel
-% startDir    - root directory for the repo
-% version     - which version of experimental setup to run on; (1) Synthetic data
+% inferenceMode - set whether to do patameter estimation (1) or model selection (2)
+% synthMode     - sets how to simulate data ; (1) Real data
+%                                           (2) Simulated data
+% nBurnin       - specifies how many burn in samples to run
+% nSamples      - specifies the number of samples to run
+% nThin         - specifies the thinnning number
+% nChains       - specifies number of chains
+% subjList      - list of subject numbers to include
+% whichJAGS     - sets which copy of matjags to run
+% doParallel    - sets whether to run chains in parallel
+% startDir      - root directory for the repo
+% version       - which version of experimental setup to run on; (1) Synthetic data
 %                                                               (2) One gamble version
 %                                                               (3) Two gamble version
 %                                                               (4) Two gamble version w. wealth controls
@@ -37,30 +35,20 @@ dataDir=fullfile(startDir,'/data',dataVersion);
 simulationDir=fullfile(startDir,'/data',dataVersion,'simulations');
 
 %% Choose & load data
-switch dataMode
-    case {1} %Includes choice data
-        mode = 'estimate data';
-        switch synthMode
-            case {1}
-                dataSource = 'real_data';
-                load(fullfile(dataDir, 'all_active_phase_data.mat'))
-            case {2}
-                dataSource = 'simulated_additive_agents';
-                load(fullfile(simulationDir,'additive_agents'))
-            case {3}
-                dataSource = 'simulated_multiplicative_agents';
-                load(fillfile(simulationDir,'multiplicative_agents'))
-            case{4}
-                dataSource = 'simulated_multiplicative_agents';
-                load(fullfile(simulationDir,'EE_agents'))
-        end %switch synthMode
-    case {2} %No response data
-        mode = 'Simulate data';
-        load(fullfile(dataDir,'all_active_phase_data.mat'))
-end %switch dataMode
+mode = 'estimate data';
+switch synthMode
+    case {1}
+        dataSource = 'real_data';
+        load(fullfile(dataDir, 'all_active_phase_data.mat'))
+    case {2}
+        dataSource = 'simulated_data';
+        load(fullfile(simulationDir,'additive_agents'))
+end %switch synthMode
 
 %% Choose JAGS file
-modelName = 'JAGS_script';
+switch inferenceMode
+    case {1} modelName = 'JAGS_parameter_estimation'; mode = 'parameter_estimation';
+    case {2} modelName = 'JAGS_model_selection'; mode = 'model_selection';
 
 %% Set key variables
 nConditions=2;%number of dynamics
@@ -75,43 +63,21 @@ nSubjects=length(subjList);%number of subjects
 muLogBetaL=-2.3;muLogBetaU=3.4; %bounds on mean of distribution log beta
 sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on the std of distribution of log beta
 
-switch dataMode
-    case{1} %estimate parameters
-        %eta
-        muEtaL=[-2.5,-2.5];muEtaU=[2.5,2.5];%bounds on mean of distribution of eta
-        sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU(1)-muEtaL(1))^2)/12);%bounds on std of eta
-    case{2} %simulate choice data
-        switch synthMode
-            case {1}
-                warning('Synthmode 1 not possible if no choice data is provided')
-            case {2}
-                sim = 'additive_agents';
-                %eta
-                muEtaL=[-0.01,-0.01];muEtaU=[0.01,0.01];%bounds on mean of distribution of eta
-                sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
-            case {3}
-                sim = 'multiplicative_agents';
-                %eta
-                muEtaL=[0.99,0.99];muEtaU=[1.01,1.01];%bounds on mean of distribution of eta
-                sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
-            case {4}
-                sim = 'EE_agents';
-                %eta
-                muEtaL=[-0.01,0.99];muEtaU=[0.01,1.01];%bounds on mean of distribution of eta
-                sigmaEtaL=0.01;sigmaEtaU=0.02;%bounds on std of eta
-        end %switch synthMode
-end %switch dataMode
+%eta
+muEtaL=-2.5;muEtaU=2.5;%bounds on mean of distribution of eta
+sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
 
 %% Print information for user
 disp('**************');
 disp(['Mode: ', mode])
+disp(['dataSource: ', dataSource])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
 disp('**************');
 
 %% Initialise matrices
 %initialise matrices with nan values of size subjects x conditions x trials
-dim = nan(nSubjects,nConditions,maxnTrials); %specify the dimension
+dim = nan(nSubjects,nConditions,80); %specify the dimension
 choice = dim; %initialise choice data matrix
 g1=dim; g2=dim; g3=dim; g4=dim;%initialise growth-rates
 w=dim;%initialise wealth
@@ -124,40 +90,26 @@ nTrials = nan(nSubjects,nConditions);
 %allows jags to work since doesn't work for partial observation. This does not affect
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
 
-if dataMode == 1 && syntmode != 1
-    nTrials = samples.nTrials;
-    choice = sampels.y;
-    g1 = samples.g1;
-    g2 = samples.g2;
-    g3 = samples.g3;
-    g4 = samples.g4;
-    w = samples.w;
-else
-    for c = 1:nConditions
-        switch c
-            case {1} %eta = 0
-                for i = 1:nSubjects
-                nTrials(i,c) = length(choice_add{i});
-                trialInds=1:nTrials(i,c);
-                choice(i,c,trialInds)=choice_add{i}(trialInds);
-                g1(i,c,trialInds)=gr1_1_add{i}(trialInds);
-                g2(i,c,trialInds)=gr1_2_add{i}(trialInds);
-                g3(i,c,trialInds)=gr2_1_add{i}(trialInds);
-                g4(i,c,trialInds)=gr2_2_add{i}(trialInds);
-                w(i,c,trialInds) = wealth_add{i}(trialInds);
-                end %i
-            case {2}% eta=1
-                nTrials(i,c) = length(choice_mul(i,:));
-                trialInds=1:nTrials;
-                choice(:,c,trialInds)=choice_mul(:,trialInds);
-                g1(:,c,trialInds)=gr1_1_mul(:,trialInds);
-                g2(:,c,trialInds)=gr1_2_mul(:,trialInds);
-                g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
-                g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
-                w(:,c,trialInds) = wealth_mul(:,trialInds);
-        end %switch
-    end %c
-end %if
+trialInds = 1:nTrials
+for c = 1:nConditions
+    switch c
+        case {1} %eta = 0
+            choice(:,c,trialInds)=choice_add{i}(trialInds);
+            g1(:,c,trialInds)=gr1_1_add(:,trialInds);
+            g2(:,c,trialInds)=gr1_2_add(:,trialInds);
+            g3(:,c,trialInds)=gr2_1_add(:,trialInds);
+            g4(:,c,trialInds)=gr2_2_add(:,trialInds);
+            w(:,c,trialInds) = wealth_add(:,trialInds);
+            end %i
+        case {2}% eta=1
+            choice(:,c,trialInds)=choice_mul(:,trialInds);
+            g1(:,c,trialInds)=gr1_1_mul(:,trialInds);
+            g2(:,c,trialInds)=gr1_2_mul(:,trialInds);
+            g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
+            g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
+            w(:,c,trialInds) = wealth_mul(:,trialInds);
+    end %switch
+end %c
 
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
@@ -169,8 +121,8 @@ disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 
 %% Configure data structure for graphical model & parameters to monitor
 %everything you want jags to use
-switch dataMode
-    case {1} %estimate
+switch inferenceMode
+    case {1} %estimate parameters
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
                     'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,'y',choice,...
@@ -181,18 +133,9 @@ switch dataMode
             monitorParameters = {'beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
-    case {2} %simulate
-        dataStruct = struct(...
-                    'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                    'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,...
-                    'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-                    'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
+    case {2} %model selection
 
-        for i = 1:nChains
-            monitorParameters = {'y','g1','g2','g3','g4','w','beta','eta'};
-            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-        end %i
-end %switch dataMode
+end %switch inferenceMode
 
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
@@ -211,19 +154,26 @@ tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
     'monitorparams', monitorParameters, ...   % List of latent variables to monitor
     'savejagsoutput' , 1 , ...                % Save command line output produced by JAGS?
     'verbosity' , 1 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
-    'cleanup' , 1 ,...                        % clean up of temporary files?
+    'cleanup' , 0 ,...                        % clean up of temporary files?
     'rndseed',1);                             % Randomise seed; 0=no; 1=yes
 
 toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-switch dataMode
+switch inferenceMode
     case {1}
-        save(fullfile(dataDir, sprintf('parameter_estimation',dataSource),'samples'),'-v7.3')
+        switch synthMode
+            case {1} save(fullfile(dataDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
+            case {2} save(fullfile(simulationDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
+        end %switch synthMode
     case {2}
-        save(fullfile(simulationDir, sim),'samples','-v7.3')
-end %switch dataMode
+        switch synthMode
+            case {1} save(fullfile(dataDir, append('model_selection',dataSource)),'samples','-v7.3')
+            case {2} save(fullfile(simulationDir, append('model_selection',dataSource)),'samples','-v7.3')
+        end %switch synthMode
+end %switch inferenceMode
+
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output
 disp('samples:'),disp(samples);%print out structure of samples output

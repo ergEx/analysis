@@ -5,8 +5,8 @@ model{
 ##LIKELIHOOD
 for (i in 1:nSubjects){
 for (c in 1:nConditions){
-for (t in 1:nTrials){
-    u[i,c,t]      = ( pow(w[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
+for (t in 1:80){
+    u[i,c,t]      = ifelse(eta[i,c] == 1, log(w[i,c,t]), ( pow(w[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] ))  #transforms wealth into utility
 
     edug1[i,c,t]  = ( g1[i,c,t] + g2[i,c,t] ) / 2  #computes expected change in utiluty for each gamble
     edug2[i,c,t]  = ( g3[i,c,t] + g4[i,c,t] ) / 2
@@ -18,11 +18,13 @@ for (t in 1:nTrials){
     y[i,c,t]      ~ dbern(theta[i,c,t])                           #computes bernoulli distributed choice
 
 }# end of trials
+
 }# end of conditions
 }# end of subjects
 
 
-## PRIORS
+## PRIORS 
+#nt = nTrials[i,c]
 for (i in 1:nSubjects){
     for (c in 1:nConditions){
         log_beta[i,c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled from normal hyperprior
@@ -40,7 +42,7 @@ for (c in 1:nConditions){
         sigma_log_beta[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
 
         #eta parameter
-        mu_eta[c]                ~ dunif(muEtaL[c],muEtaU)       #mean of eta
+        mu_eta[c]                ~ dunif(muEtaL[c],muEtaU[c])       #mean of eta
         tau_eta[c]               = pow(sigma_eta[c],-2)       #precision of eta
         sigma_eta[c]             ~ dunif(sigmaEtaL,sigmaEtaU) #std on eta
 }#end of conditions
