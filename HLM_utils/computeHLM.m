@@ -162,16 +162,8 @@ toc % end clock
 %% Save stats and samples
 disp('saving samples...')
 switch inferenceMode
-    case {1}
-        switch synthMode
-            case {1}, save(fullfile(dataDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
-            case {2}, save(fullfile(simulationDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
-        end %switch synthMode
-    case {2}
-        switch synthMode
-            case {1}, save(fullfile(dataDir, append('model_selection',dataSource)),'samples','-v7.3')
-            case {2}, save(fullfile(simulationDir, append('model_selection',dataSource)),'samples','-v7.3')
-        end %switch synthMode
+    case {1}, save(fullfile(dataDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
+    case {2}, save(fullfile(dataDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
 end %switch inferenceMode
 
 %% Print readouts
