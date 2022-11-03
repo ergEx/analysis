@@ -18,7 +18,7 @@ condition_specs = {0.0:'Additive', 1.0:'Multiplicative'}
 
 if simulation:
     active_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'simulations','all_active_phase_data.csv'), sep='\t')
-    subjects = list(range(10))
+    subjects = list(range(15))
 
     if not os.path.isfile(os.path.join(root_path,'data',design_variant,f'{inference_mode}_simulated_data.mat')):
         print('HLM mordel output not found!')
@@ -47,8 +47,8 @@ logistic_regression_input = np.empty([len(subjects),7])
 for i,subject in enumerate(subjects):
     print(i)
     logistic_regression_input[i,0] = subject
-    fig, ax = plt.subplots(2,8, figsize=(20,7))
-    fig.suptitle('Subject {subject}')
+    fig, ax = plt.subplots(2,6, figsize=(20,7))
+    fig.suptitle(f'Subject {subject}')
     for c,condition in enumerate(condition_specs.keys()):
         '''PASIVE PHASE'''
         if simulation:
@@ -69,31 +69,12 @@ for i,subject in enumerate(subjects):
             active_subject_df = active_phase_df.query('subject_id == @subject and eta == @condition').reset_index(drop=True)
         else:
             active_subject_df = active_phase_df.query('no_response != True and subject_id == @subject and eta == @condition').reset_index(drop=True)
-        #active_subject_df['EV1_2'] = active_phase_df[['x1_1','x1_2']].mean(axis=1)
-        #active_subject_df['EV3_4'] = active_phase_df[['x2_1','x2_2']].mean(axis=1)
-        #active_subject_df['dEV'] = active_subject_df['EV1_2'].sub(active_subject_df['EV3_4'], axis = 0).abs()
-        #active_subject_df['var1_2'] = active_phase_df[['x1_1','x1_2']].var(axis=1,ddof=0)
-        #active_subject_df['var3_4'] = active_phase_df[['x2_1','x2_2']].var(axis=1,ddof=0)
-        #active_subject_df['dvar'] = active_subject_df['var1_2'].sub(active_subject_df['var3_4'], axis = 0).abs()
-        #tmp = [1 if (active_subject_df.var1_2[i] > active_subject_df.var3_4[i] and active_subject_df.selected_side_map[i] == 0
-        #        or active_subject_df.var1_2[i] < active_subject_df.var3_4[i] and active_subject_df.selected_side_map[i] == 1) else 0 for i in range(len(active_subject_df))]
-        #active_subject_df['choose_high_variance'] = tmp
 
         #Active trajectory
         ax[c,1].plot(active_subject_df.trial, active_subject_df.wealth)
         ax[c,1].set(title=f'Active wealth',
             xlabel='Trial',
             ylabel='Wealth')
-
-        #Additive choice probabilities
-        '''NOT IMPLEMENTED'''
-        ax[c,2].plot()
-        ax[c,2].set(title=f'Add choice prob')
-
-        #Multiplicative choice probabilities
-        '''Not IMPLEMENTED'''
-        ax[c,3].plot()
-        ax[c,3].set(title=f'Mul choice prob')
 
         #Indifference eta plots
         plot_specs = {'color':{0:'orange', 1: 'b'}, 'sign':{0:'>', 1:'<'}}
@@ -102,18 +83,25 @@ for i,subject in enumerate(subjects):
             if np.isnan(trial.indif_eta):
                 continue
 
-            ax[c,4].axvline(condition, linestyle='--', linewidth=1, color='k')
+            ax[c,2].axvline(condition, linestyle='--', linewidth=1, color='k')
 
-            ax[c,4].plot(trial.indif_eta, ii, marker=plot_specs['sign'][trial.min_max_sign], color=plot_specs['color'][trial.min_max_color])
+            ax[c,2].plot(trial.indif_eta, ii, marker=plot_specs['sign'][trial.min_max_sign], color=plot_specs['color'][trial.min_max_color])
 
-            ax[c,4].set(title = f'Indifference eta',
+            ax[c,2].set(title = f'Indifference eta',
                 xlabel = 'Riskaversion ($\eta$)')
 
-            ax[c,4].axes.yaxis.set_visible(False)
+            ax[c,2].axes.yaxis.set_visible(False)
 
         #Choice probabilities in different indifference eta regions
-        ax[c,5].plot()
-        ax[c,5].set(title=f'Indif eta choice prob.')
+        min_df = active_subject_df.query('min_max_sign == 0').reset_index(drop=True)
+        max_df = active_subject_df.query('min_max_sign == 1').reset_index(drop=True)
+        min, _ = np.histogram(min_df['indif_eta'], bins=[-np.inf, -0.5, 0, 1.0, 1.5, np.inf])
+        max, _ = np.histogram(max_df['indif_eta'], bins=[-np.inf, -0.5, 0, 1.0, 1.5, np.inf])
+        h = [max[i]/(max[i]+min[i]) for  i in range(len(min))]
+        ticks = ['<-0.5','-1 - 0','0 - 1','1 - 1.5','>1.5']
+        ax[c,3].bar(ticks,h)
+        ax[c,3].set(title=f'Indif eta choice prob.')
+        ax[c,3].tick_params(axis='x', labelrotation=45)
 
         #Indifference eta logistic regression
 
@@ -122,23 +110,23 @@ for i,subject in enumerate(subjects):
         x_test, pred, ymin, ymax, idx_m, idx_l, idx_h = logistic_regression(df_tmp)
 
 
-        ax[c,6].fill_between(x_test, ymin, ymax, where=ymax >= ymin,
+        ax[c,4].fill_between(x_test, ymin, ymax, where=ymax >= ymin,
                     facecolor='grey', interpolate=True, alpha=0.5,label='95 % confidence interval')
 
-        ax[c,6].plot(x_test,pred,color='black')
+        ax[c,4].plot(x_test,pred,color='black')
 
         sns.regplot(x=np.array(df_tmp.indif_eta),
                     y=np.array(df_tmp.min_max_val),
                     fit_reg=False,
                     y_jitter=0.05,
-                    ax=ax[c,6],
+                    ax=ax[c,4],
                     label='data',
                     color='grey',
                     scatter_kws={'alpha': 1, 's':20})
 
-        ax[c,6].axhline(y=0.5,color='grey',linestyle='--')
+        ax[c,4].axhline(y=0.5,color='grey',linestyle='--')
 
-        ax[c,6].set(title=f'Logistic regression',
+        ax[c,4].set(title=f'Logistic regression',
             ylabel = '',
             xlabel = 'Indifference eta',
             yticks = [0, 0.5, 1],
@@ -151,8 +139,10 @@ for i,subject in enumerate(subjects):
         #HLM model
         #print(HLM_samples.keys())
         eta_dist = HLM_samples['eta'][:,:,i,c].flatten()
-        ax[c,7].hist(eta_dist)
-        ax[c,7].set(title=f'HLM model')
+        print(np.shape(HLM_samples['eta']))
+        sns.kdeplot(eta_dist,ax=ax[c,5])
+        ax[c,5].set(title=f'HLM model')
+        ax[c,5].axvline(condition, linestyle='--', linewidth=1, color='k')
 
 
 
