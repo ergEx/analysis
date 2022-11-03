@@ -1,5 +1,6 @@
 import os
 
+import mat73
 import numpy as np
 import pandas as pd
 import statsmodels.api
@@ -169,3 +170,9 @@ def logistic_regression(df):
     idx_h = min([i for i in range(len(ymax)) if ymax[i] > 0.5]) if len([i for i in range(len(ymax)) if ymax[i] > 0.5]) > 0 else len(x_test) -1
 
     return x_test, pred, ymin, ymax, idx_m, idx_l, idx_h
+
+def read_hlm_output(inference_mode:str, experiment_version:str, dataSource:str) -> dict:
+    if inference_mode not in ['parameter_estimation','model_selection']:
+        raise ValueError('You can only choose between parameter estimation and model selection')
+    mat = mat73.loadmat(os.path.join(os.path.dirname(__file__),'data', experiment_version, f'{inference_mode}_{dataSource}.mat'))
+    return mat['samples']
