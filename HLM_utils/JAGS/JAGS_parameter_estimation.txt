@@ -6,31 +6,26 @@ model{
 for (i in 1:nSubjects){
 for (c in 1:nConditions){
 for (t in 1:nTrials){
-    u_dyn[i,c,t] = ( pow(w[i,c,t] , ( 1 - lambd[c] ) ) -1 ) / ( 1- lambd[c] )
-
-    u_dyn1[i,c,t] = u_dyn[i,c,t] + g1[i,c,t]
-    u_dyn2[i,c,t] = u_dyn[i,c,t] + g2[i,c,t]
-    u_dyn3[i,c,t] = u_dyn[i,c,t] + g3[i,c,t]
-    u_dyn4[i,c,t] = u_dyn[i,c,t] + g4[i,c,t]
-
-    w1[i,c,t] = pow( (1-lambd[c]) * u_dyn1[i,c,t] + 1, 1 / (1-lambd[c]))
-    w2[i,c,t] = pow( (1-lambd[c]) * u_dyn2[i,c,t] + 1, 1 / (1-lambd[c]))
-    w3[i,c,t] = pow( (1-lambd[c]) * u_dyn3[i,c,t] + 1, 1 / (1-lambd[c]))
-    w4[i,c,t] = pow( (1-lambd[c]) * u_dyn4[i,c,t] + 1, 1 / (1-lambd[c]))
-
-    u1[i,c,t]      =  ( pow(w1[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
-    u2[i,c,t]      =  ( pow(w2[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
-    u3[i,c,t]      =  ( pow(w3[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
-    u4[i,c,t]      =  ( pow(w4[i,c,t] , ( 1 - eta[i,c] ) ) -1 ) / ( 1- eta[i,c] )  #transforms wealth into utility
-
-    edug1[i,c,t]  = ( u1[i,c,t] + u2[i,c,t] ) / 2  #computes expected change in utiluty for each gamble
-    edug2[i,c,t]  = ( u3[i,c,t] + u4[i,c,t] ) / 2
-
-    deu[i,c,t]    = edug1[i,c,t] - edug2[i,c,t]                   #computes difference in expected change in utility
-    sdeu[i,c,t]   = -1 * beta[i,c] * deu[i,c,t]                   #scaled by sensitivity parameter
-    tmp[i,c,t]    = ( 1 ) / ( 1 + (exp(sdeu[i,c,t]) ) )           #choice probability
-    theta[i,c,t]  = max( 0.000001 , min(0.999999 , tmp[i,c,t]) )  #ensure 0 < cp < 1
-    y[i,c,t]      ~ dbern(theta[i,c,t])                           #computes bernoulli distributed choice
+    wLU[i,c,t]   = w[i,c,t] + dwLU[i,c,t]                                  #wealth if outcome Left Upper
+    wLL[i,c,t]   = w[i,c,t] + dwLL[i,c,t]                                  #wealth if outcome Left Lower
+    wRU[i,c,t]   = w[i,c,t] + dwRU[i,c,t]                                  #wealth if outcome Right Upper
+    wRL[i,c,t]   = w[i,c,t] + dwRL[i,c,t]                                  #wealth if outcome Right Lower
+    u[i,c,t]     = pow(w[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c]       #utility of wealth prior to trial
+    uLU[i,c,t]   = pow(wLU[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c]     #transforms wealth into utility
+    uLL[i,c,t]   = pow(wLL[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c]     #transforms wealth into utility
+    uRU[i,c,t]   = pow(wRU[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c]     #transforms wealth into utility
+    uRL[i,c,t]   = pow(wRL[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c]     #transforms wealth into utility
+    duLU[i,c,t]  = uLU[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome Left Upper
+    duLU[i,c,t]  = uLL[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome Left Lower
+    duLU[i,c,t]  = uRU[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome Right Upper
+    duLU[i,c,t]  = uRL[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome right Lower
+    edugL[i,c,t] = (duLU[i,c,t] + duLL[i,c,t]) / 2                         #expected change in utiluty for Left gamble
+    edugR[i,c,t] = (duRU[i,c,t] + duRL[i,c,t]) / 2                         #expected change in utility for Right gamble
+    deu[i,c,t]   = edugL[i,c,t] - edugR[i,c,t]                             #computes difference in expected change in utility
+    sdeu[i,c,t]  = -1 * beta[i,c] * deu[i,c,t]                             #scaled by sensitivity parameter
+    cp[i,c,t]    = 1 / (1 + (exp(sdeu[i,c,t])))                            #choice probability
+    theta[i,c,t] = max( 0.000001 , min(0.999999 , cp[i,c,t]) )             #ensure 0 < cp < 1
+    y[i,c,t]     ~ dbern(theta[i,c,t])                                     #bernoulli distributed choice
 
 }# end of trials
 
@@ -62,7 +57,4 @@ for (c in 1:nConditions){
         sigma_eta[c]             ~ dunif(sigmaEtaL,sigmaEtaU) #std on eta
 }#end of conditions
 
-#dynamic parameters
-lambd[1] = 0
-lambd[2] = 0.99
 }
