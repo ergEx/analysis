@@ -113,10 +113,10 @@ end %c
 
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
-disp([num2str(length(find(isnan(g1)))),'_nans in gambles 1 matrix'])% nans in gamble matrices do
-disp([num2str(length(find(isnan(g2)))),'_nans in gambles 2 matrix'])
-disp([num2str(length(find(isnan(g3)))),'_nans in gambles 3 matrix'])
-disp([num2str(length(find(isnan(g4)))),'_nans in gambles 4 matrix'])
+disp([num2str(length(find(isnan(dwLU)))),'_nans in gambles Left Upper matrix'])% nans in gamble matrices do
+disp([num2str(length(find(isnan(dwLL)))),'_nans in gambles Left Lower matrix'])
+disp([num2str(length(find(isnan(dwRU)))),'_nans in gambles Right Upper matrix'])
+disp([num2str(length(find(isnan(dwRL)))),'_nans in gambles Right Lower matrix'])
 disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 
 %% Configure data structure for graphical model & parameters to monitor
@@ -163,10 +163,7 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-switch inferenceMode
-    case {1}, save(fullfile(dataDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
-    case {2}, save(fullfile(dataDir, append('parameter_estimation_',dataSource)),'samples','-v7.3')
-end %switch inferenceMode
+save(fullfile(dataDir, append(mode,'_',dataSource)),'samples','-v7.3')
 
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output
