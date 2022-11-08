@@ -96,17 +96,17 @@ for c = 1:nConditions
     switch c
         case {1} %eta = 0
             choice(:,c,trialInds)=choice_add(:,trialInds);
-            dwLU(:,c,trialInds)=w1_1_add(:,trialInds);
-            dwLL(:,c,trialInds)=w1_2_add(:,trialInds);
-            dwRU(:,c,trialInds)=w2_1_add(:,trialInds);
-            dwRL(:,c,trialInds)=w2_2_add(:,trialInds);
+            dwLU(:,c,trialInds)=x1_1_add(:,trialInds);
+            dwLL(:,c,trialInds)=x1_2_add(:,trialInds);
+            dwRU(:,c,trialInds)=x2_1_add(:,trialInds);
+            dwRL(:,c,trialInds)=x2_2_add(:,trialInds);
             w(:,c,trialInds) = wealth_add(:,trialInds);
         case {2}% eta=1
             choice(:,c,trialInds)=choice_mul(:,trialInds);
-            dwLU(:,c,trialInds)=w1_1_mul(:,trialInds);
-            dwLL(:,c,trialInds)=w1_2_mul(:,trialInds);
-            dwRU(:,c,trialInds)=w2_1_mul(:,trialInds);
-            dwRL(:,c,trialInds)=w2_2_mul(:,trialInds);
+            dwLU(:,c,trialInds)=x1_1_mul(:,trialInds);
+            dwLL(:,c,trialInds)=x1_2_mul(:,trialInds);
+            dwRU(:,c,trialInds)=x2_1_mul(:,trialInds);
+            dwRL(:,c,trialInds)=x2_2_mul(:,trialInds);
             w(:,c,trialInds) = wealth_mul(:,trialInds);
     end %switch
 end %c
