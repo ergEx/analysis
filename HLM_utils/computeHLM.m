@@ -96,17 +96,17 @@ for c = 1:nConditions
     switch c
         case {1} %eta = 0
             choice(:,c,trialInds)=choice_add(:,trialInds);
-            g1(:,c,trialInds)=gr1_1_add(:,trialInds);
-            g2(:,c,trialInds)=gr1_2_add(:,trialInds);
-            g3(:,c,trialInds)=gr2_1_add(:,trialInds);
-            g4(:,c,trialInds)=gr2_2_add(:,trialInds);
+            dwLU(:,c,trialInds)=w1_1_add(:,trialInds);
+            dwLL(:,c,trialInds)=w1_2_add(:,trialInds);
+            dwRU(:,c,trialInds)=w2_1_add(:,trialInds);
+            dwRL(:,c,trialInds)=w2_2_add(:,trialInds);
             w(:,c,trialInds) = wealth_add(:,trialInds);
         case {2}% eta=1
             choice(:,c,trialInds)=choice_mul(:,trialInds);
-            g1(:,c,trialInds)=gr1_1_mul(:,trialInds);
-            g2(:,c,trialInds)=gr1_2_mul(:,trialInds);
-            g3(:,c,trialInds)=gr2_1_mul(:,trialInds);
-            g4(:,c,trialInds)=gr2_2_mul(:,trialInds);
+            dwLU(:,c,trialInds)=w1_1_mul(:,trialInds);
+            dwLL(:,c,trialInds)=w1_2_mul(:,trialInds);
+            dwRU(:,c,trialInds)=w2_1_mul(:,trialInds);
+            dwRL(:,c,trialInds)=w2_2_mul(:,trialInds);
             w(:,c,trialInds) = wealth_mul(:,trialInds);
     end %switch
 end %c
@@ -125,12 +125,14 @@ switch inferenceMode
     case {1} %estimate parameters
         dataStruct = struct(...
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                    'w',w,'g1',g1,'g2',g2,'g3',g3,'g4',g4,'y',choice,...
+                    'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
                     'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
                     'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
         for i = 1:nChains
-            monitorParameters = {'beta','eta'};
+            monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
+                                 'mu_log_beta','tau_log_beta','sigma_log_beta',...
+                                 'log_beta','beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
     case {2} %model selection
