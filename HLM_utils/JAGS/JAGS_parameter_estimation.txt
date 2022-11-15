@@ -5,41 +5,41 @@ model{
 ##LIKELIHOOD
 for (i in 1:nSubjects){
 for (c in 1:nConditions){
+oneminEta[i,c] = 1 - eta[i,c]                                                    #1 minus eta term
 for (t in 1:nTrials){
-    wLU[i,c,t]   = w[i,c,t] + dwLU[i,c,t]                                  #wealth if outcome Left Upper
-    wLL[i,c,t]   = w[i,c,t] + dwLL[i,c,t]                                  #wealth if outcome Left Lower
-    wRU[i,c,t]   = w[i,c,t] + dwRU[i,c,t]                                  #wealth if outcome Right Upper
-    wRL[i,c,t]   = w[i,c,t] + dwRL[i,c,t]                                  #wealth if outcome Right Lower
-    u[i,c,t]     = (pow(w[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c])     #utility of wealth prior to trial
-    uLU[i,c,t]   = (pow(wLU[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c])   #transforms wealth into utility
-    uLL[i,c,t]   = (pow(wLL[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c])   #transforms wealth into utility
-    uRU[i,c,t]   = (pow(wRU[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c])   #transforms wealth into utility
-    uRL[i,c,t]   = (pow(wRL[i,c,t],(1 - eta[i,c])) - 1) / (1 - eta[i,c])   #transforms wealth into utility
-    duLU[i,c,t]  = uLU[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome Left Upper
-    duLL[i,c,t]  = uLL[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome Left Lower
-    duRU[i,c,t]  = uRU[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome Right Upper
-    duRL[i,c,t]  = uRL[i,c,t] - u[i,c,t]                                   #delta utility of wealth outcome right Lower
-    edugL[i,c,t] = (duLU[i,c,t] + duLL[i,c,t]) / 2                         #expected change in utiluty for Left gamble
-    edugR[i,c,t] = (duRU[i,c,t] + duRL[i,c,t]) / 2                         #expected change in utility for Right gamble
-    deu[i,c,t]   = edugL[i,c,t] - edugR[i,c,t]                             #computes difference in expected change in utility
-    sdeu[i,c,t]  = -1 * beta[i,c] * deu[i,c,t]                             #scaled by sensitivity parameter
-    cp[i,c,t]    = 1 / (1 + (exp(sdeu[i,c,t])))                            #choice probability
-    theta[i,c,t] = max( 0.000001 , min(0.999999 , cp[i,c,t]) )             #ensure 0 < cp < 1
-    y[i,c,t]     ~ dbern(theta[i,c,t])                                     #bernoulli distributed choice
+
+    wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                  #wealth if outcome Left Upper
+    wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]                                  #wealth if outcome Left Lower
+    wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]                                  #wealth if outcome Right Upper
+    wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]                                  #wealth if outcome Right Lower
+    u[i,c,t]      = (pow(w[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]     #utility of wealth prior to trial
+    uLU[i,c,t]    = (pow(wLU[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    uLL[i,c,t]    = (pow(wLL[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    uRU[i,c,t]    = (pow(wRU[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    uRL[i,c,t]    = (pow(wRL[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    duLU[i,c,t]   = uLU[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Left Upper
+    duLL[i,c,t]   = uLL[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Left Lower
+    duRU[i,c,t]   = uRU[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Right Upper
+    duRL[i,c,t]   = uRL[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome right Lower
+    edugL[i,c,t]  = (duLU[i,c,t] + duLL[i,c,t]) / 2                              #expected change in utiluty for Left gamble
+    edugR[i,c,t]  = (duRU[i,c,t] + duRL[i,c,t]) / 2                              #expected change in utility for Right gamble
+    deu[i,c,t]    = edugL[i,c,t] - edugR[i,c,t]                                  #computes difference in expected change in utility
+    sdeu[i,c,t]   = -1 * beta[i,c] * deu[i,c,t]                                  #scaled by sensitivity parameter
+    cp[i,c,t]     = 1 / (1 + (exp(sdeu[i,c,t])))                                 #choice probability
+    theta[i,c,t]  = max( 0.000001 , min(0.999999 , cp[i,c,t]) )                  #ensure 0 < cp < 1
+    y[i,c,t]      ~ dbern(theta[i,c,t])                                          #bernoulli distributed choice
 
 }# end of trials
-
 }# end of conditions
 }# end of subjects
 
 
 ## PRIORS
-#nt = nTrials[i,c]
 for (i in 1:nSubjects){
     for (c in 1:nConditions){
         log_beta[i,c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled from normal hyperprior
         beta[i,c]      = exp(log_beta[i,c])                      # transforms from logspace, now lognormally distributed prior
-        eta[i,c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta
+        eta[i,c]       ~ dnorm(0,1)             # eta
     }#end of conditions
 }#end of subjects
 
