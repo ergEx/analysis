@@ -41,7 +41,8 @@ switch synthMode
         load(fullfile(dataDir, 'all_active_phase_data.mat'))
     case {2}
         dataSource = 'simulated_data';
-        subjList = 1:15;
+        subjList = 1;
+        nTrials = 160;
         load(fullfile(simulationDir,'all_active_phase_data'))
 end %switch synthMode
 
@@ -68,10 +69,13 @@ sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on
 muEtaL=-2.5;muEtaU=2.5;%bounds on mean of distribution of eta
 sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
 
+muEtaL=-0.01;muEtaU=0.01;%bounds on mean of distribution of eta
+sigmaEtaL=0.01;sigmaEtaU=0.05;%bounds on std of eta
+
 %% Print information for user
 disp('**************');
 disp(['Mode: ', mode])
-disp(['Data version', dataVersion])
+disp(['Data version: ', dataVersion])
 disp(['dataSource: ', dataSource])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
@@ -79,7 +83,7 @@ disp('**************');
 
 %% Initialise matrices
 %initialise matrices with nan values of size subjects x conditions x trials
-dim = nan(nSubjects,nConditions,80); %specify the dimension
+dim = nan(nSubjects,nConditions,nTrials); %specify the dimension
 choice = dim; %initialise choice data matrix
 g1=dim; g2=dim; g3=dim; g4=dim;%initialise growth-rates
 w=dim;%initialise wealth
@@ -100,14 +104,16 @@ for c = 1:nConditions
             dwLL(:,c,trialInds)=x1_2_add(:,trialInds);
             dwRU(:,c,trialInds)=x2_1_add(:,trialInds);
             dwRL(:,c,trialInds)=x2_2_add(:,trialInds);
-            w(:,c,trialInds) = wealth_add(:,trialInds);
+            w(:,c,1)           =1000.*ones(nSubjects,1);
+            w(:,c,2:nTrials) = wealth_add(:,1:nTrials-1);
         case {2}% eta=1
             choice(:,c,trialInds)=choice_mul(:,trialInds);
             dwLU(:,c,trialInds)=x1_1_mul(:,trialInds);
             dwLL(:,c,trialInds)=x1_2_mul(:,trialInds);
             dwRU(:,c,trialInds)=x2_1_mul(:,trialInds);
             dwRL(:,c,trialInds)=x2_2_mul(:,trialInds);
-            w(:,c,trialInds) = wealth_mul(:,trialInds);
+            w(:,c,1)           =1000.*ones(nSubjects,1);
+            w(:,c,2:nTrials) = wealth_mul(:,1:nTrials-1);
     end %switch
 end %c
 
@@ -130,7 +136,8 @@ switch inferenceMode
                     'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
         for i = 1:nChains
-            monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
+            monitorParameters = {'wLU','wLL','wRU','wRL',...
+                                 'mu_eta','tau_eta','sigma_eta',...
                                  'mu_log_beta','tau_log_beta','sigma_log_beta',...
                                  'log_beta','beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
