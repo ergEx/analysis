@@ -1,20 +1,19 @@
-###read data and save data
-
 import os
 
 import numpy as np
 import pandas as pd
 import scipy.io
+
 import sub_specs
 import utils
 
 print('READING DATA')
-simulation = True
+simulation = False
 root_path = os.path.join(os.path.dirname(__file__),)
 design_variant = 'two_gamble_new_c'
 condition_specs = {'condition':['Additive','Multiplicative'], 'lambd':[0.0,1.0], 'bids_text': ['0d0','1d0'],'txt_append':['_add','_mul']}
 if simulation:
-    subject_specs = {'id':list(range(15))}
+    subject_specs = {'id':list(range(1))}
 else:
     subject_specs = sub_specs.sub_specs(design_variant)
 n_passive_runs = 3
@@ -28,7 +27,7 @@ for c,condition in enumerate(condition_specs['condition']):
         print(f'Subject {i+1} of {len(subject_specs["id"])}')
         '''Passive phase data'''
         if not simulation:
-            for run in range(1,n_passive_runs):
+            for run in range(1,n_passive_runs+1):
                 passive_phase_data = pd.read_csv(os.path.join(root_path, 'data',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-passive_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
 
                 subject_df = passive_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
