@@ -114,16 +114,16 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float) -> list:
 def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
     dx = misc.derivative(func,root)
     if dx<0:
-        return np.array([0,0,0]) if choice==1 else np.array([1,1,1])
-    else:
         return np.array([0,0,0]) if choice==0 else np.array([1,1,1])
+    else:
+        return np.array([0,0,0]) if choice==1 else np.array([1,1,1])
 
 def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
     """Decision if a gamble is strictly statewise dominated by the other gamble in a gamble pair"""
     return (np.greater_equal(max(gamble_pair[0]), max(gamble_pair[1])) and np.greater_equal(min(gamble_pair[0]), min(gamble_pair[1])) or
            np.greater_equal(max(gamble_pair[1]), max(gamble_pair[0])) and np.greater_equal(min(gamble_pair[1]), min(gamble_pair[0])) )
 
-def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 1, 'left': 0}) -> pd.DataFrame:
+def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 0, 'left': 1}) -> pd.DataFrame:
     df['selected_side_map'] = df['selected_side'].map(choice_dict)
     df['subject_id'] = [subject]*len(df)
     new_info = np.zeros([df.shape[0],16])
