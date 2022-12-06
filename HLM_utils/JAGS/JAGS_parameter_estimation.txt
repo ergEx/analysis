@@ -7,16 +7,20 @@ for (i in 1:nSubjects){
 for (c in 1:nConditions){
 oneminEta[i,c] = 1 - eta[i,c]                                                    #1 minus eta term
 for (t in 1:nTrials){
-
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                       #wealth if outcome Left Upper
     wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]                                       #wealth if outcome Left Lower
     wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]                                       #wealth if outcome Right Upper
     wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]                                       #wealth if outcome Right Lower
-    u[i,c,t]      = (pow(w[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]          #utility of wealth prior to trial
-    uLU[i,c,t]    = (pow(wLU[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
-    uLL[i,c,t]    = (pow(wLL[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
-    uRU[i,c,t]    = (pow(wRU[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
-    uRL[i,c,t]    = (pow(wRL[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    wLUp[i,c,t] = ifelse(wLU[i,c,t] > 0, wLU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wLLp[i,c,t] = ifelse(wLL[i,c,t] > 0, wLL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wRUp[i,c,t] = ifelse(wRU[i,c,t] > 0, wRU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wRLp[i,c,t] = ifelse(wRL[i,c,t] > 0, wRL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wp[i,c,t]   = ifelse(w[i,c,t] > 0, w[i,c,t], 1)                              #replacing if negative (doesn't matter cause choice is deleted in input)
+    u[i,c,t]      = (pow(wp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]          #utility of wealth prior to trial
+    uLU[i,c,t]    = (pow(wLUp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    uLL[i,c,t]    = (pow(wLLp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    uRU[i,c,t]    = (pow(wRUp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    uRL[i,c,t]    = (pow(wRLp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
     duLU[i,c,t]   = uLU[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Left Upper
     duLL[i,c,t]   = uLL[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Left Lower
     duRU[i,c,t]   = uRU[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Right Upper
@@ -28,7 +32,6 @@ for (t in 1:nTrials){
     cp[i,c,t]     = 1 / (1 + (exp(sdeu[i,c,t])))                                 #choice probability
     theta[i,c,t]  = max( 0.000001 , min(0.999999 , cp[i,c,t]) )                  #ensure 0 < cp < 1
     y[i,c,t]      ~ dbern(theta[i,c,t])                                          #bernoulli distributed choice
-
 }# end of trials
 }# end of conditions
 }# end of subjects
