@@ -1,4 +1,4 @@
-function setHLM(inferenceMode,synthMode,whichJAGS,whichQuals,doParallel,startDir,version)
+function setHLM(inferenceMode,synthMode,aggregationMode,whichJAGS,whichQuals,doParallel,startDir,version)
 
 % setHLM sets up multiple HLM models to run sequentially according to inputs
 
@@ -28,11 +28,16 @@ switch version
     case {1}, subjList = 1:3; nTrials = 120; dataVersion = '';  %One gamble version
     case {2}, subjList = 1:3; nTrials = 120; dataVersion = '';   %Two gamble version
     case {3}, subjList = 1:3; nTrials = 120; dataVersion = '';  %Two gamble version w. wealth controls
-    case {4}, subjList = 1:11; nTrials = 120; dataVersion = 'two_gamble_new_c';   %Two gamble version w. different additive c
+    case {4}, subjList = 1:11; nTrials = 160; dataVersion = 'two_gamble_new_c';   %Two gamble version w. different additive c
     case {5}, subjList = 1:3; nTrials = 120; dataVersion = '';   %Two gamble version w. hidden wealth
 end %version
 
+if aggregationMode == 2
+    nTrials = nTrials*length(subjList);
+    subjList = 1;
+end %if
+
 %% Runs HLMs sequentially
 for i=1:numRuns
-    computeHLM(inferenceMode,synthMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
+    computeHLM(inferenceMode,synthMode,aggregationMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
 end

@@ -38,7 +38,7 @@ else:
         print('HLM mordel output not found!')
         hlm_samples_found = False
     else:
-        hlm_samples = read_hlm_output(inference_mode = inference_mode, experiment_version = design_variant, dataSource = 'real_data')
+        HLM_samples = read_hlm_output(inference_mode = inference_mode, experiment_version = design_variant, dataSource = 'real_data')
         hlm_samples_found = True
 
     save_path = os.path.join(root_path, 'figs', design_variant)
@@ -166,10 +166,13 @@ for i,subject in enumerate(subjects):
 
         #HLM model
         if hlm_samples_found:
-            eta_dist = HLM_samples['eta'][:,:].flatten()
+            eta_dist = HLM_samples['eta'][:,:,i,c].flatten()
             sns.kdeplot(eta_dist,ax=ax[c,5])
-        ax[c,5].set(title=f'HLM model',
-                    xlabel='Risk aversion estimate')
+        ax[c,5].set(title=f'Bayesian Model',
+                ylabel = '',
+                xticks = np.linspace(-5,5,11),
+                xlim = [-5,5],
+                xlabel='Risk aversion estimate')
         ax[c,5].axvline(condition, linestyle='--', linewidth=1, color='k')
 
 
@@ -207,21 +210,6 @@ for c,condition in enumerate(condition_specs.keys()):
     ax[c,0].axes.yaxis.set_visible(False)
     ax[c,0].axvline(condition, linestyle='--', color='grey', label='Growth optimal')
 
-    #Choice probabilities in different indifference eta regions
-    #min_df = df.query('min_max_sign == 0').reset_index(drop=True)
-    #max_df = df.query('min_max_sign == 1').reset_index(drop=True)
-    #min, _ = np.histogram(min_df['indif_eta'], bins=[-np.inf, -0.5, 0, 1.0, 1.5, np.inf])
-    #max, _ = np.histogram(max_df['indif_eta'], bins=[-np.inf, -0.5, 0, 1.0, 1.5, np.inf])
-    #h = [max[i]/(max[i]+min[i]) for  i in range(len(min))]
-    #ticks = ['<-0.5','-1 - 0','0 - 1','1 - 1.5','>1.5']
-    #ax[c,1].bar(ticks,h)
-    #ax[c,1].set(title=f'Indif eta choice prob.',
-    #            ylim=[0,1],
-    #            yticks=np.linspace(0,1,11))
-    #ax[c,1].tick_params(axis='x', labelrotation=45)
-
-    #Indifference eta logistic regression
-
     df_tmp = df.query('indif_eta.notnull()', engine='python')
     print(f'Number og relevant gambles: {len(df_tmp) / len(df):.2f}')
 
@@ -254,5 +242,21 @@ for c,condition in enumerate(condition_specs.keys()):
         xticks = np.linspace(-5,5,11),
         xlim = [-5,5])
 
+    HLM_samples = read_hlm_output(inference_mode = inference_mode, experiment_version = design_variant, dataSource = 'real_data50')
+    print(np.shape(HLM_samples['eta']))
+    eta_dist1 = HLM_samples['eta'][:,0:50].flatten()
+    eta_dist2 = HLM_samples['eta'][:,50:100].flatten()
+    if c == 0:
+        sns.kdeplot(eta_dist1,ax=ax[c,2])
+    else:
+        sns.kdeplot(eta_dist2,ax=ax[c,2])
+    ax[c,2].set(title=f'Bayesian Model',
+                ylabel = '',
+                xticks = np.linspace(-5,5,11),
+                xlim = [-5,5],
+                xlabel='Risk aversion estimate')
+    ax[c,2].axvline(condition, linestyle='--', linewidth=1, color='k')
+    ax[c,2].axvline(x=x_test[idx_m], color='red', linestyle='--')
+
 fig.tight_layout()
-fig.savefig(os.path.join(save_path, f'active_results_new.png'))
+fig.savefig(os.path.join(save_path, f'active_results_aggregated.png'))

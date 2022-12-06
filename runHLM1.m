@@ -31,4 +31,4 @@ doParallel = 0;
 version = 4;
 
 %% Call setHLM
-setHLM(inferenceMode,synthMode,whichJAGS,whichQuals,doParallel,startDir,version)
+setHLM(inferenceMode,synthMode,aggregationMode,whichJAGS,whichQuals,doParallel,startDir,version)
