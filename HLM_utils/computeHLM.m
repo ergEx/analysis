@@ -41,7 +41,7 @@ switch synthMode
         load(fullfile(dataDir, 'all_active_phase_data.mat'))
     case {2}
         dataSource = 'simulated_data';
-        subjList = 1:2;
+        subjList = 1:3;
         nTrials = 160;
         load(fullfile(simulationDir,'all_active_phase_data'))
 end %switch synthMode
@@ -49,7 +49,7 @@ end %switch synthMode
 %% Choose JAGS file
 switch inferenceMode
     case {1}, modelName = 'JAGS_parameter_estimation'; mode = 'parameter_estimation';
-    case {2}, modelName = 'JAGS_model_selection'; mode = 'model_selection';
+    case {2}, modelName = 'JAGS_model_selection'; mode = 'model_selection'; pz=repmat(1/8,1,4);%sets flat prior over models [NoDyn, Dyn]
 end %switch inferencemode
 
 %% Set key variables
@@ -69,6 +69,9 @@ sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on
 muEtaL=-2.5;muEtaU=2.5;%bounds on mean of distribution of eta
 sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
 
+%delta_eta
+muDeltaEtaL=0.0;muDeltaEtaU=2.5;%bounds on mean of distribution of eta
+sigmaDeltaEtaL=0.01;sigmaDeltaEtaU=sqrt(((muDeltaEtaU-muDeltaEtaL)^2)/12);%bounds on std of eta
 
 %% Print information for user
 disp('**************');
@@ -85,6 +88,7 @@ dim = nan(nSubjects,nConditions,nTrials); %specify the dimension
 choice = dim; %initialise choice data matrix
 dwLU=dim; dwLL=dim; dwRU=dim; dwRL=dim;%initialise growth-rates
 w=dim;%initialise wealth
+
 
 %% Compile choice & gamble data
 % Jags cannot deal with partial observations, so we need to specify gamble info for all nodes. This doesn't change anything.
@@ -169,6 +173,21 @@ switch inferenceMode
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
     case {2} %model selection
+        dataStruct = struct(...
+                    'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+                    'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,'pz',pz,...
+                    'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
+                    'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
+                    'muDeltaEtaL',muDeltaEtaL,'muDeltaEtaU',muDeltaEtaU,'sigmaDeltaEtaL',sigmaDeltaEtaL,'sigmaDeltaEtaU',sigmaDeltaEtaU);
+
+        for i = 1:nChains
+
+
+            monitorParameters = {'etaNoDyn','etaDyn','delta_eta',...%utility params
+                                'betaNoDyn','betaDyn',...%betas
+                                'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
+            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
+        end %i
 
 end %switch inferenceMode
 
