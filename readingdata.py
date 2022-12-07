@@ -8,12 +8,12 @@ import sub_specs
 import utils
 
 print('READING DATA')
-simulation = False
+simulation = True
 root_path = os.path.join(os.path.dirname(__file__),)
 design_variant = 'two_gamble_new_c'
 condition_specs = {'condition':['Additive','Multiplicative'], 'lambd':[0.0,1.0], 'bids_text': ['0d0','1d0'],'txt_append':['_add','_mul']}
 if simulation:
-    subject_specs = {'id':list(range(1))}
+    subject_specs = {'id':[0.0,0.5,1.0]}
 else:
     subject_specs = sub_specs.sub_specs(design_variant)
 n_passive_runs = 3

@@ -8,7 +8,7 @@ import seaborn as sns
 
 from utils import logistic_regression, read_hlm_output
 
-simulation = False
+simulation = True
 RESET = 45
 n_passive_runs = 3
 root_path = os.path.dirname(__file__)
@@ -20,7 +20,7 @@ active_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
 if simulation:
     active_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'simulations','all_active_phase_data.csv'), sep='\t')
-    subjects = list(range(1))
+    subjects = [0.0,0.5,1.0]
 
     if not os.path.isfile(os.path.join(root_path,'data',design_variant,f'{inference_mode}_simulated_data.mat')):
         print('HLM model output not found!')
@@ -110,6 +110,8 @@ for i,subject in enumerate(subjects):
                     xlabel = 'Riskaversion ($\eta$)')
         ax[c,2].axes.yaxis.set_visible(False)
         ax[c,2].axvline(condition, linestyle='--', color='grey', label='Growth optimal')
+        if simulation:
+            ax[c,2].axvline(active_subject_df['simulation_eta'].iloc[0], linestyle='--', color='r')
 
         #Choice probabilities in different indifference eta regions
         min_df = active_subject_df.query('min_max_sign == 0').reset_index(drop=True)
@@ -161,6 +163,8 @@ for i,subject in enumerate(subjects):
             logistic_regression_input[i,3*c+1] = x_test[idx_h]
             logistic_regression_input[i,3*c+2] = x_test[idx_m]
             logistic_regression_input[i,3*c+3] = x_test[idx_l]
+            if simulation:
+                ax[c,4].axvline(active_subject_df['simulation_eta'].iloc[0], linestyle='--', color='r')
         except:
             continue
 
@@ -174,10 +178,11 @@ for i,subject in enumerate(subjects):
                 xlim = [-5,5],
                 xlabel='Risk aversion estimate')
         ax[c,5].axvline(condition, linestyle='--', linewidth=1, color='k')
-
+        if simulation:
+            ax[c,5].axvline(active_subject_df['simulation_eta'].iloc[0], linestyle='--', color='r')
 
     fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f'Subject {subject}'))
+    fig.savefig(os.path.join(save_path, f'Subject {i}'))
 
 
 logistic_regression_outout = pd.DataFrame(logistic_regression_input,
@@ -242,21 +247,17 @@ for c,condition in enumerate(condition_specs.keys()):
         xticks = np.linspace(-5,5,11),
         xlim = [-5,5])
 
-    HLM_samples = read_hlm_output(inference_mode = inference_mode, experiment_version = design_variant, dataSource = 'real_data50')
-    print(np.shape(HLM_samples['eta']))
-    eta_dist1 = HLM_samples['eta'][:,0:50].flatten()
-    eta_dist2 = HLM_samples['eta'][:,50:100].flatten()
-    if c == 0:
-        sns.kdeplot(eta_dist1,ax=ax[c,2])
-    else:
-        sns.kdeplot(eta_dist2,ax=ax[c,2])
+    if hlm_samples_found:
+        ax[c,2].axvline(x=x_test[idx_m], color='red', linestyle='--')
+        mu_eta = HLM_samples['mu_eta'][:,:,c]
+        sns.kdeplot(mu_eta.flatten(),ax=ax[c,2])
     ax[c,2].set(title=f'Bayesian Model',
                 ylabel = '',
                 xticks = np.linspace(-5,5,11),
                 xlim = [-5,5],
                 xlabel='Risk aversion estimate')
     ax[c,2].axvline(condition, linestyle='--', linewidth=1, color='k')
-    ax[c,2].axvline(x=x_test[idx_m], color='red', linestyle='--')
+
 
 fig.tight_layout()
 fig.savefig(os.path.join(save_path, f'active_results_aggregated.png'))
