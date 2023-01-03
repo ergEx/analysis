@@ -66,8 +66,8 @@ muLogBetaL=-2.3;muLogBetaU=3.4; %bounds on mean of distribution log beta
 sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on the std of distribution of log beta
 
 %eta
-muEtaL=-2.5;muEtaU=2.5;%bounds on mean of distribution of eta
-sigmaEtaL=0.01;sigmaEtaU=sqrt(((muEtaU-muEtaL)^2)/12);%bounds on std of eta
+muMuEta=0.5; sigmaMuEta=0.5; %parameters for the mean of the eta parameter (normal distributed)
+muSigmaEta=-2.2251; sigmaSigmaEta=1.48348; %parameter for the standard diviation on the eta parameter (log normal distributed)
 
 %delta_eta
 muDeltaEtaL=0.0;muDeltaEtaU=2.5;%bounds on mean of distribution of eta
@@ -183,7 +183,7 @@ switch inferenceMode
         for i = 1:nChains
 
 
-            monitorParameters = {'etaNoDyn','etaDyn','delta_eta',...%utility params
+            monitorParameters = {'etaNoDyn','etaDyn',...%utility params
                                 'betaNoDyn','betaDyn',...%betas
                                 'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
