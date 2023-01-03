@@ -13,7 +13,7 @@ root_path = os.path.join(os.path.dirname(__file__),)
 design_variant = 'two_gamble_new_c'
 condition_specs = {'condition':['Additive','Multiplicative'], 'lambd':[0.0,1.0], 'bids_text': ['0d0','1d0'],'txt_append':['_add','_mul']}
 if simulation:
-    subject_specs = {'id':[0.0,0.5,1.0]}
+    subject_specs = {'id': ['0.0x0.0','0.0x0.5','0.0x1.0','0.5x0.0','0.5x0.5','0.5x1.0','1.0x0.0','1.0x0.5','1.0x1.0']}
 else:
     subject_specs = sub_specs.sub_specs(design_variant)
 n_passive_runs = 3
@@ -37,7 +37,7 @@ for c,condition in enumerate(condition_specs['condition']):
         '''Active phase data'''
         run = 1
         if simulation:
-            subject_df = pd.read_csv(os.path.join(root_path, 'data', design_variant, 'simulations', f'sim_agent_{subject}_lambd_{condition_specs["lambd"][c]}.csv' ), sep='\t')
+            subject_df = pd.read_csv(os.path.join(root_path, 'data', design_variant, 'simulations', f'sim_agent_{subject}_lambd_{int(condition_specs["lambd"][c])}.csv' ), sep='\t')
         else:
             active_phase_data = pd.read_csv(os.path.join(root_path, 'data',design_variant,f'sub-{subject}',f'ses-{subject_specs["first_run"][i][c]}',f'sub-{subject}_ses-{subject_specs["first_run"][i][c]}_task-active_acq-lambd{condition_specs["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
             subject_df = active_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
