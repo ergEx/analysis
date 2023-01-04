@@ -111,7 +111,18 @@ def indiference_eta(x1:float, x2:float, x3:float, x4:float) -> list:
 
     return root, func
 
-def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
+def calculate_min_v_max(root:float, func, choice:int) -> np.array:
+    """
+    Calculate the minimum/maximum values for a given root and a given choice.
+
+    Parameters:
+    - root (float): root value.
+    - func (function): function to calculate the derivative at root.
+    - choice (int): 0 or 1 indicating the choice.
+
+    Returns:
+    - np.array indicating 'sign', 'color', and 'val'.
+    """
     dx = misc.derivative(func,root)
     if dx<0:
         return np.array([0,0,0]) if choice==0 else np.array([1,1,1])
@@ -119,13 +130,42 @@ def calculate_min_v_max(root:float, func, choice:int) -> dict[str, any]:
         return np.array([0,0,0]) if choice==1 else np.array([1,1,1])
 
 def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
-    """Decision if a gamble is strictly statewise dominated by the other gamble in a gamble pair"""
-    return (np.greater_equal(max(gamble_pair[0]), max(gamble_pair[1])) and np.greater_equal(min(gamble_pair[0]), min(gamble_pair[1])) or
-           np.greater_equal(max(gamble_pair[1]), max(gamble_pair[0])) and np.greater_equal(min(gamble_pair[1]), min(gamble_pair[0])) )
+    """
+    Check if a gamble is strictly statewise dominated by the other gamble in a gamble pair.
 
-def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 0, 'left': 1}) -> pd.DataFrame:
+    A gamble is strictly statewise dominated if it is worse than another gamble in all possible states.
+    In other words, if the minimum and maximum possible outcomes of the gamble are worse than
+    the minimum and maximum possible outcomes of the other gamble, respectively, then the gamble
+    is strictly statewise dominated.
+
+    Parameters:
+    - gamble_pair (np.ndarray): array containing two gambles.
+
+    Returns:
+    - bool: True if one of the gambles is strictly statewise dominated, False otherwise.
+    """
+    # Check if the first gamble is strictly statewise dominated
+    if (max(gamble_pair[0]) >= max(gamble_pair[1])) and (min(gamble_pair[0]) >= min(gamble_pair[1])):
+        return True
+    # Check if the second gamble is strictly statewise dominated
+    elif (max(gamble_pair[1]) >= max(gamble_pair[0])) and (min(gamble_pair[1]) >= min(gamble_pair[0])):
+        return True
+    # If neither gamble is strictly statewise dominated, return False
+    else:
+        return False
+
+def add_info_to_df(df:pd.DataFrame, choice_dict:dict = {'right': 0, 'left': 1}) -> pd.DataFrame:
+    """
+    Add new columns to a DataFrame containing information about changes in wealth and utility.
+
+    Parameters:
+    - df (pd.DataFrame): input DataFrame.
+    - choice_dict (dict): mapping of choices to integers (0 or 1).
+
+    Returns:
+    - pd.DataFrame: input DataFrame with new columns appended.
+    """
     df['selected_side_map'] = df['selected_side'].map(choice_dict)
-    df['subject_id'] = [subject]*len(df)
     new_info = np.zeros([df.shape[0],16])
     new_info_col_names = ['x1_1','x1_2','x2_1','x2_2',
                           'indif_eta','min_max_sign','min_max_color','min_max_val',
@@ -155,24 +195,55 @@ def add_info_to_df(df:pd.DataFrame, subject:str, choice_dict:dict = {'right': 0,
     df.columns = col_names
     return df
 
-def logistic_regression(df):
+def logistic_regression(df:pd.DataFrame):
+    """Fit a logistic regression model to the data and compute prediction intervals.
+
+    Args:
+        df (pandas.DataFrame): DataFrame containing the data to fit the model to.
+
+    Returns:
+        tuple: Tuple containing the following elements:
+            x_test (np.ndarray): Test data for the predictor variable.
+            pred (np.ndarray): Fitted values.
+            ymin (np.ndarray): Lower bound of the 95% prediction interval.
+            ymax (np.ndarray): Upper bound of the 95% prediction interval.
+            idx_m (int): Index of the point where the fitted curve crosses 0.5.
+            idx_l (int): Index of the point where the lower bound of the prediction interval crosses 0.5.
+            idx_h (int): Index of the point where the upper bound of the prediction interval crosses 0.5.
+    """
     model = statsmodels.api.Logit(np.array(df.min_max_val), add_constant(np.array(df.indif_eta))).fit(disp=0)
-    x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), len(df.indif_eta)*5)
+    x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), len(df.indif_eta) * 5)
     X_test = add_constant(x_test)
     pred = model.predict(X_test)
-    se = np.sqrt(np.array([xx@model.cov_params()@xx for xx in X_test]))
+    se = np.sqrt(np.array([xx @ model.cov_params() @ xx for xx in X_test]))
 
-    ymin = expit(logit(pred) - 1.96*se)
-    ymax = expit(logit(pred) + 1.96*se)
+    ymin = expit(logit(pred) - 1.96 * se)
+    ymax = expit(logit(pred) + 1.96 * se)
 
-    idx_m = min([i for i in range(len(pred)) if pred[i] > 0.5]) if len([i for i in range(len(pred)) if pred[i] > 0.5]) > 0 else len(x_test) -1
-    idx_l = min([i for i in range(len(ymin)) if ymin[i] > 0.5]) if len([i for i in range(len(ymin)) if ymin[i] > 0.5]) > 0 else len(x_test) -1
-    idx_h = min([i for i in range(len(ymax)) if ymax[i] > 0.5]) if len([i for i in range(len(ymax)) if ymax[i] > 0.5]) > 0 else len(x_test) -1
+    idx_m = min([i for i in range(len(pred)) if pred[i] > 0.5]) if len([i for i in range(len(pred)) if pred[i] > 0.5]) > 0 else len(x_test) - 1
+    idx_l = min([i for i in range(len(ymin)) if ymin[i] > 0.5]) if len([i for i in range(len(ymin)) if ymin[i] > 0.5]) > 0 else len(x_test) - 1
+    idx_h = min([i for i in range(len(ymax)) if ymax[i] > 0.5]) if len([i for i in range(len(ymax)) if ymax[i] > 0.5]) > 0 else len(x_test) - 1
 
     return x_test, pred, ymin, ymax, idx_m, idx_l, idx_h
 
-def read_hlm_output(inference_mode:str, experiment_version:str, dataSource:str) -> dict:
-    if inference_mode not in ['parameter_estimation','model_selection']:
+def read_hlm_output(inference_mode: str, experiment_version: str, data_source: str) -> dict:
+    """Read HLM output file.
+
+    Args:
+        inference_mode (str): Inference mode, either 'parameter_estimation' or 'model_selection'.
+        experiment_version (str): Experiment version.
+        data_source (str): Data source, either 'real_data' or 'simulated_data'.
+
+    Returns:
+        dict: Dictionary containing the HLM samples.
+
+    Raises:
+        ValueError: If `inference_mode` is not 'parameter_estimation' or 'model_selection'.
+    """
+    if inference_mode not in ['parameter_estimation', 'model_selection']:
         raise ValueError('You can only choose between parameter estimation and model selection')
-    mat = mat73.loadmat(os.path.join(os.path.dirname(__file__),'data', experiment_version, f'{inference_mode}_{dataSource}.mat'))
+
+    file_path = os.path.join(os.path.dirname(__file__), 'data', experiment_version, f'{inference_mode}_{data_source}.mat')
+    mat = mat73.loadmat(file_path)
     return mat['samples']
+
