@@ -1,5 +1,7 @@
 import os
 import sys
+from collections import Counter
+from itertools import chain
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 
 from .experiment_specs import condition_specs, sub_specs
-from .utils import logistic_regression, read_hlm_output
+from .utils import logistic_regression, read_Bayesian_output
 
 
 def plot_passive_trajectory(df:pd.DataFrame, ax:plt.axis, n_passive_runs:int, reset:int, c:int, idx:int=0) -> plt.axis:
@@ -136,7 +138,13 @@ def plot_bayesian_estimation(dist:np.array,ax:plt.axis,c:int,simulation_eta:floa
 
     ax[c,idx].legend(loc='upper left', fontsize='xx-small')
 
-def plot_subject_wise(save_path:str,
+def plot_bayesian_model_selection(dist:np.array, ax:plt.axis, n_subjects):
+    sns.heatmap(dist, square=False, ax=ax, cmap="binary")
+    ax.set(title="Model Selection",
+         yticklabels=[str(x + 1) for x in list(range(n_subjects))],
+         xticklabels=["Dynamic invariant", "Dynamic specific"])
+
+def plot_parameter_estimation_subject_wise(save_path:str,
                       subjects:list[str],
                       condition_specs:dict,
                       simulation:bool,
@@ -185,7 +193,7 @@ def plot_subject_wise(save_path:str,
         fig.tight_layout()
         fig.savefig(os.path.join(save_path, f'Subject {subject}.png'))
 
-def plot_all_data_as_one(save_path:str,
+def plot_parameter_estimation_all_data_as_one(save_path:str,
                       condition_specs:dict,
                       simulation:bool,
                       df:pd.DataFrame,
@@ -212,13 +220,38 @@ def plot_all_data_as_one(save_path:str,
         fig.tight_layout()
         fig.savefig(os.path.join(save_path, f'active_results_aggregated.png'))
 
+def plot_bayesian_model_selection_subject_wise(save_path:str,
+                                               subjects:list[str],
+                                               samples:np.array):
+    dist = np.empty([2,len(subjects)])
+    for i, subject in enumerate(subjects):
+        count = Counter(samples[:,:,i].flatten())
+        dist[0,i] = sum(filter(None,[count.get(key) for key in [1,3,5,7]]))
+        dist[1,i] = sum(filter(None,[count.get(key) for key in [2,4,6,8]]))
+
+    fig, ax = plt.subplots(figsize=(10,10))
+    plot_bayesian_model_selection(dist, ax, len(subjects))
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_path, f'active_results_bayesian_model_selection_subject_wise.png'))
+
+def plot_bayesian_model_selection_all_as_one(save_path:str,
+                                            samples:np.array):
+    dist = np.empty(2)
+    count = Counter(samples[:,:,:].flatten())
+    dist[0] = sum(filter(None,[count.get(key) for key in [1,3,5,7]]))
+    dist[1] = sum(filter(None,[count.get(key) for key in [2,4,6,8]]))
+
+    fig, ax = plt.subplots(figsize=(10,10))
+    plot_bayesian_model_selection(np.reshape(dist, [1,2]), ax, 1)
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_path, f'active_results_bayesian_model_selection_aggregated.png'))
+
 if __name__=='__main__':
     SIMULATION = True
     RESET = 45
     N_PASSIVE_RUNS = 3
     ROOT_PATH = os.path.join(os.path.dirname(__file__), '..')
     DATA_VARIANT = '0_simulation'
-    INFERENCE_MODE = 'parameter_estimation'
 
     CONDITION_SPECS = condition_specs()
     SUBJECT_SPECS = sub_specs(DATA_VARIANT)
@@ -229,17 +262,24 @@ if __name__=='__main__':
     subjects = SUBJECT_SPECS['id']
     save_path = os.path.join(ROOT_PATH, 'figs', DATA_VARIANT)
 
-    bayesian_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,f'{INFERENCE_MODE}.mat')
-    if os.path.isfile(bayesian_output_file):
-        bayesian_samples = read_hlm_output(inference_mode = INFERENCE_MODE, experiment_version = DATA_VARIANT)
+    bayesian_parameter_estimation_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,'parameter_estimation.mat')
+    if os.path.isfile(bayesian_parameter_estimation_output_file):
+        bayesian_samples_parameter_estimation = read_Bayesian_output(bayesian_parameter_estimation_output_file)
     else:
-        bayesian_samples = None
-        print('HLM model output not found!')
+        bayesian_samples_parameter_estimation = None
+        print('Bayesian parameter estimation output not found!')
+
+    bayesian_model_selection_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,'model_selection.mat')
+    if os.path.isfile(bayesian_parameter_estimation_output_file):
+        bayesian_samples_model_selection = read_Bayesian_output(bayesian_parameter_estimation_output_file)
+    else:
+        bayesian_samples_model_selection = None
+        print('Bayesian parameter estimation output not found!')
 
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
-    plot_subject_wise(save_path,
+    plot_parameter_estimation_subject_wise(save_path,
                      subjects,
                      CONDITION_SPECS,
                      SIMULATION,
@@ -248,11 +288,18 @@ if __name__=='__main__':
                      RESET,
                      active_phase_df,
                      INDIFFERENCE_ETA_PLOT_SPECS,
-                     bayesian_samples)
+                     bayesian_samples_parameter_estimation)
 
-    plot_all_data_as_one(save_path,
+    plot_parameter_estimation_all_data_as_one(save_path,
                       CONDITION_SPECS,
                       SIMULATION,
                       active_phase_df,
                       INDIFFERENCE_ETA_PLOT_SPECS,
-                      bayesian_samples)
+                      bayesian_samples_parameter_estimation)
+
+    plot_bayesian_model_selection_subject_wise(save_path,
+                                               subjects,
+                                               bayesian_samples_model_selection)
+
+    plot_bayesian_model_selection_all_as_one(save_path,
+                                            bayesian_samples_model_selection)
