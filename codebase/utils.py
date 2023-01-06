@@ -243,7 +243,7 @@ def read_hlm_output(inference_mode: str, experiment_version: str, data_source: s
     if inference_mode not in ['parameter_estimation', 'model_selection']:
         raise ValueError('You can only choose between parameter estimation and model selection')
 
-    file_path = os.path.join(os.path.dirname(__file__), 'data', experiment_version, f'{inference_mode}_{data_source}.mat')
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', experiment_version, f'{inference_mode}_{data_source}.mat')
     mat = mat73.loadmat(file_path)
     return mat['samples']
 

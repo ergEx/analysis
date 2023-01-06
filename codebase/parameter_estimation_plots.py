@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from utils import logistic_regression, read_hlm_output
+from .experiment_specs import condition_specs, sub_specs
+from .utils import logistic_regression, read_hlm_output
 
 
 def plot_passive_trajectory(df:pd.DataFrame, ax:plt.axis, n_passive_runs:int, reset:int, c:int, idx:int=0) -> plt.axis:
@@ -143,7 +144,6 @@ def plot_subject_wise(save_path:str,
                       n_passive_runs:int,
                       reset:int,
                       active_phase_df:pd.DataFrame,
-                      active_limits:dict,
                       indifference_eta_plot_specs:dict,
                       bayesian_samples:np.array=None):
     for i,subject in enumerate(subjects):
@@ -168,7 +168,7 @@ def plot_subject_wise(save_path:str,
             else:
                 active_subject_df = active_phase_df.query('no_response != True and subject_id == @subject and eta == @condition').reset_index(drop=True)
 
-            plot_active_trajectory(active_subject_df,ax, active_limits, c)
+            plot_active_trajectory(active_subject_df,ax, condition_specs['active_limits'], c)
 
             plot_indifference_eta(active_subject_df,ax,indifference_eta_plot_specs,c,simulation_eta)
 
@@ -213,33 +213,25 @@ def plot_all_data_as_one(save_path:str,
         fig.savefig(os.path.join(save_path, f'active_results_aggregated.png'))
 
 if __name__=='__main__':
-    simulation = True
-    reset = 45
-    n_passive_runs = 3
-    root_path = os.path.dirname(__file__)
-    design_variant = 'two_gamble_new_c'
-    inference_mode = 'parameter_estimation'
+    SIMULATION = True
+    RESET = 45
+    N_PASSIVE_RUNS = 3
+    ROOT_PATH = os.path.join(os.path.dirname(__file__), '..')
+    DATA_VARIANT = '0_simulation'
+    INFERENCE_MODE = 'parameter_estimation'
 
-    condition_specs = {0.0:'Additive', 1.0:'Multiplicative'}
-    active_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
-    indifference_eta_plot_specs = {'color':{0:'orange', 1: 'b'}, 'sign':{0:'>', 1:'<'}}
+    CONDITION_SPECS = condition_specs()
+    SUBJECT_SPECS = sub_specs(DATA_VARIANT)
+    INDIFFERENCE_ETA_PLOT_SPECS = {'color':{0:'orange', 1: 'b'}, 'sign':{0:'>', 1:'<'}}
 
-    if simulation:
-        passive_phase_df = None
-        active_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'simulations','all_active_phase_data.csv'), sep='\t')
-        subjects = ['0.0x0.0','0.0x0.5','0.0x1.0','0.5x0.0','0.5x0.5','0.5x1.0','1.0x0.0','1.0x0.5','1.0x1.0']
-        data_source = 'simulated_data'
-        save_path = os.path.join(root_path, 'figs', design_variant, 'simulations')
-    else:
-        passive_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'all_passive_phase_data.csv'), sep='\t')
-        active_phase_df = pd.read_csv(os.path.join(root_path,'data',design_variant,'all_active_phase_data.csv'), sep='\t')
-        subjects = set(passive_phase_df['participant_id'])
-        data_source = 'real_data'
-        save_path = os.path.join(root_path, 'figs', design_variant)
+    passive_phase_df = None if SIMULATION else pd.read_csv(os.path.join(ROOT_PATH,'data',DATA_VARIANT,'all_passive_phase_data.csv'), sep='\t')
+    active_phase_df = pd.read_csv(os.path.join(ROOT_PATH,'data',DATA_VARIANT,'all_active_phase_data.csv'), sep='\t')
+    subjects = SUBJECT_SPECS['id']
+    save_path = os.path.join(ROOT_PATH, 'figs', DATA_VARIANT)
 
-    bayesian_output_file = os.path.join(root_path,'data',design_variant,f'{inference_mode}_{data_source}.mat')
+    bayesian_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,f'{INFERENCE_MODE}.mat')
     if os.path.isfile(bayesian_output_file):
-        bayesian_samples = read_hlm_output(inference_mode = inference_mode, experiment_version = design_variant, data_source = data_source)
+        bayesian_samples = read_hlm_output(inference_mode = INFERENCE_MODE, experiment_version = DATA_VARIANT)
     else:
         bayesian_samples = None
         print('HLM model output not found!')
@@ -249,19 +241,18 @@ if __name__=='__main__':
 
     plot_subject_wise(save_path,
                      subjects,
-                     condition_specs,
-                     simulation,
+                     CONDITION_SPECS,
+                     SIMULATION,
                      passive_phase_df,
-                     n_passive_runs,
-                     reset,
+                     N_PASSIVE_RUNS,
+                     RESET,
                      active_phase_df,
-                     active_limits,
-                     indifference_eta_plot_specs,
+                     INDIFFERENCE_ETA_PLOT_SPECS,
                      bayesian_samples)
 
     plot_all_data_as_one(save_path,
-                      condition_specs,
-                      simulation,
+                      CONDITION_SPECS,
+                      SIMULATION,
                       active_phase_df,
-                      indifference_eta_plot_specs,
+                      INDIFFERENCE_ETA_PLOT_SPECS,
                       bayesian_samples)
