@@ -52,7 +52,7 @@ def inverse_isoelastic_utility(u:np.ndarray, eta:float) -> np.ndarray:
     """
 
     if eta > 1:
-        return ValueError("Not implemented for eta > 1!")
+        raise ValueError("Not implemented for eta > 1!")
 
     if np.isscalar(u):
         u = np.asarray((u, ))
@@ -226,24 +226,16 @@ def logistic_regression(df:pd.DataFrame):
 
     return x_test, pred, ymin, ymax, idx_m, idx_l, idx_h
 
-def read_hlm_output(inference_mode: str, experiment_version: str, data_source: str) -> dict:
+def read_Bayesian_output(file_path:str) -> dict:
     """Read HLM output file.
 
     Args:
-        inference_mode (str): Inference mode, either 'parameter_estimation' or 'model_selection'.
-        experiment_version (str): Experiment version.
-        data_source (str): Data source, either 'real_data' or 'simulated_data'.
+        Filepath to where the Bayesian output is found
 
     Returns:
         dict: Dictionary containing the HLM samples.
 
-    Raises:
-        ValueError: If `inference_mode` is not 'parameter_estimation' or 'model_selection'.
     """
-    if inference_mode not in ['parameter_estimation', 'model_selection']:
-        raise ValueError('You can only choose between parameter estimation and model selection')
-
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', experiment_version, f'{inference_mode}_{data_source}.mat')
     mat = mat73.loadmat(file_path)
     return mat['samples']
 

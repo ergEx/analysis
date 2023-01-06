@@ -15,9 +15,9 @@ def sub_specs(data_variant:str) -> dict[str, list]:
         return {'id':['000','001','002','003','004','005','006','007','008','009','010'],
                 'first_run':[[1,2],[1,2],[1,2],[1,2],[2,1],[2,1],[2,1],[1,2],[2,1],[2,1],[2,1]]}
     elif data_variant == '2_full_data':
-        ValueError("Full data doesn't exist yet")
+        raise ValueError("Full data doesn't exist yet")
     else:
-        ValueError('Unknown variant')
+        raise ValueError('Unknown variant')
 
 def condition_specs():
     """
