@@ -57,8 +57,7 @@ for (c in 1:nConditions){
     #eta parameter
     mu_eta[c]            ~ dnorm(muMuEta,sigmaMuEta)            #mean of eta
     tau_eta[c]           = pow(sigma_eta[c],-2)                 #precision of eta
-    sigma_eta[c]         ~ exp(log_sigma_eta[c]                 #std on eta
-    log_sigma_eta[c]     ~ dnorm(muSigmaEta,sigmaSigmaEta)      #log std on eta
+    sigma_eta[c]         ~ dnorm(muSigmaEta,sigmaSigmaEta)      #std on eta
 }#end of conditions
 
 }
