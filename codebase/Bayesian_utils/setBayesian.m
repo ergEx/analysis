@@ -1,20 +1,14 @@
-function setHLM(inferenceMode,synthMode,aggregationMode,whichJAGS,whichQuals,doParallel,startDir,version)
+function setBayesian(inferenceMode,whichJAGS,whichQuals,doParallel,startDir,dataVersion)
 
 % setHLM sets up multiple HLM models to run sequentially according to inputs
 
 % This function takes the following inputs:
 
 % inferenceMode - set whether to do patameter estimation (1) or model selection (2)
-% synthMode     - sets how to simulate data ; (1) Real data
-%                                             (2) Simulated data
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
-% version       - which version of experimental setup to run on;(1) One gamble version
-%                                                               (2) Two gamble version
-%                                                               (3) Two gamble version w. wealth controls
-%                                                               (4) Two gamble version w. different additive c
-%                                                               (5) Two gamble version w. hidden wealth
+% dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
 
 %% Specifies qualities to be selected from
 numRuns      = length(whichQuals);     %how many separate instances of an MCMC to run
@@ -24,20 +18,13 @@ nChains      = [4,4,4,4,4];            %Keep this to 4
 nThin        = 10;                     %thinnning factor, 1 = no thinning, 2=every 2nd etc.
 
 %% Specifies subjects, trials and directory_name
-switch version
-    case {1}, subjList = 1:3; nTrials = 120; dataVersion = '';  %One gamble version
-    case {2}, subjList = 1:3; nTrials = 120; dataVersion = '';   %Two gamble version
-    case {3}, subjList = 1:3; nTrials = 120; dataVersion = '';  %Two gamble version w. wealth controls
-    case {4}, subjList = 1:11; nTrials = 160; dataVersion = 'two_gamble_new_c';   %Two gamble version w. different additive c
-    case {5}, subjList = 1:3; nTrials = 120; dataVersion = '';   %Two gamble version w. hidden wealth
+switch dataVersion
+    case {1}, subjList = 1:9; nTrials = 160; folder = '0_simulation';  %Simulated data
+    case {2}, subjList = 1:11; nTrials = 160; folder = '1_pilot';   %Pilot data
+    case {3}, subjList = 1:1; nTrials = 1; dataVersion = '';   %Full experiment data
 end %version
-
-if aggregationMode == 2
-    nTrials = nTrials*length(subjList);
-    subjList = 1;
-end %if
 
 %% Runs HLMs sequentially
 for i=1:numRuns
-    computeHLM(inferenceMode,synthMode,aggregationMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
+    computeBayesian(inferenceMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,nTrials,folder)
 end

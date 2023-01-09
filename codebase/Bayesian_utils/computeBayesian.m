@@ -1,4 +1,4 @@
-function computeHLM(inferenceMode,synthMode,aggregationMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,dataVersion,nTrials)
+function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -8,8 +8,6 @@ function computeHLM(inferenceMode,synthMode,aggregationMode,nBurnin,nSamples,nTh
 % takes as input the following:
 
 % inferenceMode - set whether to do patameter estimation (1) or model selection (2)
-% synthMode     - sets how to simulate data ; (1) Real data
-%                                           (2) Simulated data
 % nBurnin       - specifies how many burn in samples to run
 % nSamples      - specifies the number of samples to run
 % nThin         - specifies the thinnning number
@@ -18,33 +16,21 @@ function computeHLM(inferenceMode,synthMode,aggregationMode,nBurnin,nSamples,nTh
 % whichJAGS     - sets which copy of matjags to run
 % doParallel    - sets whether to run chains in parallel
 % startDir      - root directory for the repo
-% version       - which version of experimental setup to run on;(1) One gamble version
-%                                                               (2) Two gamble version
-%                                                               (3) Two gamble version w. wealth controls
-%                                                               (4) Two gamble version w. different additive c
-%                                                               (5) Two gamble version w. hidden wealth
+% dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
+% nTrials       - number of trials in experiment
+% folder        - folder within the datafolder the relevant data is stored
 
 %% Set paths
 cd(startDir);%move to starting directory
-matjagsdir=fullfile(startDir,'/HLM_utils/matjags');
+matjagsdir=fullfile(startDir,'/Bayesian_utils/matjags');
 addpath(matjagsdir)
-jagsDir=fullfile(startDir,'/HLM_utils/JAGS');
+jagsDir=fullfile(startDir,'/Bayesian_utils/JAGS');
 addpath(jagsDir)
-dataDir=fullfile(startDir,'/data',dataVersion);
-simulationDir=fullfile(startDir,'/data',dataVersion,'simulations');
+dataDir=fullfile(startDir,'..','/data',folder);
 
 %% Choose & load data
 mode = 'estimate data';
-switch synthMode
-    case {1}
-        dataSource = 'real_data';
-        load(fullfile(dataDir, 'all_active_phase_data.mat'))
-    case {2}
-        dataSource = 'simulated_data';
-        subjList = 1:3;
-        nTrials = 160;
-        load(fullfile(simulationDir,'all_active_phase_data'))
-end %switch synthMode
+load(fullfile(dataDir, 'all_active_phase_data.mat'))
 
 %% Choose JAGS file
 switch inferenceMode
@@ -76,8 +62,7 @@ sigmaDeltaEtaL=0.01;sigmaDeltaEtaU=sqrt(((muDeltaEtaU-muDeltaEtaL)^2)/12);%bound
 %% Print information for user
 disp('**************');
 disp(['Mode: ', mode])
-disp(['Data version: ', dataVersion])
-disp(['dataSource: ', dataSource])
+disp(['dataSource: ', folder])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
 disp('**************');
@@ -105,26 +90,6 @@ wealth_add = wealth_add(:,1:end-1);
 wealth_mul = [start_w, wealth_add];
 wealth_mul = wealth_mul(:,1:end-1);
 
-%flatten variables if aggregating
-if aggregationMode == 2
-    choice_add = permute(reshape(choice_add, [], nSubjects),[2,1]);
-    x1_1_add   = permute(reshape(x1_1_add, [], nSubjects),[2,1]);
-    x1_2_add   = permute(reshape(x1_2_add, [], nSubjects),[2,1]);
-    x2_1_add   = permute(reshape(x2_1_add, [], nSubjects),[2,1]);
-    x2_2_add   = permute(reshape(x2_2_add, [], nSubjects),[2,1]);
-    wealth_add = permute(reshape(wealth_add, [], nSubjects),[2,1]);
-
-    choice_mul = permute(reshape(choice_mul, [], nSubjects),[2,1]);
-    x1_1_mul   = permute(reshape(x1_1_mul, [], nSubjects),[2,1]);
-    x1_2_mul   = permute(reshape(x1_2_mul, [], nSubjects),[2,1]);
-    x2_1_mul   = permute(reshape(x2_1_mul, [], nSubjects),[2,1]);
-    x2_2_mul   = permute(reshape(x2_2_mul, [], nSubjects),[2,1]);
-    wealth_mul = permute(reshape(wealth_mul, [], nSubjects),[2,1]);
-
-end %if
-
-
-
 trialInds = 1:nTrials;
 for c = 1:nConditions
     switch c
@@ -146,8 +111,6 @@ for c = 1:nConditions
     end %switch
 end %c
 
-
-
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
 disp([num2str(length(find(isnan(dwLU)))),'_nans in gambles Left Upper matrix'])% nans in gamble matrices do
@@ -164,7 +127,7 @@ switch inferenceMode
                     'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
                     'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
                     'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-                    'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
+                    'muMuEta',muMuEta,'muSigmaEta',muSigmaEta,'sigmaMuEta',sigmaMuEta,'sigmaSigmaEta',sigmaSigmaEta);
 
         for i = 1:nChains
             monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
@@ -215,7 +178,7 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save(fullfile(dataDir, append(mode,'_',dataSource,int2str(nSamples))),'samples','-v7.3')
+save(fullfile(dataDir, append('Bayesian','_',mode)),'samples','-v7.3')
 
 %% Print readouts
 %disp('stats:'),disp(stats)%print out structure of stats output
