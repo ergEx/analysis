@@ -90,7 +90,7 @@ function [samples, stats, structArray] = matjags(dataStruct, jagsFilenm, initStr
 % and Kevin Murphy (murphyk@cs.ubc.ca)
 
 % Changes in version 1.3.2:
-% * Bug fix. Fixed issue with initialization of parameter values. All values were set to the value for 
+% * Bug fix. Fixed issue with initialization of parameter values. All values were set to the value for
 % chain 1.
 
 % Changes in version 1.3:
@@ -175,21 +175,21 @@ for whchain=1:nChains
     jagsScript   = sprintf( 'jagscript%d.cmd' , whchain );
     codastem     = sprintf( 'CODA%d' , whchain );
     InitData     = sprintf( 'jagsinit%d.R' , whchain );
-    
+
     % Create the jags script for this chain
     [ fid , message ] = fopen( jagsScript , 'wt' );
     if fid == -1
         error( message );
     end
-    
+
     fprintf( fid , 'load wiener\n' ); % Adding the Wiener Diffusion model
     fprintf( fid , 'load glm\n' );
-    
+
     %fprintf( fid , 'model in "..%s%s"\n' , filesep , jagsModel' );
     if dodic
         fprintf( fid , 'load dic\n' );
     end
-        
+
     if ~isempty(whdir) && (strcmp(whdir(1),filesep) || (length(whdir) > 2 && whdir(2) == ':'))
         % Case when a full path string is specified for the jagsModel
         fprintf( fid , 'model in "%s"\n' , fullfile(whdir , jagsModel));
@@ -197,7 +197,7 @@ for whchain=1:nChains
         % Case when a relative path string is specified for the jagsModel
         fprintf( fid , 'model in "%s"\n' , fullfile(curdir , whdir, jagsModel));
     end
-    
+
     fprintf( fid , 'data in %s\n' , jagsData' );
     fprintf( fid , 'compile, nchains(1)\n' );
     fprintf( fid , 'parameters in %s\n' , InitData );
@@ -214,7 +214,7 @@ for whchain=1:nChains
     fprintf( fid , 'update %d\n' , nSamples * thin );
     fprintf( fid , 'coda *, stem(''%s'')\n' , codastem );
     fclose( fid );
-    
+
     % Create the init file
     addlines = { '".RNG.name" <- "base::Mersenne-Twister"' , ...
         sprintf( '".RNG.seed" <- %d' , whchain ) };
@@ -227,7 +227,7 @@ if doParallel==1
     %if (numworkers == 0)
     %    error( 'Matlab pool of workers not initialized. Use command "matlabpool open 7" for example to open up a pool of 7 workers' );
     %end
-    
+
     status = cell( 1,nChains );
     result = cell( 1,nChains );
     if ispc
@@ -244,13 +244,17 @@ if doParallel==1
             jagsScript   = sprintf( 'jagscript%d.cmd' , whchain );
             jagsPrefix = sprintf('/usr/bin/');%sprintf('/usr/local/bin/');
             cmd = sprintf( '%sjags %s' ,jagsPrefix, jagsScript );
+
+            %if run on DRCMR Cluster
+            %cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript')
+
             if verbosity > 0
                 fprintf( 'Running chain %d (parallel execution)\n' , whchain  );
             end
             [status{ whchain },result{whchain}] = dos( cmd );
         end
     end
-    
+
 else % Run each chain serially
     status = cell( 1,nChains );
     result = cell( 1,nChains );
@@ -261,6 +265,10 @@ else % Run each chain serially
         elseif ismac | isunix
             jagsPrefix = sprintf('/usr/bin/');%sprintf('/usr/local/bin/');
             cmd = sprintf( '%sjags %s' ,jagsPrefix, jagsScript );
+
+            %if run on DRCMR Cluster
+            %cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript')
+
         end
         if verbosity > 0
             fprintf( 'Running chain %d (serial execution)\n' , whchain );
@@ -292,7 +300,7 @@ for whchain=1:nChains
         cd( curdir );
         error( [ 'Error from dos environment: ' resultnow ] );
     end
-    
+
     % Do we get an error message anywhere from JAGS --> produce an error
     pattern = [ 'can''t|RUNTIME ERROR|syntax error|failed' ];
     errstr = regexpi( resultnow , pattern , 'match' );
@@ -302,7 +310,7 @@ for whchain=1:nChains
         fprintf( 'JAGS output for chain %d\n%s\n' , whchain , resultnow );
         error( 'Stopping execution because of jags error' );
     end
-    
+
     % Do we get a warning message anywhere from JAGS --> produce a matlab warning
     if showwarnings ~= 0
         pattern = [ 'WARNING' ];
@@ -312,12 +320,12 @@ for whchain=1:nChains
             fprintf( 'JAGS output for chain %d\n%s\n' , whchain , resultnow );
         end
     end
-    
+
     if verbosity == 2
         fprintf( 'JAGS output for chain %d\n%s\n' , whchain , resultnow );
     end
-    
-    
+
+
     % NOTE: if the error is "jags is not recognized as an internal or external
     % command, then the jags bin folder is not on the windows path"
 end
@@ -326,7 +334,7 @@ end
 codaIndex = 'CODA1index.txt'; % the index files are identical across chains, just pick first one
 for i=1:nChains
     codaF = [ 'CODA' , num2str(i) , 'chain1.txt' ];
-    
+
     S = bugs2mat(codaIndex, codaF);
     structArray(i) = S;
 end
@@ -374,14 +382,14 @@ for i=1:Nparam
     fval = fn{1};
     val = getfield(dataStruct, fval);
     [sfield1, sfield2]= size(val);
-    
+
     msfield = max(sfield1, sfield2);
     newfval = strrep(fval, '_', '.');
     newfval = [ '"' newfval '"' ];
-    
+
     if ((sfield1 == 1) && (sfield2 == 1))  % if the field is a singleton
         fprintf(fid, '%s <-\n%G',newfval, val);
-        
+
         %
         % One-D array:
         %   beta = c(6, 6, ...)
@@ -411,7 +419,7 @@ for i=1:Nparam
         alldatalen = prod(valsize);
         %alldata = reshape(val', [1, alldatalen]);
         %alldata = alldata(:)';
-        
+
         %Truccolo-Filho, Wilson <Wilson_Truccolo@brown.edu>
         if length(valsize)<3
             if dotranspose==0
@@ -427,14 +435,14 @@ for i=1:Nparam
                     valTransp(j,:,:)=val(:,:,j)';%need a new variable, since val might be rectangular
                 end
                 alldata=valTransp(:)';
-            else % GP 
+            else % GP
                 alldata = reshape(val, [1, alldatalen]); % GP
             end
         else
             ['Error: 4D and higher dimensional arrays not accepted']
             return
         end
-        
+
         %fprintf(fid, '%s <-\nstructure(.Data=c(', newfval);
         fprintf(fid, '%s <-\nstructure(c(', newfval);
         for j=1:alldatalen
@@ -450,7 +458,7 @@ for i=1:Nparam
                 fprintf(fid,'), .Dim=c(', alldata(j));
             end
         end
-        
+
         for j=1:length(valsize)
             if (j < length(valsize))
                 fprintf(fid, '%G,', valsize(j));
@@ -563,11 +571,11 @@ meanOverall = mean(meanPerChain);
 if m > 1
     % between sequence variace
     B = (n/(m-1))*sum( (meanPerChain-meanOverall).^2);
-    
+
     % within sequence variance
     varPerChain = var(samples);
     W = (1/m)*sum(varPerChain);
-    
+
     vhat = ((n-1)/n)*W + (1/n)*B;
     Rhat = sqrt(vhat/(W+eps));
 else
@@ -592,11 +600,11 @@ for fi=1:length(fld)
     % samples(c, s, i,j,k)
     Nchains = sz(1);
     Nsamples = sz(2);
-    
+
     st_mean_per_chain = mean(samples, 2);
     st_mean_overall   = mean(st_mean_per_chain, 1);
-    
-    
+
+
     % "estimated potential scale reduction" statistics due to Gelman and
     % Rubin.
     if Nchains > 1
@@ -609,7 +617,7 @@ for fi=1:length(fld)
     else
         Rhat = nan;
     end
-    
+
     % reshape and take standard deviation over all samples, all chains
     samp_shape = size(squeeze(st_mean_overall));
     % padarray is here http://www.mathworks.com/access/helpdesk/help/toolbox/images/padarray.html
@@ -617,16 +625,16 @@ for fi=1:length(fld)
     reshape_target = [Nchains * Nsamples, samp_shape]; % fix from Andrew Jackson  a.jackson@tcd.ie
     reshaped_samples = reshape(samples, reshape_target);
     st_std_overall = std(reshaped_samples);
-    
+
     % get the 95% interval of the samples (not the mean)
     ci_samples_overall = prctile( reshaped_samples , [ 2.5 97.5 ] , 1 );
     ci_samples_overall_low = ci_samples_overall( 1,: );
     ci_samples_overall_high = ci_samples_overall( 2,: );
-    
+
     if ~isnan(Rhat)
         stats.Rhat = setfield(stats.Rhat, fname, squeeze(Rhat));
     end
-    
+
     % special case - if mean is a 1-d array, make sure it's long
     squ_mean_overall = squeeze(st_mean_overall);
     st_mean_size = size(squ_mean_overall);
@@ -635,9 +643,9 @@ for fi=1:length(fld)
     else
         stats.mean = setfield(stats.mean, fname, squ_mean_overall);
     end
-    
+
     stats.std = setfield(stats.std, fname, squeeze(st_std_overall));
-    
+
     stats.ci_low = setfield(stats.ci_low, fname, squeeze(ci_samples_overall_low));
     stats.ci_high = setfield(stats.ci_high, fname, squeeze(ci_samples_overall_high));
 end
@@ -660,27 +668,27 @@ ct = 0;
 test = 0;
 endloop = 0;
 while 1
-    
+
     tline = fgets(FIDlog);
-    
+
     if tline == -1; break; end
     if endloop; break; end
-    
+
     if strfind(tline,'dic.set cannot be executed');
         DICstats.error = 'DIC monitor could not be set by WinBUGS';
     end
-    
+
     if size(tline,2)>6
         % The string 'total' in the log file denotes the end of the DIC
         % stats so the loop can be ended in the next iteration.
         if strcmp(tline(1:5),'total'); endloop = 1; end;
     end
-    
+
     if size(tline,2)>2
         % locate the DIC string identifier in the log file
         if strcmp(tline(1:3),'DIC'); test = 1; end
     end
-    
+
     if test
         ct=ct+1;
         % DIC results are located 3 lines after the DIC string identifier
