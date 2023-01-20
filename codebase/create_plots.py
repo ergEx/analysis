@@ -153,18 +153,21 @@ def plot_parameter_estimation_subject_wise(save_path:str,
                       reset:int,
                       active_phase_df:pd.DataFrame,
                       indifference_eta_plot_specs:dict,
-                      bayesian_samples:np.array=None):
+                      bayesian_samples:np.array):
     for i,subject in enumerate(subjects):
         print(f'Subject {i+1} of {len(subjects)}')
 
         fig, ax = plt.subplots(2,6, figsize=(20,7))
         fig.suptitle(f'Subject {subject}')
-        for c,condition in enumerate(condition_specs.keys()):
+        for c,condition in enumerate(condition_specs['lambd']):
             print(f'Condition {c+1} of {len(condition_specs)}')
 
             '''PASIVE PHASE'''
             if simulation:
                 ax[c,0].plot()
+                ax[c,0].set(title=f'Passive wealth',
+                            xlabel='Trial',
+                            ylabel=f'Wealth')
             else:
                 plot_passive_trajectory(passive_phase_df,ax, n_passive_runs, reset, c)
 
@@ -184,8 +187,13 @@ def plot_parameter_estimation_subject_wise(save_path:str,
 
             plot_indif_eta_logistic_reg(active_subject_df,ax,c,simulation_eta)
 
-            if bayesian_samples is not None:
+            if bayesian_samples is None:
                 ax[c,5].plot()
+                ax[c,5].set(title=f'Bayesian Model',
+                          ylabel = '',
+                          xticks = np.linspace(-5,5,11),
+                          xlim = [-5,5],
+                          xlabel='Risk aversion estimate')
             else:
                 eta_dist = bayesian_samples['eta'][:,:,i,c].flatten()
                 plot_bayesian_estimation(eta_dist,ax,c,simulation_eta)
@@ -201,18 +209,23 @@ def plot_parameter_estimation_all_data_as_one(save_path:str,
                       bayesian_samples:np.array=None):
     fig, ax = plt.subplots(2,3, figsize=(20,12))
     fig.suptitle(f'All data')
-    for c,condition in enumerate(condition_specs.keys()):
-        print(f'Condition {c+1} of {len(condition_specs)}')
+    for c,condition in enumerate(condition_specs["lambd"]):
+        print(f'Condition {c+1} of {len(condition_specs["lambd"])}')
         if simulation:
             df_c = df.query('eta == @condition').reset_index(drop=True)
         else:
             df_c = df.query('no_response != True and eta == @condition').reset_index(drop=True)
         plot_indifference_eta(df_c,ax,indifference_eta_plot_specs,c,idx=0)
 
-        plot_indif_eta_logistic_reg(df_c,ax,c,simulation,idx=1)
+        plot_indif_eta_logistic_reg(df_c,ax,c,idx=1)
 
-        if bayesian_samples is not None:
+        if bayesian_samples is None:
             ax[c,1].plot()
+            ax[c,1].set(title=f'Bayesian Model',
+                          ylabel = '',
+                          xticks = np.linspace(-5,5,11),
+                          xlim = [-5,5],
+                          xlabel='Risk aversion estimate')
         else:
             eta_dist = bayesian_samples['eta'][:,:,:,c].flatten()
             plot_bayesian_estimation(eta_dist,ax,c,idx=2)
@@ -259,10 +272,15 @@ if __name__=='__main__':
 
     passive_phase_df = None if SIMULATION else pd.read_csv(os.path.join(ROOT_PATH,'data',DATA_VARIANT,'all_passive_phase_data.csv'), sep='\t')
     active_phase_df = pd.read_csv(os.path.join(ROOT_PATH,'data',DATA_VARIANT,'all_active_phase_data.csv'), sep='\t')
+
     subjects = SUBJECT_SPECS['id']
     save_path = os.path.join(ROOT_PATH, 'figs', DATA_VARIANT)
 
-    bayesian_parameter_estimation_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,'parameter_estimation.mat')
+    indifference_eta_estimation_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,'all_active_phase_data.csv')
+    if os.path.isfile(indifference_eta_estimation_output_file):
+        ValueError('All data not saved!')
+
+    bayesian_parameter_estimation_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,'Bayesian_parameter_estimation.mat')
     if os.path.isfile(bayesian_parameter_estimation_output_file):
         bayesian_samples_parameter_estimation = read_Bayesian_output(bayesian_parameter_estimation_output_file)
     else:
@@ -270,11 +288,11 @@ if __name__=='__main__':
         print('Bayesian parameter estimation output not found!')
 
     bayesian_model_selection_output_file = os.path.join(ROOT_PATH,'data',DATA_VARIANT,'model_selection.mat')
-    if os.path.isfile(bayesian_parameter_estimation_output_file):
+    if os.path.isfile(bayesian_model_selection_output_file):
         bayesian_samples_model_selection = read_Bayesian_output(bayesian_parameter_estimation_output_file)
     else:
         bayesian_samples_model_selection = None
-        print('Bayesian parameter estimation output not found!')
+        print('Bayesian model selection output not found!')
 
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
@@ -297,9 +315,10 @@ if __name__=='__main__':
                       INDIFFERENCE_ETA_PLOT_SPECS,
                       bayesian_samples_parameter_estimation)
 
-    plot_bayesian_model_selection_subject_wise(save_path,
-                                               subjects,
-                                               bayesian_samples_model_selection)
+    if bayesian_samples_model_selection is not None:
+        plot_bayesian_model_selection_subject_wise(save_path,
+                                                subjects,
+                                                bayesian_samples_model_selection)
 
-    plot_bayesian_model_selection_all_as_one(save_path,
-                                            bayesian_samples_model_selection)
+        plot_bayesian_model_selection_all_as_one(save_path,
+                                                bayesian_samples_model_selection)

@@ -8,6 +8,37 @@ from .experiment_specs import condition_specs, sub_specs
 from .utils import add_info_to_df
 
 
+def reading_participant_passive_data(root_path:str,
+                                    subject:str,
+                                    first_run:str,
+                                    bids_text:str,
+                                    n_passive_runs:int):
+    '''Passive phase data'''
+    for run in range(1,n_passive_runs+1):
+        passive_phase_data = pd.read_csv(os.path.join(root_path,f'sub-{subject}',f'ses-{first_run}',f'sub-{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_beh.csv'),sep='\t')
+
+        passive_phase_data = passive_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
+        passive_phase_data = passive_phase_data.query('part == 0').reset_index(drop=True)
+    return passive_phase_data
+
+def reading_participant_active_data(root_path:str,
+                             subject:str,
+                             first_run:str,
+                             bids_text:str,
+                             simulation:bool,
+                             lambd:float,
+                             run:int=1) -> pd.DataFrame:
+    '''Active phase data'''
+    if simulation:
+        active_phase_data = pd.read_csv(os.path.join(root_path,f'sim_agent_{subject}_lambd_{int(lambd)}.csv'), sep='\t')
+    else:
+        active_phase_data = pd.read_csv(os.path.join(root_path,f'sub-{subject}',f'ses-{first_run}',f'sub-{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv'),sep='\t')
+        active_phase_data = active_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
+
+    active_phase_data = add_info_to_df(active_phase_data)
+
+    return active_phase_data
+
 def reading_data(simulation:bool, data_variant:str, n_passive_runs:int) -> None:
     """
     Reads in passive and active phase data for a given design variant, simulation status, and number of passive runs. It stores a tuple of two dataframes, one for passive phase data and one for active phase data. It also stores .mat and .npz versions of the active phase data in a subdirectory within the data directory.
@@ -34,48 +65,45 @@ def reading_data(simulation:bool, data_variant:str, n_passive_runs:int) -> None:
         print(f'Condition {c+1} of {len(CONDITION_SPECS["lambd"])}')
         for i,subject in enumerate(SUBJECT_SPECS['id']):
             print(f'Subject {i+1} of {len(SUBJECT_SPECS["id"])}')
-            '''Passive phase data'''
+
             if not simulation:
-                for run in range(1,n_passive_runs+1):
-                    passive_phase_data = pd.read_csv(os.path.join(ROOT_PATH,f'sub-{subject}',f'ses-{SUBJECT_SPECS["first_run"][i][c]}',f'sub-{subject}_ses-{SUBJECT_SPECS["first_run"][i][c]}_task-passive_acq-lambd{CONDITION_SPECS["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
+                passive_participant_df = reading_participant_passive_data(root_path=ROOT_PATH,
+                             subject=subject,
+                             first_run=SUBJECT_SPECS['first_run'][i][c],
+                             bids_text=CONDITION_SPECS['bids_text'][c],
+                             n_passive_runs=n_passive_runs)
+                passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
 
-                    subject_df = passive_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
-                    subject_df = subject_df.query('part == 0').reset_index(drop=True)
-                    passive_phase_df = pd.concat([passive_phase_df, subject_df])
-
-            '''Active phase data'''
-            run = 1
-            if simulation:
-                subject_df = pd.read_csv(os.path.join(ROOT_PATH,f'sim_agent_{subject}_lambd_{int(CONDITION_SPECS["lambd"][c])}.csv'), sep='\t')
-            else:
-                active_phase_data = pd.read_csv(os.path.join(ROOT_PATH,f'sub-{subject}',f'ses-{SUBJECT_SPECS["first_run"][i][c]}',f'sub-{subject}_ses-{SUBJECT_SPECS["first_run"][i][c]}_task-active_acq-lambd{CONDITION_SPECS["bids_text"][c]}_run-{run}_beh.csv'),sep='\t')
-                subject_df = active_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
-
-            subject_df = add_info_to_df(subject_df)
+            active_participant_df = reading_participant_active_data(root_path=ROOT_PATH,
+                             subject=subject,
+                             first_run=SUBJECT_SPECS['first_run'][i][c],
+                             bids_text=CONDITION_SPECS['bids_text'][c],
+                             simulation=simulation,
+                             lambd=CONDITION_SPECS['lambd'][c])
 
             ##CSV
-            active_phase_df = pd.concat([active_phase_df, subject_df])
+            active_phase_df = pd.concat([active_phase_df, active_participant_df])
 
             ##.mat
-            subject_df.loc[np.isnan(subject_df['indif_eta']), 'selected_side_map'] = np.nan
+            active_participant_df.loc[np.isnan(active_participant_df['indif_eta']), 'selected_side_map'] = np.nan
 
             #Retrieve growth rates
-            datadict.setdefault(f'gr1_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['gamma_left_up']))
-            datadict.setdefault(f'gr1_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['gamma_left_down']))
-            datadict.setdefault(f'gr2_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['gamma_right_up']))
-            datadict.setdefault(f'gr2_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['gamma_right_down']))
+            datadict.setdefault(f'gr1_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['gamma_left_up']))
+            datadict.setdefault(f'gr1_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['gamma_left_down']))
+            datadict.setdefault(f'gr2_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['gamma_right_up']))
+            datadict.setdefault(f'gr2_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['gamma_right_down']))
 
             #Retrieve wealth changes
-            datadict.setdefault(f'x1_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['x1_1']))
-            datadict.setdefault(f'x1_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['x1_2']))
-            datadict.setdefault(f'x2_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['x2_1']))
-            datadict.setdefault(f'x2_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['x2_2']))
+            datadict.setdefault(f'x1_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['x1_1']))
+            datadict.setdefault(f'x1_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['x1_2']))
+            datadict.setdefault(f'x2_1{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['x2_1']))
+            datadict.setdefault(f'x2_2{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['x2_2']))
 
             #Retrive wealth
-            datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['wealth']))
+            datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['wealth']))
 
             #Retrieve keypresses
-            datadict.setdefault(f'choice{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(subject_df['selected_side_map']))
+            datadict.setdefault(f'choice{CONDITION_SPECS["txt_append"][c]}',[]).append(np.array(active_participant_df['selected_side_map']))
 
 
 
@@ -83,7 +111,7 @@ def reading_data(simulation:bool, data_variant:str, n_passive_runs:int) -> None:
         scipy.io.savemat(os.path.join(ROOT_PATH, 'all_active_phase_data.mat'), datadict, oned_as='row')
         np.savez(os.path.join(ROOT_PATH, 'all_active_phase_data.mat.npz'), datadict=datadict)
 
-        if passive_phase_df is not None:
+        if not passive_phase_df.empty:
             passive_phase_df.to_csv(os.path.join(ROOT_PATH, 'all_passive_phase_data.csv'), sep='\t')
 
 
