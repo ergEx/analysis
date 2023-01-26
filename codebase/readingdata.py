@@ -34,7 +34,7 @@ def reading_participant_active_data(root_path:str,
     else:
         active_phase_data = pd.read_csv(os.path.join(root_path,f'sub-{subject}',f'ses-{first_run}',f'sub-{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv'),sep='\t')
         active_phase_data = active_phase_data.query('event_type == "WealthUpdate"').reset_index(drop=True)
-
+    active_phase_data['wealth'] = active_phase_data['Numbers'] = np.concatenate((np.array([1000]), np.array(active_phase_data.wealth)))[:-1]
     active_phase_data = add_info_to_df(active_phase_data)
 
     return active_phase_data

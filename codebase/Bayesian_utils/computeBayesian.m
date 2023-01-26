@@ -83,12 +83,6 @@ w=dim;%initialise wealth
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
 
 %shift wealth data
-w_dim = size(wealth_add);
-start_w = 1000.*ones(w_dim(1),1);
-wealth_add = [start_w, wealth_add];
-wealth_add = wealth_add(:,1:end-1);
-wealth_mul = [start_w, wealth_add];
-wealth_mul = wealth_mul(:,1:end-1);
 
 trialInds = 1:nTrials;
 for c = 1:nConditions
