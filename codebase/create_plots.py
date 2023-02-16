@@ -190,6 +190,7 @@ def plot_parameter_estimation_subject_wise(
     save_path: str,
     data_variant: str,
     subjects: list[str],
+    n_agents: int,
     condition_specs: dict,
     passive_phase_df: pd.DataFrame,
     n_passive_runs: int,
@@ -201,7 +202,7 @@ def plot_parameter_estimation_subject_wise(
     for i, subject1 in enumerate(subjects):
 
         print(f"Subject {i+1} of {len(subjects)}")
-        for i in range(2):
+        for i in range(n_agents):
             subject = f"{i}_{subject1}"
             fig, ax = plt.subplots(2, 6, figsize=(20, 7))
             fig.suptitle(f"Subject {subject1}")
@@ -325,7 +326,8 @@ def plot_bayesian_model_selection_all_as_one(save_path: str, samples: np.array):
 
 
 if __name__ == "__main__":
-    RESET = 45
+    N_AGENTS = 2
+    PASSIVE_RESET = 45
     N_PASSIVE_RUNS = 3
     ROOT_PATH = os.path.join(os.path.dirname(__file__), "..")
     DATA_VARIANT = "0_simulation"
@@ -338,6 +340,7 @@ if __name__ == "__main__":
 
         CONDITION_SPECS = condition_specs()
         SUBJECT_SPECS = sub_specs(DATA_VARIANT)
+        subjects = SUBJECT_SPECS["id"]
         INDIFFERENCE_ETA_PLOT_SPECS = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
 
         if DATA_VARIANT == "0_simulation":
@@ -351,7 +354,6 @@ if __name__ == "__main__":
             os.path.join(ROOT_PATH, "data", PATH, "all_active_phase_data.csv"), sep="\t"
         )
 
-        subjects = SUBJECT_SPECS["id"]
         save_path = os.path.join(ROOT_PATH, "figs", PATH)
 
         indifference_eta_estimation_output_file = os.path.join(
@@ -389,10 +391,11 @@ if __name__ == "__main__":
             save_path,
             DATA_VARIANT,
             subjects,
+            N_AGENTS,
             CONDITION_SPECS,
             passive_phase_df,
             N_PASSIVE_RUNS,
-            RESET,
+            PASSIVE_RESET,
             active_phase_df,
             INDIFFERENCE_ETA_PLOT_SPECS,
             bayesian_samples_parameter_estimation,
