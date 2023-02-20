@@ -95,12 +95,13 @@ def reading_data(
     active_phase_df = pd.DataFrame()
     datadict = dict()
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
-        print(f'Condition {c+1} of {len(CONDITION_SPECS["lambd"])}')
+        print(f"Condition {condition}")
         for i, subject1 in enumerate(SUBJECT_SPECS["id"]):
-            print(f'Subject {i+1} of {len(SUBJECT_SPECS["id"])}')
+
             for j in range(n_agents):
-                subject = f"{j}_{subject1}"
-                print(subject)
+                subject = f"{j}_{subject1}" if data_variant == "0_simulation" else subject1
+                subject = subject1
+                print(f"Subject {subject}")
 
                 if data_variant != "0_simulation":
                     passive_participant_df = reading_participant_passive_data(
@@ -181,13 +182,15 @@ def reading_data(
 
 
 if __name__ == "__main__":
-    data_variant = "0_simulation"
+    data_variant = "1_pilot"
 
     # amount of noice, number of trials (unused if data_variant != 0_simulation)
-    simulation_variants = ["b_0_n_0"]  # , "b_1_n_0", "b_0_n_1", "b_1_n_1"]
+    simulation_variants = (
+        ["b_0_n_0"] if data_variant == "0_simulation" else [""]
+    )  # , "b_1_n_0", "b_0_n_1", "b_1_n_1"]
 
     # number of repeats of simulated agents (1 if data_variant != 0_simulation)
-    n_agents = 2
+    n_agents = 100 if data_variant == "0_simulation" else 1
 
     for simulation_variant in simulation_variants:
         reading_data(data_variant, simulation_variant, n_agents)
