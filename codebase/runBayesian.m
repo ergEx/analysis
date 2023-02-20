@@ -23,11 +23,11 @@ addpath(fullfile(startDir,'/Bayesian_utils'));
 %% Specify variables
 inferenceMode = 1;
 whichJAGS = 1;
-whichQuals = 1:1;
+whichQuals = 3:3;
 doParallel = 0;
-dataVersion = 1;
+dataVersion = 2;
 
 %% Call setHLM
-for simVersion = 1:4
+for simVersion = 1:1
     setBayesian(inferenceMode,whichJAGS,whichQuals,doParallel,startDir,dataVersion,simVersion)
 end

@@ -24,7 +24,7 @@ nThin        = 10;                     %thinnning factor, 1 = no thinning, 2=eve
 %% Specifies subjects, trials and directory_name
 switch dataVersion
     case {1} %simulated data
-        subjList = 1:9;
+        subjList = 1:400;
         switch simVersion
             case {1},  nTrials = 160;  folder = '0_simulation/b_0_n_0';
             case {2},  nTrials = 160;  folder = '0_simulation/b_1_n_0';
