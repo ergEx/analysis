@@ -12,21 +12,19 @@ def reading_participant_passive_data(
     root_path: str, subject: str, first_run: str, bids_text: str, n_passive_runs: int
 ):
     """Passive phase data"""
+    passive_phase_data = pd.DataFrame()
     for run in range(1, n_passive_runs + 1):
-        passive_phase_data = pd.read_csv(
+        df = pd.read_csv(
             os.path.join(
                 root_path,
-                f"sub-{subject}",
+                f"sub-00{subject}",
                 f"ses-{first_run}",
-                f"sub-{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_beh.csv",
+                f"sub-00{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_beh.csv",
             ),
             sep="\t",
         )
-
-        passive_phase_data = passive_phase_data.query('event_type == "WealthUpdate"').reset_index(
-            drop=True
-        )
-        passive_phase_data = passive_phase_data.query("part == 0").reset_index(drop=True)
+        df = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
+        passive_phase_data = pd.concat([passive_phase_data, df])
     return passive_phase_data
 
 
@@ -48,9 +46,9 @@ def reading_participant_active_data(
         active_phase_data = pd.read_csv(
             os.path.join(
                 root_path,
-                f"sub-{subject}",
+                f"sub-00{subject}",
                 f"ses-{first_run}",
-                f"sub-{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv",
+                f"sub-00{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv",
             ),
             sep="\t",
         )
