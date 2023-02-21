@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
     # amount of noice, number of trials (unused if data_variant != 0_simulation)
     simulation_variants = (
-        ["b_0_n_0"] if data_variant == "0_simulation" else [""]
+        ["n_160", "n_1000"] if data_variant == "0_simulation" else [""]
     )  # , "b_1_n_0", "b_0_n_1", "b_1_n_1"]
 
     # number of repeats of simulated agents (1 if data_variant != 0_simulation)

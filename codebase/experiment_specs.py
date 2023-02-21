@@ -1,3 +1,6 @@
+import itertools
+
+
 def sub_specs(data_variant: str) -> dict[str, list]:
     """
     Returns a dictionary of data specification for the given data variant.
@@ -10,9 +13,11 @@ def sub_specs(data_variant: str) -> dict[str, list]:
     Returns a dictionary containing relevant information on the subject structure of the data in the given data variant.
     """
     if data_variant == "0_simulation":
-        return {"id": ["0.0x0.0", "0.0x1.0", "1.0x0.0", "1.0x1.0"], "first_run": [[1, 2]] * 4}
-        # return {'id': ['0.0x0.0','0.0x0.5','0.0x1.0','0.5x0.0','0.5x0.5','0.5x1.0','1.0x0.0','1.0x0.5','1.0x1.0'],
-        #        'first_run': [[1,2]]*9}
+        etas = [-0.5, 0.0, 0.5, 1.0, 1.5]
+        return {
+            "id": [f"{i[0]}x{i[1]}" for i in itertools.product(etas, etas)],
+            "first_run": [[1, 2]] * len(etas) ** 2,
+        }
     elif data_variant == "1_pilot":
         return {
             # ["000", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010"]
