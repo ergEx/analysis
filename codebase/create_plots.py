@@ -2,6 +2,7 @@
 import os
 
 import pandas as pd
+import seaborn as sns
 
 from .experiment_specs import condition_specs, sub_specs
 from .plotting_utils import (
@@ -14,9 +15,11 @@ from .plotting_utils import (
 )
 
 #%%
-DATA_VARIANT = "0_simulation"  #'1_pilot'
+DATA_VARIANT = "1_pilot"  #'1_pilot'
 PASSIVE_RESET = 45
 N_PASSIVE_RUNS = 3
+colors = ["#e28743", "#043d74"]
+pal = sns.set_palette(sns.color_palette(colors))
 ROOT_PATH = os.path.join(os.path.dirname(__file__), "..")  # os.path.join(os.getcwd())
 SIM_VARS = ["n_160", "n_1000"] if DATA_VARIANT == "0_simulation" else [""]
 for SIMULATION_VARIANT in SIM_VARS:
@@ -55,8 +58,8 @@ for SIMULATION_VARIANT in SIM_VARS:
         N_PASSIVE_RUNS,
         PASSIVE_RESET,
         indifference_eta_df,
-        INDIFFERENCE_ETA_PLOT_SPECS,
         bayesian_samples_parameter_estimation,
+        pal,
     )
 
     #%%
@@ -65,8 +68,8 @@ for SIMULATION_VARIANT in SIM_VARS:
         DATA_VARIANT,
         CONDITION_SPECS,
         indifference_eta_df,
-        INDIFFERENCE_ETA_PLOT_SPECS,
         bayesian_samples_parameter_estimation,
+        pal,
     )
 
     #%%
