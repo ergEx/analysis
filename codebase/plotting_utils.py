@@ -5,6 +5,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import ptitprince as pt
 import seaborn as sns
 import statsmodels.api as sm
 
@@ -95,34 +96,21 @@ def plot_active_trajectory(
 
 
 def plot_indifference_eta(
-    df: pd.DataFrame,
-    ax: plt.axis,
-    plot_specs: dict,
-    c: int,
-    simulation_eta: float = None,
-    idx: int = 2,
+    df: pd.DataFrame, save_path: str, save_str: str, pal: sns.palettes,
 ):
-    for ii, choice in enumerate(df["selected_side_map"]):
-        trial = df.loc[ii, :]
-        if np.isnan(trial.indif_eta):
-            continue
-        ax[c, idx].plot(
-            trial.indif_eta,
-            ii,
-            marker=plot_specs["sign"][trial.min_max_sign],
-            color=plot_specs["color"][trial.min_max_color],
-        )
-
-    ax[c, idx].set(title=f"Indifference eta", xlabel="Riskaversion ($\eta$)")
-    ax[c, idx].axes.yaxis.set_visible(False)
-    ax[c, idx].axvline(c, linestyle="--", color="grey", label="Growth optimal")
-    if simulation_eta is not None:
-        ax[c, idx].axvline(simulation_eta, linestyle="--", color="green", label="Simulation eta")
-
-    ax[c, idx].plot([], marker="<", color="b", label="Upper bound")
-    ax[c, idx].plot([], marker=">", color="orange", label="Lower bound")
-
-    ax[c, idx].legend(loc="upper left", fontsize="xx-small")
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    df_tmp = df.query("indif_eta.notnull()", engine="python")
+    pt.RainCloud(
+        x="min_max_sign", y="indif_eta", data=df_tmp, ax=ax, bw=0.3, orient="h", palette=pal
+    )
+    ax.set(
+        title="Indifference eta",
+        xlabel="Indifference eta",
+        ylabel="",
+        yticklabels=(["Additive", "Multiplicative"]),
+    )
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
 
 
 def plot_choice_probabilities(df: pd.DataFrame, ax: plt.axis, c: int, idx: int = 3):
@@ -249,6 +237,8 @@ def plot_parameter_estimation_subject_wise(
     indifference_eta_plot_specs: dict,
     bayesian_samples: np.array,
 ):
+    colors = ["#e28743", "#043d74"]
+    pal = sns.set_palette(sns.color_palette(colors))
     for i, subject1 in enumerate(subjects):
 
         for j in range(n_agents):
@@ -283,7 +273,7 @@ def plot_parameter_estimation_subject_wise(
                 plot_active_trajectory(active_subject_df, ax, condition_specs["active_limits"], c)
 
                 plot_indifference_eta(
-                    active_subject_df, ax, indifference_eta_plot_specs, c, simulation_eta
+                    active_subject_df, save_path, f"Indifference_eta_{i}_{j}", pal
                 )
 
                 plot_choice_probabilities(active_subject_df, ax, c)
