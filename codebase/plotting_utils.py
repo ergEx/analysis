@@ -60,7 +60,7 @@ def plot_passive_trajectory(
     df: pd.DataFrame, save_path: str, save_str: str, lambd: float, n_passive_runs: int, reset: int,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    ax.plot(df.trial, df.wealth)
+    ax.plot(df.trial, df.wealth, color="black")
 
     for reset_idx in range(1, n_passive_runs):
         ax.axvline(x=reset * reset_idx, color="grey", linestyle="--")
@@ -77,7 +77,7 @@ def plot_active_trajectory(
     df: pd.DataFrame, save_path: str, save_str: str, active_limits: dict, c: int,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    ax.plot(df.trial, df.wealth)
+    ax.plot(df.trial, df.wealth, color="black")
     ax.set(title=f"Active wealth", xlabel="Trial", ylabel="Wealth")
 
     ax.axhline(
@@ -229,11 +229,11 @@ def plot_parameter_estimation_subject_wise(
     n_agents: int,
     condition_specs: dict,
     passive_phase_df: pd.DataFrame,
-    n_passive_runs: int,
-    reset: int,
     active_phase_df: pd.DataFrame,
     bayesian_samples: np.array,
     pal,
+    n_passive_runs: int = 3,
+    reset: int = 45,
 ):
 
     for i, subject1 in enumerate(subjects):
@@ -370,9 +370,10 @@ def plot_simulation_overview(
     condition_specs: dict,
     bayesian_samples: np.array,
 ):
+    N = n_agents * len(subjects)
     data = {
-        "log_reg": {"0.0": [None] * 400, "1.0": [None] * 400, "kind": [None] * 400},
-        "bayesian": {"0.0": [None] * 400, "1.0": [None] * 400, "kind": [None] * 400},
+        "log_reg": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
+        "bayesian": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
     }
 
     for i, subject1 in enumerate(subjects):
@@ -390,6 +391,7 @@ def plot_simulation_overview(
                     x_test, _, _, _, idx_m, _, _ = logistic_regression(df_tmp)
                     data["log_reg"][f"{c}.0"][n_agents * i + j] = x_test[idx_m]
                 except Exception as e:
+                    print(e)
                     pass
 
                 # Bayesian
@@ -401,6 +403,7 @@ def plot_simulation_overview(
                     ]
                 except Exception as e:
                     print(e)
+                    pass
     c_log_reg = pd.DataFrame.from_dict(data["log_reg"])
     c_bayesian = pd.DataFrame.from_dict(data["bayesian"])
     c_bayesian.to_csv(f"{save_path}/t.csv", sep="\t")
@@ -434,11 +437,8 @@ def plot_simulation_overview(
         hue="kind",
         bw_method=0.8,
         ax=ax[1],
-        legend=False,
+        legend=True,
     )
 
-    for i in range(2):
-        for x, y in [[0, 0], [0, 1], [1, 0], [1, 1]]:
-            ax[i].scatter(x, y, marker="X", color="Black")
     fig.tight_layout()
     fig.savefig(os.path.join(save_path, f"simulation_overview.png"))

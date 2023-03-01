@@ -1,93 +1,84 @@
-#%% # -*- coding: utf-8 -*-
 import os
+import sys
 
 import pandas as pd
 import seaborn as sns
+import yaml
 
+from .base import get_config_filename
 from .experiment_specs import condition_specs, sub_specs
 from .plotting_utils import (
-    plot_bayesian_model_selection_all_as_one,
-    plot_bayesian_model_selection_subject_wise,
     plot_parameter_estimation_all_data_as_one,
     plot_parameter_estimation_subject_wise,
     plot_simulation_overview,
     read_relevant_files,
 )
 
-#%%
-DATA_VARIANT = "1_pilot"  #'1_pilot'
-PASSIVE_RESET = 45
-N_PASSIVE_RUNS = 3
-colors = ["#e28743", "#043d74"]
-pal = sns.set_palette(sns.color_palette(colors))
-ROOT_PATH = os.path.join(os.path.dirname(__file__), "..")  # os.path.join(os.getcwd())
-SIM_VARS = ["n_160", "n_1000"] if DATA_VARIANT == "0_simulation" else [""]
-for SIMULATION_VARIANT in SIM_VARS:
-    PATH = (
-        os.path.join(DATA_VARIANT, SIMULATION_VARIANT)
-        if DATA_VARIANT == "0_simulation"
-        else DATA_VARIANT
-    )
 
-    N_AGENTS = 100 if DATA_VARIANT == "0_simulation" else 1
+def main(config_file):
+    with open(config_file, "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+    data_variant = config["data_variant"]
+    data_folders = config["data_folders"]
+    fig_folders = config["fig_folders"]
+    simulation_variants = config["simulation_varaints"]
+    colors = config["colors"]
+    pal = sns.set_palette(sns.color_palette(colors))
+    n_agents = config["n_agents"]
+    stages = config["plots"]["figures"]
 
     CONDITION_SPECS = condition_specs()
-    SUBJECT_SPECS = sub_specs(DATA_VARIANT)
+    SUBJECT_SPECS = sub_specs(data_variant)
     subjects = SUBJECT_SPECS["id"]
-    INDIFFERENCE_ETA_PLOT_SPECS = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
-    (
-        passive_phase_df,
-        indifference_eta_df,
-        bayesian_samples_parameter_estimation,
-        bayesian_samples_model_selection,
-    ) = read_relevant_files(os.path.join(ROOT_PATH, "data", PATH,))
 
-    save_path = os.path.join(ROOT_PATH, "figs", PATH)
-
-    if not os.path.isdir(save_path):
-        os.makedirs(save_path)
-
-    #%%
-    plot_parameter_estimation_subject_wise(
-        save_path,
-        DATA_VARIANT,
-        subjects,
-        N_AGENTS,
-        CONDITION_SPECS,
-        passive_phase_df,
-        N_PASSIVE_RUNS,
-        PASSIVE_RESET,
-        indifference_eta_df,
-        bayesian_samples_parameter_estimation,
-        pal,
-    )
-
-    #%%
-    plot_parameter_estimation_all_data_as_one(
-        save_path,
-        DATA_VARIANT,
-        CONDITION_SPECS,
-        indifference_eta_df,
-        bayesian_samples_parameter_estimation,
-        pal,
-    )
-
-    #%%
-    plot_bayesian_model_selection_subject_wise(
-        save_path, subjects, bayesian_samples_model_selection
-    )
-
-    #%%
-    plot_bayesian_model_selection_all_as_one(save_path, bayesian_samples_model_selection)
-
-    #%%
-    if DATA_VARIANT == "0_simulation":
-        plot_simulation_overview(
-            save_path,
+    for i, simulation_variant in enumerate(simulation_variants):
+        print(f"CREATING FIGURES \n{data_variant} \n{simulation_variant}")
+        (
+            passive_phase_df,
             indifference_eta_df,
-            subjects,
-            N_AGENTS,
-            CONDITION_SPECS,
             bayesian_samples_parameter_estimation,
-        )
+            bayesian_samples_model_selection,
+        ) = read_relevant_files(os.path.join(data_folders[i]))
 
+        if not os.path.isdir(fig_folders[i]):
+            os.makedirs(fig_folders[i])
+
+        if stages["subject wise"]:
+            print("\nPLOT SUBJECT WISE")
+            plot_parameter_estimation_subject_wise(
+                fig_folders[i],
+                data_variant,
+                subjects,
+                n_agents,
+                CONDITION_SPECS,
+                passive_phase_df,
+                indifference_eta_df,
+                bayesian_samples_parameter_estimation,
+                pal,
+            )
+
+        if stages["group mean"]:
+            print("\nGROUP MEAN")
+            plot_parameter_estimation_all_data_as_one(
+                fig_folders[i],
+                data_variant,
+                CONDITION_SPECS,
+                indifference_eta_df,
+                bayesian_samples_parameter_estimation,
+                pal,
+            )
+
+        if stages["simulation overview"]:
+            plot_simulation_overview(
+                fig_folders[i],
+                indifference_eta_df,
+                subjects,
+                n_agents,
+                CONDITION_SPECS,
+                bayesian_samples_parameter_estimation,
+            )
+
+
+if __name__ == "__main__":
+    config_file = get_config_filename(sys.argv)
+    main(config_file)

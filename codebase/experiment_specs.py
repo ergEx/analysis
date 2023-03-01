@@ -1,7 +1,7 @@
 import itertools
 
 
-def sub_specs(data_variant: str) -> dict[str, list]:
+def sub_specs(data_variant: str, etas: list = None) -> dict[str, list]:
     """
     Returns a dictionary of data specification for the given data variant.
 
@@ -13,7 +13,6 @@ def sub_specs(data_variant: str) -> dict[str, list]:
     Returns a dictionary containing relevant information on the subject structure of the data in the given data variant.
     """
     if data_variant == "0_simulation":
-        etas = [-0.5, 0.0, 0.5, 1.0, 1.5]
         return {
             "id": [f"{i[0]}x{i[1]}" for i in itertools.product(etas, etas)],
             "first_run": [[1, 2]] * len(etas) ** 2,

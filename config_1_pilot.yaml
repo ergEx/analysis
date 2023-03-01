@@ -1,0 +1,37 @@
+--- # Ergex config file
+
+# This file allows control over the data processing pipeline without any need
+# to edit the code.
+
+# This section specifies the folder structure
+simulation_varaints: [""]
+data_folders: ["data/1_pilot"]
+fig_folders: ["figs/1_pilot"]
+
+# This section specifies data variables
+data_variant: "1_pilot"
+
+# This section specifies variables purely used for simulation
+n_agents: 1
+etas: []
+
+# This section specifies plotting variables
+colors: ["#e28743", "#043d74"]
+
+# This section provides control over the various steps in the readingdata pipeline
+readingdata:
+  run: False
+
+  stages:
+    passive_output: True
+    active_output: True
+    include indif eta: True #assumes above is true
+    output .mat: true
+
+# This section provides control over the various steps in the plotting pipeline
+plots:
+  run: True
+  figures:
+    subject wise: True
+    group mean: True
+    simulation overview: False
