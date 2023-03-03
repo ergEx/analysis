@@ -5,12 +5,12 @@
 
 # This section specifies the folder structure
 simulation_varaints: ["160", "1000"]
-data_folder: ["../data/simulations/n_160", "../data/simulations/n_1000"]
-fig_folder: ["../figs/0_simulations/n_160", "../figs/0_simulations/n_1000"]
+data_folders: ["data/0_simulation/n_160", "../data/0_simulation/n_1000"]
+fig_folders: ["figs/0_simulation/n_160", "../figs/0_simulation/n_1000"]
 
 # This section specifies data variables
-data_variant: "0_simulations"
-n_agents: 50
+data_variant: "0_simulation"
+n_agents: 10
 etas: [0.0, 0.5, 1.0]
 
 # This section specifies plotting variables
@@ -23,13 +23,13 @@ readingdata:
   stages:
     passive_output: False
     active_output: True
-    include indifference eta: True #assumes above is true
+    include indif eta: True #assumes above is true
     output .mat: true
 
 # This section provides control over the various steps in the plotting pipeline
 plots:
   run: True
-  figues:
+  figures:
     subject wise: False
     group mean: False
     simulation overview: True
