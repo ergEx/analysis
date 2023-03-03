@@ -96,11 +96,10 @@ def reading_data(
     active_phase_df = pd.DataFrame()
     datadict = dict()
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
-        print(f"Condition {condition}")
+        print(f"\nCondition {condition}")
         for i, subject1 in enumerate(SUBJECT_SPECS["id"]):
             for j in range(n_agents):
                 subject = f"{j}_{subject1}" if data_variant == "0_simulation" else subject1
-                subject = subject1
                 print(f"Subject {subject}")
 
                 if stages["passive_output"]:
@@ -183,11 +182,10 @@ def reading_data(
         np.savez(os.path.join(data_folder, "all_active_phase_data.mat.npz"), datadict=datadict)
 
 
-def main(config_file):
+def main(config_file, i, simulation_variant):
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
     data_variant = config["data_variant"]
-    simulation_variants = config["simulation_varaints"]
     n_agents = config["n_agents"]
     data_folders = config["data_folders"]
     etas = config["etas"]
@@ -195,9 +193,8 @@ def main(config_file):
     stages = config["readingdata"]["stages"]
 
     if run_stage:
-        for i, simulation_variant in enumerate(simulation_variants):
-            print(f"READING DATA \n{data_variant} \n{simulation_variant}")
-            reading_data(data_variant, data_folders[i], stages, n_agents, etas)
+        print(f"\nREADING DATA \n{data_variant} \n{simulation_variant}")
+        reading_data(data_variant, data_folders[i], stages, n_agents, etas)
 
 
 if __name__ == "__main__":

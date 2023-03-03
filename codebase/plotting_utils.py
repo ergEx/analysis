@@ -391,7 +391,6 @@ def plot_simulation_overview(
                     x_test, _, _, _, idx_m, _, _ = logistic_regression(df_tmp)
                     data["log_reg"][f"{c}.0"][n_agents * i + j] = x_test[idx_m]
                 except Exception as e:
-                    print(e)
                     pass
 
                 # Bayesian
@@ -402,11 +401,11 @@ def plot_simulation_overview(
                         np.argmax(kde.density)
                     ]
                 except Exception as e:
-                    print(e)
                     pass
     c_log_reg = pd.DataFrame.from_dict(data["log_reg"])
+    c_log_reg = c_log_reg.dropna()
     c_bayesian = pd.DataFrame.from_dict(data["bayesian"])
-    c_bayesian.to_csv(f"{save_path}/t.csv", sep="\t")
+    c_bayesian = c_bayesian.dropna()
     fig, ax = plt.subplots(1, 2, figsize=(20, 10))
     fig.suptitle("Simulation Overview")
     ax[0].set(
@@ -419,26 +418,32 @@ def plot_simulation_overview(
         xlabel="Additive condition",
         ylabel=f"Multiplicative condition",
     )
-    sns.kdeplot(
-        data=c_log_reg,
-        x="0.0",
-        y="1.0",
-        fill=True,
-        hue="kind",
-        bw_method=0.8,
-        ax=ax[0],
-        legend=False,
-    )
-    sns.kdeplot(
-        data=c_bayesian,
-        x="0.0",
-        y="1.0",
-        fill=True,
-        hue="kind",
-        bw_method=0.8,
-        ax=ax[1],
-        legend=True,
-    )
+    try:
+        sns.kdeplot(
+            data=c_log_reg,
+            x="0.0",
+            y="1.0",
+            fill=True,
+            hue="kind",
+            bw_method=0.8,
+            ax=ax[0],
+            legend=False,
+        )
+    except:
+        pass
+    try:
+        sns.kdeplot(
+            data=c_bayesian,
+            x="0.0",
+            y="1.0",
+            fill=True,
+            hue="kind",
+            bw_method=0.8,
+            ax=ax[1],
+            legend=True,
+        )
+    except:
+        pass
 
     fig.tight_layout()
     fig.savefig(os.path.join(save_path, f"simulation_overview.png"))

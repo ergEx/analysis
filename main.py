@@ -1,18 +1,21 @@
 import sys
 
-from codebase import base
+import yaml
+
+from codebase import base, create_plots, readingdata
 
 
 def main():
     config_file = base.get_config_filename(sys.argv)
 
-    from codebase import readingdata
+    with open(config_file, "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    readingdata.main(config_file)
+    simulation_variants = config["simulation_varaints"]
 
-    from codebase import create_plots
-
-    create_plots.main(config_file)
+    for i, simulation_variant in enumerate(simulation_variants):
+        readingdata.main(config_file, i, simulation_variant)
+        create_plots.main(config_file, i, simulation_variant)
 
 
 if __name__ == "__main__":
