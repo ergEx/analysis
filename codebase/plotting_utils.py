@@ -110,6 +110,29 @@ def plot_indifference_eta(
     fig.savefig(os.path.join(save_path, f"{save_str}.png"))
     plt.close(fig)
 
+    plot_specs = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    for ii, choice in enumerate(df["selected_side_map"]):
+        trial = df.loc[ii, :]
+        if np.isnan(trial.indif_eta):
+            continue
+        ax.plot(
+            trial.indif_eta,
+            ii,
+            marker=plot_specs["sign"][trial.min_max_sign],
+            color=plot_specs["color"][trial.min_max_color],
+        )
+
+    ax.set(title=f"Indifference eta", xlabel="Riskaversion ($\eta$)")
+    ax.axes.yaxis.set_visible(False)
+    ax.plot([], marker="<", color="b", label="Upper bound")
+    ax.plot([], marker=">", color="orange", label="Lower bound")
+
+    ax.legend(loc="upper left", fontsize="xx-small")
+
+    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
+    plt.close(fig)
+
 
 def plot_choice_probabilities(df: pd.DataFrame, save_path: str, save_str: str):
     bins = [-np.inf, -0.5, 0, 1.0, 1.5, np.inf]
@@ -362,7 +385,7 @@ def plot_bayesian_model_selection_all_as_one(save_path: str, samples: np.array):
     fig.savefig(os.path.join(save_path, f"active_results_bayesian_model_selection_aggregated.png"))
 
 
-def plot_simulation_overview(
+def plot_simulation_overview_individuals(
     save_path: str,
     df: pd.DataFrame,
     subjects: list[dict],
@@ -446,4 +469,69 @@ def plot_simulation_overview(
         pass
 
     fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview.png"))
+    fig.savefig(os.path.join(save_path, f"simulation_overview_individuals.png"))
+
+
+def plot_simulation_overview_group(
+    save_path: str,
+    df: pd.DataFrame,
+    subjects: list[dict],
+    condition_specs: dict,
+    bayesian_samples: np.array,
+):
+    N = len(subjects)
+    data = {
+        "log_reg": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
+        "bayesian": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
+    }
+
+    df["sub"] = df.agent.apply(lambda x: x[-7:])
+
+    for i, subject1 in enumerate(subjects):
+        data["log_reg"][f"kind"][i] = subject1
+        data["bayesian"][f"kind"][i] = subject1
+        for c, condition in enumerate(condition_specs["lambd"]):
+            # Logistic regression
+            df_tmp = df.query(
+                "sub == @subject1 and eta == @condition and indif_eta.notnull()", engine="python",
+            ).reset_index(drop=True)
+            try:
+                x_test, _, _, _, idx_m, _, _ = logistic_regression(df_tmp)
+                data["log_reg"][f"{c}.0"][i] = x_test[idx_m]
+            except Exception as e:
+                pass
+
+            # Bayesian
+            try:
+                eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
+                kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
+                data["bayesian"][f"{c}.0"][i] = kde.support[np.argmax(kde.density)]
+            except Exception as e:
+                pass
+    c_log_reg = pd.DataFrame.from_dict(data["log_reg"])
+    c_log_reg = c_log_reg.dropna()
+    c_bayesian = pd.DataFrame.from_dict(data["bayesian"])
+    c_bayesian = c_bayesian.dropna()
+    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
+    fig.suptitle("Simulation Overview")
+    ax[0].set(
+        title=f"Logistic regression",
+        xlabel="Additive condition",
+        ylabel=f"Multiplicative condition",
+    )
+    ax[1].set(
+        title=f"Bayesian parameter estimation",
+        xlabel="Additive condition",
+        ylabel=f"Multiplicative condition",
+    )
+    try:
+        ax[0].scatter(c_log_reg["0.0"], c_log_reg["1.0"], label=c_log_reg["kind"])
+    except:
+        pass
+    try:
+        ax[0].scatter(c_bayesian["0.0"], c_bayesian["1.0"], label=c_bayesian["kind"])
+    except:
+        pass
+
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_path, f"simulation_overview_group.png"))
