@@ -385,7 +385,7 @@ def plot_bayesian_model_selection_all_as_one(save_path: str, samples: np.array):
     fig.savefig(os.path.join(save_path, f"active_results_bayesian_model_selection_aggregated.png"))
 
 
-def plot_simulation_overview_individuals(
+def plot_simulation_overview_heatmap(
     save_path: str,
     df: pd.DataFrame,
     subjects: list[dict],
@@ -472,7 +472,7 @@ def plot_simulation_overview_individuals(
     fig.savefig(os.path.join(save_path, f"simulation_overview_individuals.png"))
 
 
-def plot_simulation_overview_group(
+def plot_simulation_overview_scatter(
     save_path: str,
     df: pd.DataFrame,
     subjects: list[dict],
@@ -503,7 +503,7 @@ def plot_simulation_overview_group(
 
             # Bayesian
             try:
-                eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
+                eta_dist = bayesian_samples["eta"][:, :, i, c].flatten()
                 kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
                 data["bayesian"][f"{c}.0"][i] = kde.support[np.argmax(kde.density)]
             except Exception as e:

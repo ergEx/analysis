@@ -10,8 +10,8 @@ from .experiment_specs import condition_specs, sub_specs
 from .plotting_utils import (
     plot_parameter_estimation_all_data_as_one,
     plot_parameter_estimation_subject_wise,
-    plot_simulation_overview_group,
-    plot_simulation_overview_individuals,
+    plot_simulation_overview_heatmap,
+    plot_simulation_overview_scatter,
     read_relevant_files,
 )
 
@@ -69,22 +69,24 @@ def main(config_file, i, simulation_variant):
         )
 
     if stages["simulation overview"]:
-        plot_simulation_overview_individuals(
-            fig_folders[i],
-            indifference_eta_df,
-            subjects,
-            n_agents,
-            CONDITION_SPECS,
-            bayesian_samples_parameter_estimation,
-        )
-
-        plot_simulation_overview_group(
-            fig_folders[i],
-            indifference_eta_df,
-            subjects,
-            CONDITION_SPECS,
-            bayesian_samples_parameter_estimation,
-        )
+        print("\nSIMULATION OVERVIEW")
+        if n_agents > 1:
+            plot_simulation_overview_heatmap(
+                fig_folders[i],
+                indifference_eta_df,
+                subjects,
+                n_agents,
+                CONDITION_SPECS,
+                bayesian_samples_parameter_estimation,
+            )
+        else:
+            plot_simulation_overview_scatter(
+                fig_folders[i],
+                indifference_eta_df,
+                subjects,
+                CONDITION_SPECS,
+                bayesian_samples_parameter_estimation,
+            )
 
 
 if __name__ == "__main__":
