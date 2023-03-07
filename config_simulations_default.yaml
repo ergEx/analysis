@@ -1,16 +1,16 @@
---- # Ergex config file
+--- # Ergex config file for simulations
 
 # This file allows control over the data processing pipeline without any need
 # to edit the code.
 
 # This section specifies the folder structure
-simulation_varaints: ["160", "1000"]
+simulation_varaints: ["n_160", "n_1000"]
 data_folders: ["data/0_simulation/n_160", "../data/0_simulation/n_1000"]
 fig_folders: ["figs/0_simulation/n_160", "../figs/0_simulation/n_1000"]
 
 # This section specifies data variables
 data_variant: "0_simulation"
-n_agents: 10
+n_agents: [100, 1]
 etas: [0.0, 0.5, 1.0]
 
 # This section specifies plotting variables
@@ -25,6 +25,10 @@ readingdata:
     active_output: True
     include indif eta: True #assumes above is true
     output .mat: true
+
+# This section provides control over the JASP input creation
+create_jasp:
+  run: False
 
 # This section provides control over the various steps in the plotting pipeline
 plots:

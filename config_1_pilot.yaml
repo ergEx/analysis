@@ -1,4 +1,4 @@
---- # Ergex config file
+--- # Ergex config file for pilot data
 
 # This file allows control over the data processing pipeline without any need
 # to edit the code.
@@ -20,13 +20,17 @@ colors: ["#e28743", "#043d74"]
 
 # This section provides control over the various steps in the readingdata pipeline
 readingdata:
-  run: False
+  run: True
 
   stages:
     passive_output: True
     active_output: True
     include indif eta: True #assumes above is true
     output .mat: true
+
+# This section provides control over the JASP input creation
+create_jasp:
+  run: True
 
 # This section provides control over the various steps in the plotting pipeline
 plots:
