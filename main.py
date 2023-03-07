@@ -2,7 +2,7 @@ import sys
 
 import yaml
 
-from codebase import base, create_plots, readingdata
+from codebase import base, create_JASP_input, create_plots, readingdata
 
 
 def main():
@@ -15,6 +15,7 @@ def main():
 
     for i, simulation_variant in enumerate(simulation_variants):
         readingdata.main(config_file, i, simulation_variant)
+        create_JASP_input.main(config_file, i, simulation_variant)
         create_plots.main(config_file, i, simulation_variant)
 
 
