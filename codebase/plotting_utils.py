@@ -56,29 +56,16 @@ def read_relevant_files(path):
     )
 
 
-def plot_passive_trajectory(
-    df: pd.DataFrame, save_path: str, save_str: str, lambd: float, n_passive_runs: int, reset: int,
-):
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+def plot_passive_trajectory(df: pd.DataFrame, n_passive_runs: int, reset: int, ax: plt.axes):
     ax.plot(df.trial, df.wealth, color="black")
 
     for reset_idx in range(1, n_passive_runs):
         ax.axvline(x=reset * reset_idx, color="grey", linestyle="--")
-    ax.plot([], label="Reset", color="grey", linestyle="--")
-    ax.legend(loc="upper left", fontsize="xx-small")
-    ax.set(title=f"Passive wealth", xlabel="Trial", ylabel=f"Wealth")
-    if lambd == 1.0:
-        ax.set(yscale="log", ylabel="Wealth (log)")
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+    return ax
 
 
-def plot_active_trajectory(
-    df: pd.DataFrame, save_path: str, save_str: str, active_limits: dict, c: int,
-):
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+def plot_active_trajectory(df: pd.DataFrame, active_limits: dict, c: int, ax: plt.axes):
     ax.plot(df.trial, df.wealth, color="black")
-    ax.set(title=f"Active wealth", xlabel="Trial", ylabel="Wealth")
 
     ax.axhline(
         y=active_limits[c][0], linestyle="--", linewidth=1, color="red", label="Upper Bound"
@@ -91,14 +78,10 @@ def plot_active_trajectory(
     if c == 1:
         ax.set(yscale="log", ylabel="Wealth (log)")
 
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+    return ax
 
 
-def plot_indifference_eta(
-    df: pd.DataFrame, save_path: str, save_str: str, pal: sns.palettes,
-):
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+def plot_indifference_eta(df: pd.DataFrame, pal: sns.palettes, ax: plt.axes):
     pt.RainCloud(x="min_max_sign", y="indif_eta", data=df, ax=ax, bw=0.3, orient="h", palette=pal)
     ax.set(
         title="Indifference eta",
@@ -106,35 +89,32 @@ def plot_indifference_eta(
         ylabel="",
         yticklabels=(["Lower bound", "Upper bound"]),
     )
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+    return ax
+    # plot_specs = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
+    # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    # for ii, choice in enumerate(df["selected_side_map"]):
+    #    trial = df.loc[ii, :]
+    #    if np.isnan(trial.indif_eta):
+    #        continue
+    #    ax.plot(
+    #        trial.indif_eta,
+    #        ii,
+    #        marker=plot_specs["sign"][trial.min_max_sign],
+    #        color=plot_specs["color"][trial.min_max_color],
+    #    )
 
-    plot_specs = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    for ii, choice in enumerate(df["selected_side_map"]):
-        trial = df.loc[ii, :]
-        if np.isnan(trial.indif_eta):
-            continue
-        ax.plot(
-            trial.indif_eta,
-            ii,
-            marker=plot_specs["sign"][trial.min_max_sign],
-            color=plot_specs["color"][trial.min_max_color],
-        )
+    # ax.set(title=f"Indifference eta", xlabel="Riskaversion ($\eta$)")
+    # ax.axes.yaxis.set_visible(False)
+    # ax.plot([], marker="<", color="b", label="Upper bound")
+    # ax.plot([], marker=">", color="orange", label="Lower bound")
 
-    ax.set(title=f"Indifference eta", xlabel="Riskaversion ($\eta$)")
-    ax.axes.yaxis.set_visible(False)
-    ax.plot([], marker="<", color="b", label="Upper bound")
-    ax.plot([], marker=">", color="orange", label="Lower bound")
+    # ax.legend(loc="upper left", fontsize="xx-small")
 
-    ax.legend(loc="upper left", fontsize="xx-small")
-
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+    # fig.savefig(os.path.join(save_path, f"{save_str}.png"))
+    # plt.close(fig)
 
 
-def plot_choice_probabilities(df: pd.DataFrame, save_path: str, save_str: str):
+def plot_choice_probabilities(df: pd.DataFrame, ax: plt.axes):
     bins = [-np.inf, -0.5, 0, 1.0, 1.5, np.inf]
     min_df = df[df["min_max_sign"] == 0]
     max_df = df[df["min_max_sign"] == 1]
@@ -143,24 +123,20 @@ def plot_choice_probabilities(df: pd.DataFrame, save_path: str, save_str: str):
     choice_probs = [max_count[i] / (max_count[i] + min_count[i]) for i in range(len(min_count))]
     ticks = ["<-0.5", "-1 - 0", "0 - 1", "1 - 1.5", ">1.5"]
 
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ax.bar(ticks, choice_probs)
-    ax.set(title="Indif eta choice prob.", ylim=[0, 1], yticks=np.linspace(0, 1, 11))
+    ax.set(title=".", ylim=[0, 1], yticks=np.linspace(0, 1, 11))
     ax.tick_params(axis="x", labelrotation=45)
 
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+    return ax
 
 
-def plot_indif_eta_logistic_reg(df: pd.DataFrame, save_path: str, save_str: str):
+def plot_indif_eta_logistic_reg(df: pd.DataFrame, ax: plt.axes):
     # Indifference eta logistic regression
     df_tmp_1 = df[df["min_max_val"] == 1]
     df_tmp_0 = df[df["min_max_val"] == 0]
 
     x_test, pred, ymin, ymax, idx_m, idx_l, idx_h = logistic_regression(df)
 
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ax.fill_between(
         x_test,
         ymin,
@@ -209,13 +185,10 @@ def plot_indif_eta_logistic_reg(df: pd.DataFrame, save_path: str, save_str: str)
     ax.axvline(x=x_test[idx_m], color="red", linestyle="--", label="Best estimate")
     ax.legend(loc="upper left", fontsize="xx-small")
 
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+    return ax
 
 
-def plot_bayesian_estimation(dist: np.array, save_path: str, save_str: str):
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+def plot_bayesian_estimation(dist: np.array, ax: plt.axes):
     sns.kdeplot(dist, ax=ax)
     xs, ys = ax.lines[-1].get_data()
     ax.fill_between(xs, ys, color="red", alpha=0.05)
@@ -230,9 +203,8 @@ def plot_bayesian_estimation(dist: np.array, save_path: str, save_str: str):
     )
 
     ax.legend(loc="upper left", fontsize="xx-small")
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"{save_str}.png"))
-    plt.close(fig)
+
+    return ax
 
 
 def plot_bayesian_model_selection(dist: np.array, ax: plt.axis, n_subjects):
@@ -258,11 +230,21 @@ def plot_parameter_estimation_subject_wise(
     n_passive_runs: int = 3,
     reset: int = 45,
 ):
+    fig_passive_all, ax_passive_all = plt.subplots(1, 2, figsize=(5, 10))
+    fig_active_all, ax_active_all = plt.subplots(1, 2, figsize=(5, 10))
 
     for i, subject1 in enumerate(subjects):
         for j in range(n_agents):
             subject = f"{j}_{subject1}" if data_variant == "0_simulation" else subject1
             print(f"\nSubject {subject}")
+
+            fig_passive, ax_passive = plt.subplots(1, 2, figsize=(5, 10))
+            fig_active, ax_active = plt.subplots(1, 2, figsize=(5, 10))
+            fig_indif_eta, ax_indif_eta = plt.subplots(1, 2, figsize=(5, 10))
+            fig_choice_prob, ax_choice_prob = plt.subplots(1, 2, figsize=(5, 10))
+            fig_log_reg, ax_log_reg = plt.subplots(1, 2, figsize=(5, 10))
+            fig_bayesian, ax_bayesian = plt.subplots(1, 1, figsize=(5, 10))
+
             for c, condition in enumerate(condition_specs["lambd"]):
                 print(f"Condition {condition}")
 
@@ -272,14 +254,29 @@ def plot_parameter_estimation_subject_wise(
                         "participant_id == @subject1 and eta == @condition"
                     ).reset_index(drop=True)
 
-                    plot_passive_trajectory(
-                        passive_subject_df,
-                        save_path,
-                        f"passive_trajectory_{subject}_{c}",
-                        c,
-                        n_passive_runs,
-                        reset,
+                    ax_passive[c] = plot_passive_trajectory(
+                        df=passive_subject_df,
+                        n_passive_runs=n_passive_runs,
+                        reset=reset,
+                        ax=ax_passive[c],
                     )
+                    ax_passive[c].plot([], label="Reset", color="grey", linestyle="--")
+                    ax_passive[c].legend(loc="upper left", fontsize="xx-small")
+                    ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
+                    if condition == 1.0:
+                        ax_passive[c].set(yscale="log", ylabel="Wealth (log)")
+
+                    ax_passive_all[c] = plot_passive_trajectory(
+                        df=passive_subject_df,
+                        n_passive_runs=n_passive_runs,
+                        reset=reset,
+                        ax=ax_passive[c],
+                    )
+                    ax_passive[c].plot([], label="Reset", color="grey", linestyle="--")
+                    ax_passive[c].legend(loc="upper left", fontsize="xx-small")
+                    ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
+                    if condition == 1.0:
+                        ax_passive[c].set(yscale="log", ylabel="Wealth (log)")
 
                 """ACTIVE PHASE"""
                 if data_variant == "0_simulation":
@@ -293,34 +290,50 @@ def plot_parameter_estimation_subject_wise(
                         engine="python",
                     ).reset_index(drop=True)
 
-                plot_active_trajectory(
-                    active_subject_df,
-                    save_path,
-                    f"active_trajectory_{subject}_{c}",
-                    condition_specs["active_limits"],
-                    c,
+                ax_active[c] = plot_active_trajectory(
+                    df=active_subject_df,
+                    active_limits=condition_specs["active_limits"],
+                    c=c,
+                    ax=ax_active[c],
+                )
+                ax_active[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
+
+                ax_active_all[c] = plot_active_trajectory(
+                    df=active_subject_df,
+                    active_limits=condition_specs["active_limits"],
+                    c=c,
+                    ax=ax_active[c],
+                )
+                ax_active_all[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
+
+                ax_indif_eta[c] = plot_indifference_eta(
+                    df=active_subject_df, pal=pal, ax=ax_indif_eta[c],
                 )
 
-                plot_indifference_eta(
-                    active_subject_df, save_path, f"Indifference_eta_{i}_{j}", pal
-                )
-
-                plot_choice_probabilities(
-                    active_subject_df, save_path, f"choice_probabilities_{subject}_{c}"
+                ax_choice_prob[c] = plot_choice_probabilities(
+                    df=active_subject_df, ax=ax_choice_prob[c]
                 )
 
                 try:
-                    plot_indif_eta_logistic_reg(
-                        active_subject_df, save_path, f"logistic_reg_{subject}_{c}"
+                    ax_log_reg[c] = plot_indif_eta_logistic_reg(
+                        df=active_subject_df, ax=ax_log_reg[c]
                     )
                 except:
                     pass
 
                 if bayesian_samples is not None:
                     eta_dist = bayesian_samples["eta"][:, :, n_agents * i + j, c].flatten()
-                    plot_bayesian_estimation(
-                        eta_dist, save_path, f"bayesian_parameter_est_{subject}_{c}"
-                    )
+                    ax_bayesian = plot_bayesian_estimation(eta_dist, ax=ax_bayesian)
+
+            fig_passive.savefig(save_path, f"1_1_passive_trajectory_{i}_{j}.png")
+            fig_active.savefig(save_path, f"1_2_active_trajectory_{i}_{j}.png")
+            fig_indif_eta.savefig(save_path, f"1_3_indif_eta_{i}_{j}.png")
+            fig_choice_prob.savefig(save_path, f"1_4_choice_prob_{i}_{j}.png")
+            fig_log_reg.savefig(save_path, f"1_5_log_reg_{i}_{j}.png")
+            fig_bayesian.savefig(save_path, f"1_6_bayesian_{i}_{j}.png")
+    fig_passive_all.savefig(save_path, f"0_1_passive_trajectories")
+    fig_active_all.savefig(save_path, f"0_2_active_trajectories")
+    plt.close("all")
 
 
 def plot_parameter_estimation_all_data_as_one(
@@ -331,6 +344,10 @@ def plot_parameter_estimation_all_data_as_one(
     bayesian_samples: np.array,
     pal,
 ):
+
+    fig_indif_eta, ax_indif_eta = plt.subplots(1, 2, figsize=(5, 10))
+    fig_log_reg, ax_log_reg = plt.subplots(1, 2, figsize=(5, 10))
+    fig_bayesian, ax_bayesian = plt.subplots(1, 1, figsize=(5, 10))
     for c, condition in enumerate(condition_specs["lambd"]):
         print(f'Condition {c+1} of {len(condition_specs["lambd"])}')
         if data_variant == "0_simulation":
@@ -343,13 +360,13 @@ def plot_parameter_estimation_all_data_as_one(
                 engine="python",
             ).reset_index(drop=True)
 
-        plot_indifference_eta(df_c, save_path, f"0_indifference_eta_{c}", pal)
+        ax_indif_eta[c] = plot_indifference_eta(df=df_c, pal=pal, ax=ax_indif_eta[c])
 
-        plot_indif_eta_logistic_reg(df_c, save_path, f"0_logistic_reg_{c}")
+        ax_log_reg[c] = plot_indif_eta_logistic_reg(df=df_c, ax=ax_indif_eta[c])
 
         if bayesian_samples is not None:
             eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
-            plot_bayesian_estimation(eta_dist, save_path, f"0_bayesian_parameter_est_{c}")
+            ax_bayesian[c] = plot_bayesian_estimation(dist=eta_dist, ax=ax_bayesian[c])
 
 
 def plot_bayesian_model_selection_subject_wise(
@@ -469,7 +486,7 @@ def plot_simulation_overview_heatmap(
         pass
 
     fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview_individuals.png"))
+    fig.savefig(os.path.join(save_path, f"simulation_overview.png"))
 
 
 def plot_simulation_overview_scatter(
@@ -509,29 +526,31 @@ def plot_simulation_overview_scatter(
             except Exception as e:
                 pass
     c_log_reg = pd.DataFrame.from_dict(data["log_reg"])
-    c_log_reg = c_log_reg.dropna()
     c_bayesian = pd.DataFrame.from_dict(data["bayesian"])
-    c_bayesian = c_bayesian.dropna()
     fig, ax = plt.subplots(1, 2, figsize=(20, 10))
     fig.suptitle("Simulation Overview")
     ax[0].set(
         title=f"Logistic regression",
         xlabel="Additive condition",
         ylabel=f"Multiplicative condition",
+        xlim=[-0.6, 2.5],
+        ylim=[-0.6, 1.6],
     )
     ax[1].set(
         title=f"Bayesian parameter estimation",
         xlabel="Additive condition",
         ylabel=f"Multiplicative condition",
+        xlim=[-0.6, 2.5],
+        ylim=[-0.6, 1.6],
     )
-    try:
-        ax[0].scatter(c_log_reg["0.0"], c_log_reg["1.0"], label=c_log_reg["kind"])
-    except:
-        pass
-    try:
-        ax[0].scatter(c_bayesian["0.0"], c_bayesian["1.0"], label=c_bayesian["kind"])
-    except:
-        pass
 
+    cmap = plt.cm.rainbow(np.linspace(0, 1, len(subjects)))
+    for i, k in enumerate(subjects):
+        df_tmp = c_log_reg[c_log_reg.kind == k]
+        ax[0].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
+        df_tmp = c_bayesian[c_bayesian.kind == k]
+        ax[0].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
+    ax[0].legend()
+    ax[1].legend()
     fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview_group.png"))
+    fig.savefig(os.path.join(save_path, f"simulation_overview.png"))
