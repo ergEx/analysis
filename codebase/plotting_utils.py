@@ -56,19 +56,49 @@ def read_relevant_files(path):
     )
 
 
-def plot_passive_trajectory(df: pd.DataFrame, n_passive_runs: int, reset: int, ax: plt.axes):
+def plot_passive_trajectory(
+    df: pd.DataFrame, n_passive_runs: int, reset: int, c: int, ax: plt.axes
+):
     ax.plot(df.trial, df.wealth, color="grey")
+
+    ax.set(xlabel="Trial, t", ylabel="Wealth, x")
+
+    if c == 1.0:
+        ax.set(yscale="log", ylabel="log Wealth (log)")
 
     for reset_idx in range(1, n_passive_runs):
         ax.axvline(x=reset * reset_idx, color="grey", linestyle="--")
     return ax
 
 
+def passive_trajectory_special_labels(ax: plt.axes):
+    ax.plot([], label="Reset", color="grey", linestyle="--")
+    ax.axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
+    ax.legend(loc="upper left", fontsize="xx-small")
+    return ax
+
+
 def plot_active_trajectory(df: pd.DataFrame, c: int, ax: plt.axes):
     ax.plot(df.trial, df.wealth, color="grey")
 
-    if c == 1:
-        ax.set(yscale="log", ylabel="Wealth (log)")
+    ax.set(xlabel="Trial, t", ylabel="Wealth, x")
+
+    if c == 1.0:
+        ax.set(yscale="log", ylabel="log Wealth (log)")
+
+    return ax
+
+
+def active_trajectory_special_labels(limits: dict, ax: plt.axes):
+    ax.axhline(
+        y=limits[0], linestyle="--", linewidth=1, color="red", label="Upper Bound",
+    )
+    ax.axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
+
+    ax.axhline(
+        y=limits[1], linestyle="--", linewidth=1, color="red", label="Lower Bound",
+    )
+    ax.legend(loc="upper left", fontsize="xx-small")
 
     return ax
 
@@ -88,7 +118,7 @@ def plot_indifference_eta(df: pd.DataFrame, pal: sns.palettes, ax: plt.axes):
         dodge=True,
     )
     ax.legend().set_visible(False)
-    ax.set(title="Indifference eta", xlabel="Indifference eta", ylabel="", yticklabels=[" "])
+    ax.set(xlabel="Indifference eta", ylabel="", yticklabels=[" "])
     return ax
     # plot_specs = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
     # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
@@ -124,7 +154,7 @@ def plot_choice_probabilities(df: pd.DataFrame, ax: plt.axes):
     ticks = ["<-0.5", "-1 - 0", "0 - 1", "1 - 1.5", ">1.5"]
 
     ax.bar(ticks, choice_probs)
-    ax.set(title=".", ylim=[0, 1], yticks=np.linspace(0, 1, 11))
+    ax.set(ylim=[0, 1], yticks=np.linspace(0, 1, 11))
     ax.tick_params(axis="x", labelrotation=45)
 
     return ax
@@ -172,7 +202,6 @@ def plot_indif_eta_logistic_reg(df: pd.DataFrame, ax: plt.axes):
     ax.axhline(y=0.5, color="grey", linestyle="--")
 
     ax.set(
-        title=f"Logistic regression",
         ylabel="",
         xlabel="Indifference eta",
         yticks=[0, 0.5, 1],
@@ -193,11 +222,7 @@ def plot_bayesian_estimation(dist: np.array, ax: plt.axes):
     mode_idx = np.argmax(ys)
     ax.vlines(xs[mode_idx], 0, ys[mode_idx], ls="--", color="red", label="Prediction")
     ax.set(
-        title=f"Bayesian Model",
-        ylabel="",
-        xticks=np.linspace(-1, 2, 7),
-        xlim=[-1, 2],
-        xlabel="Risk aversion estimate",
+        ylabel="", xticks=np.linspace(-1, 2, 7), xlim=[-1, 2], xlabel="Risk aversion estimate",
     )
 
     ax.legend(loc="upper left", fontsize="xx-small")
@@ -232,26 +257,11 @@ def plot_parameter_estimation_subject_wise(
     fig_active_all, ax_active_all = plt.subplots(1, 2, figsize=(10, 5))
 
     for c in range(2):
-        ax_passive_all[c].plot([], label="Reset", color="grey", linestyle="--")
-        ax_passive_all[c].axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
-        ax_passive_all[c].legend(loc="upper left", fontsize="xx-small")
+        ax_passive_all[c] = passive_trajectory_special_labels(ax=ax_passive_all[c])
 
-        ax_active_all[c].axhline(
-            y=condition_specs["active_limits"][c][0],
-            linestyle="--",
-            linewidth=1,
-            color="red",
-            label="Upper Bound",
+        ax_active_all[c] = active_trajectory_special_labels(
+            limits=condition_specs["active_limits"][c], ax=ax_active_all[c]
         )
-        ax_active_all[c].axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
-        ax_active_all[c].axhline(
-            y=condition_specs["active_limits"][c][1],
-            linestyle="--",
-            linewidth=1,
-            color="red",
-            label="Lower Bound",
-        )
-        ax_active_all[c].legend(loc="upper left", fontsize="xx-small")
 
     for i, subject1 in enumerate(subjects):
         for j in range(n_agents):
@@ -278,27 +288,19 @@ def plot_parameter_estimation_subject_wise(
                         df=passive_subject_df,
                         n_passive_runs=n_passive_runs,
                         reset=reset,
+                        c=c,
                         ax=ax_passive[c],
                     )
 
-                    ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
-                    if condition == 1.0:
-                        ax_passive[c].set(yscale="log", ylabel="Wealth (log)")
+                    ax_passive[c] = passive_trajectory_special_labels(ax=ax_passive[c])
 
                     ax_passive_all[c] = plot_passive_trajectory(
                         df=passive_subject_df,
                         n_passive_runs=n_passive_runs,
                         reset=reset,
+                        c=c,
                         ax=ax_passive_all[c],
                     )
-                    ax_passive[c].plot([], label="Reset", color="grey", linestyle="--")
-                    ax_passive[c].axhline(
-                        y=1000, linestyle="--", color="black", label="Starting Wealth"
-                    )
-                    ax_passive[c].legend(loc="upper left", fontsize="xx-small")
-                    ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
-                    if condition == 1.0:
-                        ax_passive_all[c].set(yscale="log", ylabel="Wealth (log)")
 
                 """ACTIVE PHASE"""
                 if data_variant == "0_simulation":
@@ -313,31 +315,13 @@ def plot_parameter_estimation_subject_wise(
                     ).reset_index(drop=True)
 
                 ax_active[c] = plot_active_trajectory(df=active_subject_df, c=c, ax=ax_active[c],)
-                ax_active[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
-
-                ax_active[c].axhline(
-                    y=condition_specs["active_limits"][c][0],
-                    linestyle="--",
-                    linewidth=1,
-                    color="red",
-                    label="Upper Bound",
+                ax_active[c] = active_trajectory_special_labels(
+                    limits=condition_specs["active_limits"][c], ax=ax_active[c]
                 )
-                ax_active[c].axhline(
-                    y=1000, linestyle="--", color="black", label="Starting Wealth"
-                )
-                ax_active[c].axhline(
-                    y=condition_specs["active_limits"][c][1],
-                    linestyle="--",
-                    linewidth=1,
-                    color="red",
-                    label="Lower Bound",
-                )
-                ax_active[c].legend(loc="upper left", fontsize="xx-small")
 
                 ax_active_all[c] = plot_active_trajectory(
                     df=active_subject_df, c=c, ax=ax_active_all[c],
                 )
-                ax_active_all[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
 
                 ax_indif_eta[c] = plot_indifference_eta(
                     df=active_subject_df, pal=pal, ax=ax_indif_eta[c],
