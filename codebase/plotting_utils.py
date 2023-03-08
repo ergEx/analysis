@@ -57,7 +57,7 @@ def read_relevant_files(path):
 
 
 def plot_passive_trajectory(df: pd.DataFrame, n_passive_runs: int, reset: int, ax: plt.axes):
-    ax.plot(df.trial, df.wealth, color="black")
+    ax.plot(df.trial, df.wealth, color="grey")
 
     for reset_idx in range(1, n_passive_runs):
         ax.axvline(x=reset * reset_idx, color="grey", linestyle="--")
@@ -65,7 +65,7 @@ def plot_passive_trajectory(df: pd.DataFrame, n_passive_runs: int, reset: int, a
 
 
 def plot_active_trajectory(df: pd.DataFrame, active_limits: dict, c: int, ax: plt.axes):
-    ax.plot(df.trial, df.wealth, color="black")
+    ax.plot(df.trial, df.wealth, color="grey")
 
     ax.axhline(
         y=active_limits[c][0], linestyle="--", linewidth=1, color="red", label="Upper Bound"
@@ -82,13 +82,21 @@ def plot_active_trajectory(df: pd.DataFrame, active_limits: dict, c: int, ax: pl
 
 
 def plot_indifference_eta(df: pd.DataFrame, pal: sns.palettes, ax: plt.axes):
-    pt.RainCloud(x="min_max_sign", y="indif_eta", data=df, ax=ax, bw=0.3, orient="h", palette=pal)
-    ax.set(
-        title="Indifference eta",
-        xlabel="Indifference eta",
-        ylabel="",
-        yticklabels=(["Lower bound", "Upper bound"]),
+    df["tmp"] = 1
+    pt.RainCloud(
+        x="tmp",
+        hue="min_max_sign",
+        y="indif_eta",
+        data=df,
+        ax=ax,
+        bw=0.3,
+        orient="h",
+        palette=pal,
+        alpha=0.5,
+        dodge=True,
     )
+    ax.legend().set_visible(False)
+    ax.set(title="Indifference eta", xlabel="Indifference eta", ylabel="", yticklabels=[" "])
     return ax
     # plot_specs = {"color": {0: "orange", 1: "b"}, "sign": {0: ">", 1: "<"}}
     # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
@@ -157,8 +165,7 @@ def plot_indif_eta_logistic_reg(df: pd.DataFrame, ax: plt.axes):
         y_jitter=0.05,
         ax=ax,
         label="Upper Bound",
-        color="b",
-        scatter_kws={"alpha": 1, "s": 20},
+        scatter_kws={"alpha": 0.5, "s": 3},
     )
     sns.regplot(
         x=np.array(df_tmp_0.indif_eta),
@@ -167,8 +174,7 @@ def plot_indif_eta_logistic_reg(df: pd.DataFrame, ax: plt.axes):
         y_jitter=0.05,
         ax=ax,
         label="Lower Bound",
-        color="orange",
-        scatter_kws={"alpha": 1, "s": 20},
+        scatter_kws={"alpha": 0.5, "s": 3},
     )
 
     ax.axhline(y=0.5, color="grey", linestyle="--")
@@ -230,20 +236,20 @@ def plot_parameter_estimation_subject_wise(
     n_passive_runs: int = 3,
     reset: int = 45,
 ):
-    fig_passive_all, ax_passive_all = plt.subplots(1, 2, figsize=(5, 10))
-    fig_active_all, ax_active_all = plt.subplots(1, 2, figsize=(5, 10))
+    fig_passive_all, ax_passive_all = plt.subplots(1, 2, figsize=(10, 5))
+    fig_active_all, ax_active_all = plt.subplots(1, 2, figsize=(10, 5))
 
     for i, subject1 in enumerate(subjects):
         for j in range(n_agents):
             subject = f"{j}_{subject1}" if data_variant == "0_simulation" else subject1
             print(f"\nSubject {subject}")
 
-            fig_passive, ax_passive = plt.subplots(1, 2, figsize=(5, 10))
-            fig_active, ax_active = plt.subplots(1, 2, figsize=(5, 10))
-            fig_indif_eta, ax_indif_eta = plt.subplots(1, 2, figsize=(5, 10))
-            fig_choice_prob, ax_choice_prob = plt.subplots(1, 2, figsize=(5, 10))
-            fig_log_reg, ax_log_reg = plt.subplots(1, 2, figsize=(5, 10))
-            fig_bayesian, ax_bayesian = plt.subplots(1, 1, figsize=(5, 10))
+            fig_passive, ax_passive = plt.subplots(1, 2, figsize=(10, 5))
+            fig_active, ax_active = plt.subplots(1, 2, figsize=(10, 5))
+            fig_indif_eta, ax_indif_eta = plt.subplots(1, 2, figsize=(10, 5))
+            fig_choice_prob, ax_choice_prob = plt.subplots(1, 2, figsize=(10, 5))
+            fig_log_reg, ax_log_reg = plt.subplots(1, 2, figsize=(10, 5))
+            fig_bayesian, ax_bayesian = plt.subplots(1, 1, figsize=(10, 5))
 
             for c, condition in enumerate(condition_specs["lambd"]):
                 print(f"Condition {condition}")
@@ -270,13 +276,13 @@ def plot_parameter_estimation_subject_wise(
                         df=passive_subject_df,
                         n_passive_runs=n_passive_runs,
                         reset=reset,
-                        ax=ax_passive[c],
+                        ax=ax_passive_all[c],
                     )
                     ax_passive[c].plot([], label="Reset", color="grey", linestyle="--")
                     ax_passive[c].legend(loc="upper left", fontsize="xx-small")
                     ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
                     if condition == 1.0:
-                        ax_passive[c].set(yscale="log", ylabel="Wealth (log)")
+                        ax_passive_all[c].set(yscale="log", ylabel="Wealth (log)")
 
                 """ACTIVE PHASE"""
                 if data_variant == "0_simulation":
@@ -302,7 +308,7 @@ def plot_parameter_estimation_subject_wise(
                     df=active_subject_df,
                     active_limits=condition_specs["active_limits"],
                     c=c,
-                    ax=ax_active[c],
+                    ax=ax_active_all[c],
                 )
                 ax_active_all[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
 
@@ -325,14 +331,14 @@ def plot_parameter_estimation_subject_wise(
                     eta_dist = bayesian_samples["eta"][:, :, n_agents * i + j, c].flatten()
                     ax_bayesian = plot_bayesian_estimation(eta_dist, ax=ax_bayesian)
 
-            fig_passive.savefig(save_path, f"1_1_passive_trajectory_{i}_{j}.png")
-            fig_active.savefig(save_path, f"1_2_active_trajectory_{i}_{j}.png")
-            fig_indif_eta.savefig(save_path, f"1_3_indif_eta_{i}_{j}.png")
-            fig_choice_prob.savefig(save_path, f"1_4_choice_prob_{i}_{j}.png")
-            fig_log_reg.savefig(save_path, f"1_5_log_reg_{i}_{j}.png")
-            fig_bayesian.savefig(save_path, f"1_6_bayesian_{i}_{j}.png")
-    fig_passive_all.savefig(save_path, f"0_1_passive_trajectories")
-    fig_active_all.savefig(save_path, f"0_2_active_trajectories")
+            fig_passive.savefig(os.path.join(save_path, f"1_1_passive_trajectory_{i}_{j}.png"))
+            fig_active.savefig(os.path.join(save_path, f"1_2_active_trajectory_{i}_{j}.png"))
+            fig_indif_eta.savefig(os.path.join(save_path, f"1_3_indif_eta_{i}_{j}.png"))
+            fig_choice_prob.savefig(os.path.join(save_path, f"1_4_choice_prob_{i}_{j}.png"))
+            fig_log_reg.savefig(os.path.join(save_path, f"1_5_log_reg_{i}_{j}.png"))
+            fig_bayesian.savefig(os.path.join(save_path, f"1_6_bayesian_{i}_{j}.png"))
+    fig_passive_all.savefig(os.path.join(save_path, f"0_1_passive_trajectories"))
+    fig_active_all.savefig(os.path.join(save_path, f"0_2_active_trajectories"))
     plt.close("all")
 
 
@@ -345,9 +351,9 @@ def plot_parameter_estimation_all_data_as_one(
     pal,
 ):
 
-    fig_indif_eta, ax_indif_eta = plt.subplots(1, 2, figsize=(5, 10))
-    fig_log_reg, ax_log_reg = plt.subplots(1, 2, figsize=(5, 10))
-    fig_bayesian, ax_bayesian = plt.subplots(1, 1, figsize=(5, 10))
+    fig_indif_eta, ax_indif_eta = plt.subplots(1, 2, figsize=(10, 5))
+    fig_log_reg, ax_log_reg = plt.subplots(1, 2, figsize=(10, 5))
+    fig_bayesian, ax_bayesian = plt.subplots(1, 2, figsize=(10, 5))
     for c, condition in enumerate(condition_specs["lambd"]):
         print(f'Condition {c+1} of {len(condition_specs["lambd"])}')
         if data_variant == "0_simulation":
@@ -362,11 +368,15 @@ def plot_parameter_estimation_all_data_as_one(
 
         ax_indif_eta[c] = plot_indifference_eta(df=df_c, pal=pal, ax=ax_indif_eta[c])
 
-        ax_log_reg[c] = plot_indif_eta_logistic_reg(df=df_c, ax=ax_indif_eta[c])
+        ax_log_reg[c] = plot_indif_eta_logistic_reg(df=df_c, ax=ax_log_reg[c])
 
         if bayesian_samples is not None:
             eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
             ax_bayesian[c] = plot_bayesian_estimation(dist=eta_dist, ax=ax_bayesian[c])
+    fig_indif_eta.tight_layout()
+    fig_indif_eta.savefig(os.path.join(save_path, f"0_3_indif_eta.png"))
+    fig_log_reg.savefig(os.path.join(save_path, f"0_4_log_reg.png"))
+    fig_bayesian.savefig(os.path.join(save_path, f"0_5_bayesian.png"))
 
 
 def plot_bayesian_model_selection_subject_wise(
