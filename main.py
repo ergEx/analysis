@@ -1,4 +1,5 @@
 import sys
+import time
 
 import yaml
 
@@ -14,9 +15,15 @@ def main():
     simulation_variants = config["simulation_varaints"]
 
     for i, simulation_variant in enumerate(simulation_variants):
+        print("STARTING ANALYSIS")
+        start_time = time.time()
+        print(time.ctime(start_time))
+
         readingdata.main(config_file, i, simulation_variant)
         create_JASP_input.main(config_file, i, simulation_variant)
         create_plots.main(config_file, i, simulation_variant)
+
+        print(f"--- {(time.time() - start_time)} seconds ---")
 
 
 if __name__ == "__main__":
