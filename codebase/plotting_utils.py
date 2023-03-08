@@ -64,17 +64,9 @@ def plot_passive_trajectory(df: pd.DataFrame, n_passive_runs: int, reset: int, a
     return ax
 
 
-def plot_active_trajectory(df: pd.DataFrame, active_limits: dict, c: int, ax: plt.axes):
+def plot_active_trajectory(df: pd.DataFrame, c: int, ax: plt.axes):
     ax.plot(df.trial, df.wealth, color="grey")
 
-    ax.axhline(
-        y=active_limits[c][0], linestyle="--", linewidth=1, color="red", label="Upper Bound"
-    )
-    ax.axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
-    ax.axhline(
-        y=active_limits[c][1], linestyle="--", linewidth=1, color="red", label="Lower Bound"
-    )
-    ax.legend(loc="upper left", fontsize="xx-small")
     if c == 1:
         ax.set(yscale="log", ylabel="Wealth (log)")
 
@@ -239,6 +231,28 @@ def plot_parameter_estimation_subject_wise(
     fig_passive_all, ax_passive_all = plt.subplots(1, 2, figsize=(10, 5))
     fig_active_all, ax_active_all = plt.subplots(1, 2, figsize=(10, 5))
 
+    for c in range(2):
+        ax_passive_all[c].plot([], label="Reset", color="grey", linestyle="--")
+        ax_passive_all[c].axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
+        ax_passive_all[c].legend(loc="upper left", fontsize="xx-small")
+
+        ax_active_all[c].axhline(
+            y=condition_specs["active_limits"][c][0],
+            linestyle="--",
+            linewidth=1,
+            color="red",
+            label="Upper Bound",
+        )
+        ax_active_all[c].axhline(y=1000, linestyle="--", color="black", label="Starting Wealth")
+        ax_active_all[c].axhline(
+            y=condition_specs["active_limits"][c][1],
+            linestyle="--",
+            linewidth=1,
+            color="red",
+            label="Lower Bound",
+        )
+        ax_active_all[c].legend(loc="upper left", fontsize="xx-small")
+
     for i, subject1 in enumerate(subjects):
         for j in range(n_agents):
             subject = f"{j}_{subject1}" if data_variant == "0_simulation" else subject1
@@ -266,8 +280,7 @@ def plot_parameter_estimation_subject_wise(
                         reset=reset,
                         ax=ax_passive[c],
                     )
-                    ax_passive[c].plot([], label="Reset", color="grey", linestyle="--")
-                    ax_passive[c].legend(loc="upper left", fontsize="xx-small")
+
                     ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
                     if condition == 1.0:
                         ax_passive[c].set(yscale="log", ylabel="Wealth (log)")
@@ -279,6 +292,9 @@ def plot_parameter_estimation_subject_wise(
                         ax=ax_passive_all[c],
                     )
                     ax_passive[c].plot([], label="Reset", color="grey", linestyle="--")
+                    ax_passive[c].axhline(
+                        y=1000, linestyle="--", color="black", label="Starting Wealth"
+                    )
                     ax_passive[c].legend(loc="upper left", fontsize="xx-small")
                     ax_passive[c].set(title=f"{condition}", xlabel="Trial", ylabel=f"Wealth")
                     if condition == 1.0:
@@ -296,19 +312,30 @@ def plot_parameter_estimation_subject_wise(
                         engine="python",
                     ).reset_index(drop=True)
 
-                ax_active[c] = plot_active_trajectory(
-                    df=active_subject_df,
-                    active_limits=condition_specs["active_limits"],
-                    c=c,
-                    ax=ax_active[c],
-                )
+                ax_active[c] = plot_active_trajectory(df=active_subject_df, c=c, ax=ax_active[c],)
                 ax_active[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
 
+                ax_active[c].axhline(
+                    y=condition_specs["active_limits"][c][0],
+                    linestyle="--",
+                    linewidth=1,
+                    color="red",
+                    label="Upper Bound",
+                )
+                ax_active[c].axhline(
+                    y=1000, linestyle="--", color="black", label="Starting Wealth"
+                )
+                ax_active[c].axhline(
+                    y=condition_specs["active_limits"][c][1],
+                    linestyle="--",
+                    linewidth=1,
+                    color="red",
+                    label="Lower Bound",
+                )
+                ax_active[c].legend(loc="upper left", fontsize="xx-small")
+
                 ax_active_all[c] = plot_active_trajectory(
-                    df=active_subject_df,
-                    active_limits=condition_specs["active_limits"],
-                    c=c,
-                    ax=ax_active_all[c],
+                    df=active_subject_df, c=c, ax=ax_active_all[c],
                 )
                 ax_active_all[c].set(title=f"{condition}", xlabel="Trial", ylabel="Wealth")
 
