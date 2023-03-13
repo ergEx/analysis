@@ -42,11 +42,10 @@ def main(config_file, i=0, simulation_variant=""):
     save_path = config["data_folders"][0]
     run_stage = config["create_jasp"]["run"]
 
-    SUBJECT_SPECS = sub_specs(config["data_variant"])
-    subjects = SUBJECT_SPECS["id"]
-    CONDITION_SPECS = condition_specs()
-
     if run_stage:
+        SUBJECT_SPECS = sub_specs(config["data_variant"])
+        subjects = SUBJECT_SPECS["id"]
+        CONDITION_SPECS = condition_specs()
         bayesian_samples = read(save_path)
         c_bayesian = extract(subjects, CONDITION_SPECS, bayesian_samples)
         c_bayesian.to_csv(os.path.join(save_path, "jasp_input.csv"), sep="\t")

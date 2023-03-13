@@ -14,8 +14,8 @@ def sub_specs(data_variant: str, etas: list = None) -> dict[str, list]:
     """
     if data_variant == "0_simulation":
         return {
-            "id": [f"{i[0]}x{i[1]}" for i in itertools.product(etas, etas)],
-            "first_run": [[1, 2]] * len(etas) ** 2,
+            "id": [f"{i[0]}x{i[1]}" for i in itertools.product(etas, etas)] + ["random"],
+            "first_run": [[1, 2]] * (len(etas) ** 2 + 1),
         }
     elif data_variant == "1_pilot":
         return {

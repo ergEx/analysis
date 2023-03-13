@@ -29,5 +29,4 @@ def main():
 
 
 if __name__ == "__main__":
-    warnings.simplefilter("ignore", "Solver terminated early.*")
     main()

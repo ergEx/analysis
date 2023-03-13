@@ -343,12 +343,16 @@ def plot_parameter_estimation_subject_wise(
                     eta_dist = bayesian_samples["eta"][:, :, n_agents * i + j, c].flatten()
                     ax_bayesian = plot_bayesian_estimation(eta_dist, ax=ax_bayesian)
 
-            fig_passive.savefig(os.path.join(save_path, f"1_1_passive_trajectory_{i}_{j}.png"))
-            fig_active.savefig(os.path.join(save_path, f"1_2_active_trajectory_{i}_{j}.png"))
-            fig_indif_eta.savefig(os.path.join(save_path, f"1_3_indif_eta_{i}_{j}.png"))
-            fig_choice_prob.savefig(os.path.join(save_path, f"1_4_choice_prob_{i}_{j}.png"))
-            fig_log_reg.savefig(os.path.join(save_path, f"1_5_log_reg_{i}_{j}.png"))
-            fig_bayesian.savefig(os.path.join(save_path, f"1_6_bayesian_{i}_{j}.png"))
+            fig_passive.savefig(
+                os.path.join(save_path, f"1_1_passive_trajectory_{subject1}_{j}.png")
+            )
+            fig_active.savefig(
+                os.path.join(save_path, f"1_2_active_trajectory_{subject1}_{j}.png")
+            )
+            fig_indif_eta.savefig(os.path.join(save_path, f"1_3_indif_eta_{subject1}_{j}.png"))
+            fig_choice_prob.savefig(os.path.join(save_path, f"1_4_choice_prob_{subject1}_{j}.png"))
+            fig_log_reg.savefig(os.path.join(save_path, f"1_5_log_reg_{subject1}_{j}.png"))
+            fig_bayesian.savefig(os.path.join(save_path, f"1_6_bayesian_{subject1}_{j}.png"))
     fig_passive_all.savefig(os.path.join(save_path, f"0_1_passive_trajectories"))
     fig_active_all.savefig(os.path.join(save_path, f"0_2_active_trajectories"))
     plt.close("all")
@@ -501,10 +505,12 @@ def plot_simulation_overview(
             idx_log_reg += n_samples_log_reg
             idx_bayesian += n_samples_bayesian
     b_log_reg = pd.DataFrame.from_dict(data_best_fit["log_reg"])
+    b_log_reg.to_csv(os.path.join(save_path, "log_reg.csv"))
     c_log_reg = pd.DataFrame.from_dict(data_confidence["log_reg"])
 
     b_bayesian = pd.DataFrame.from_dict(data_best_fit["bayesian"])
     c_bayesian = pd.DataFrame.from_dict(data_confidence["bayesian"])
+    b_bayesian.to_csv(os.path.join(save_path, "log_reg.csv"))
     fig, ax = plt.subplots(1, 2, figsize=(20, 10))
     fig.suptitle("Simulation Overview Best fit")
     ax[0].set(
