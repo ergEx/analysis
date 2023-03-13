@@ -1,7 +1,9 @@
 import sys
 import time
+import warnings
 
 import yaml
+from sklearn.exceptions import ConvergenceWarning
 
 from codebase import base, create_JASP_input, create_plots, readingdata
 
@@ -27,4 +29,5 @@ def main():
 
 
 if __name__ == "__main__":
+    warnings.simplefilter("ignore", "Solver terminated early.*")
     main()

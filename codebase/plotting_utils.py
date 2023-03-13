@@ -8,6 +8,7 @@ import pandas as pd
 import ptitprince as pt
 import seaborn as sns
 import statsmodels.api as sm
+from scipy.stats import norm
 
 from .utils import logistic_regression, read_Bayesian_output
 
@@ -423,25 +424,52 @@ def plot_bayesian_model_selection_all_as_one(save_path: str, samples: np.array):
     fig.savefig(os.path.join(save_path, f"active_results_bayesian_model_selection_aggregated.png"))
 
 
-def plot_simulation_overview_heatmap(
+def plot_simulation_overview(
     save_path: str,
     df: pd.DataFrame,
     subjects: list[dict],
     n_agents: int,
     condition_specs: dict,
     bayesian_samples: np.array,
+    n_samples_log_reg: int = 100,
 ):
     N = n_agents * len(subjects)
-    data = {
+    idx_log_reg = 0
+    idx_bayesian = 0
+    if bayesian_samples is not None:
+        n_samples_bayesian = np.shape(bayesian_samples)[0] + np.shape(bayesian_samples)[1]
+    else:
+        n_samples_bayesian = 1
+
+    data_best_fit = {
         "log_reg": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
         "bayesian": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
+    }
+
+    data_confidence = {
+        "log_reg": {
+            "0.0": [None] * N * n_samples_log_reg,
+            "1.0": [None] * N * n_samples_log_reg,
+            "kind": [None] * N * n_samples_log_reg,
+        },
+        "bayesian": {
+            "0.0": [None] * N * n_samples_bayesian,
+            "1.0": [None] * N * n_samples_bayesian,
+            "kind": [None] * N * n_samples_bayesian,
+        },
     }
 
     for i, subject1 in enumerate(subjects):
         for j in range(n_agents):
             subject = f"{j}_{subject1}"
-            data["log_reg"][f"kind"][n_agents * i + j] = subject1
-            data["bayesian"][f"kind"][n_agents * i + j] = subject1
+            data_best_fit["log_reg"][f"kind"][n_agents * i + j] = subject1
+            data_best_fit["bayesian"][f"kind"][n_agents * i + j] = subject1
+            data_confidence["log_reg"][f"kind"][idx_log_reg : idx_log_reg + n_samples_log_reg] = [
+                subject1
+            ] * n_samples_log_reg
+            data_confidence["bayesian"][f"kind"][
+                idx_bayesian : idx_bayesian + n_samples_bayesian
+            ] = [subject1] * n_samples_bayesian
             for c, condition in enumerate(condition_specs["lambd"]):
                 # Logistic regression
                 df_tmp = df.query(
@@ -449,8 +477,12 @@ def plot_simulation_overview_heatmap(
                     engine="python",
                 ).reset_index(drop=True)
                 try:
-                    x_test, _, _, _, idx_m, _, _ = logistic_regression(df_tmp)
-                    data["log_reg"][f"{c}.0"][n_agents * i + j] = x_test[idx_m]
+                    x_test, _, _, _, idx_m, idx_l, idx_h = logistic_regression(df_tmp)
+                    std = (x_test[idx_l] - x_test[idx_h]) / (2 * norm.ppf(0.975))
+                    data_best_fit["log_reg"][f"{c}.0"][n_agents * i + j] = x_test[idx_m]
+                    data_confidence["log_reg"][f"{c}.0"][
+                        idx_log_reg : idx_log_reg + n_samples_log_reg
+                    ] = np.random.normal(x_test[idx_m], std, n_samples_log_reg)
                 except Exception as e:
                     pass
 
@@ -458,26 +490,109 @@ def plot_simulation_overview_heatmap(
                 try:
                     eta_dist = bayesian_samples["eta"][:, :, n_agents * i + j, c].flatten()
                     kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
-                    data["bayesian"][f"{c}.0"][n_agents * i + j] = kde.support[
+                    data_best_fit["bayesian"][f"{c}.0"][n_agents * i + j] = kde.support[
                         np.argmax(kde.density)
+                    ]
+                    data_confidence["bayesian"][f"{c}.0"][
+                        idx_bayesian:idx_bayesian:n_samples_bayesian
                     ]
                 except Exception as e:
                     pass
-    c_log_reg = pd.DataFrame.from_dict(data["log_reg"])
-    c_log_reg = c_log_reg.dropna()
-    c_bayesian = pd.DataFrame.from_dict(data["bayesian"])
-    c_bayesian = c_bayesian.dropna()
+            idx_log_reg += n_samples_log_reg
+            idx_bayesian += n_samples_bayesian
+    b_log_reg = pd.DataFrame.from_dict(data_best_fit["log_reg"])
+    c_log_reg = pd.DataFrame.from_dict(data_confidence["log_reg"])
+
+    b_bayesian = pd.DataFrame.from_dict(data_best_fit["bayesian"])
+    c_bayesian = pd.DataFrame.from_dict(data_confidence["bayesian"])
+    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
+    fig.suptitle("Simulation Overview Best fit")
+    ax[0].set(
+        title=f"Logistic regression",
+        xlabel="Additive condition",
+        ylabel=f"Multiplicative condition",
+        xlim=[-0.6, 2.5],
+        ylim=[-0.6, 1.6],
+    )
+    ax[1].set(
+        title=f"Bayesian parameter estimation",
+        xlabel="Additive condition",
+        ylabel=f"Multiplicative condition",
+        xlim=[-0.6, 2.5],
+        ylim=[-0.6, 1.6],
+    )
+    if n_agents > 1:
+        try:
+            sns.kdeplot(
+                data=b_log_reg,
+                x="0.0",
+                y="1.0",
+                fill=True,
+                hue="kind",
+                bw_method=0.8,
+                ax=ax[0],
+                legend=True,
+                alpha=0.7,
+            )
+        except:
+            pass
+        try:
+            sns.kdeplot(
+                data=b_bayesian,
+                x="0.0",
+                y="1.0",
+                fill=True,
+                hue="kind",
+                bw_method=0.8,
+                ax=ax[1],
+                legend=True,
+                alpha=0.7,
+            )
+        except:
+            pass
+    else:
+        ax[0].set(
+            title=f"Logistic regression",
+            xlabel="Additive condition",
+            ylabel=f"Multiplicative condition",
+            xlim=[-0.6, 2.5],
+            ylim=[-0.6, 1.6],
+        )
+        ax[1].set(
+            title=f"Bayesian parameter estimation",
+            xlabel="Additive condition",
+            ylabel=f"Multiplicative condition",
+            xlim=[-0.6, 2.5],
+            ylim=[-0.6, 1.6],
+        )
+
+        cmap = plt.cm.rainbow(np.linspace(0, 1, len(subjects)))
+        for i, k in enumerate(subjects):
+            df_tmp = b_log_reg[b_log_reg.kind == k]
+            ax[0].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
+            df_tmp = b_bayesian[b_bayesian.kind == k]
+            ax[1].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
+        ax[0].legend()
+        ax[1].legend()
+
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_path, f"simulation_overview_best_fit.png"))
+
     fig, ax = plt.subplots(1, 2, figsize=(20, 10))
     fig.suptitle("Simulation Overview")
     ax[0].set(
         title=f"Logistic regression",
         xlabel="Additive condition",
         ylabel=f"Multiplicative condition",
+        xlim=[-0.6, 2.5],
+        ylim=[-0.6, 1.6],
     )
     ax[1].set(
         title=f"Bayesian parameter estimation",
         xlabel="Additive condition",
         ylabel=f"Multiplicative condition",
+        xlim=[-0.6, 2.5],
+        ylim=[-0.6, 1.6],
     )
     try:
         sns.kdeplot(
@@ -488,7 +603,8 @@ def plot_simulation_overview_heatmap(
             hue="kind",
             bw_method=0.8,
             ax=ax[0],
-            legend=False,
+            legend=True,
+            alpha=0.7,
         )
     except:
         pass
@@ -502,76 +618,10 @@ def plot_simulation_overview_heatmap(
             bw_method=0.8,
             ax=ax[1],
             legend=True,
+            alpha=0.7,
         )
     except:
         pass
 
     fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview.png"))
-
-
-def plot_simulation_overview_scatter(
-    save_path: str,
-    df: pd.DataFrame,
-    subjects: list[dict],
-    condition_specs: dict,
-    bayesian_samples: np.array,
-):
-    N = len(subjects)
-    data = {
-        "log_reg": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
-        "bayesian": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
-    }
-
-    df["sub"] = df.agent.apply(lambda x: x[-7:])
-
-    for i, subject1 in enumerate(subjects):
-        data["log_reg"][f"kind"][i] = subject1
-        data["bayesian"][f"kind"][i] = subject1
-        for c, condition in enumerate(condition_specs["lambd"]):
-            # Logistic regression
-            df_tmp = df.query(
-                "sub == @subject1 and eta == @condition and indif_eta.notnull()", engine="python",
-            ).reset_index(drop=True)
-            try:
-                x_test, _, _, _, idx_m, _, _ = logistic_regression(df_tmp)
-                data["log_reg"][f"{c}.0"][i] = x_test[idx_m]
-            except Exception as e:
-                pass
-
-            # Bayesian
-            try:
-                eta_dist = bayesian_samples["eta"][:, :, i, c].flatten()
-                kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
-                data["bayesian"][f"{c}.0"][i] = kde.support[np.argmax(kde.density)]
-            except Exception as e:
-                pass
-    c_log_reg = pd.DataFrame.from_dict(data["log_reg"])
-    c_bayesian = pd.DataFrame.from_dict(data["bayesian"])
-    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-    fig.suptitle("Simulation Overview")
-    ax[0].set(
-        title=f"Logistic regression",
-        xlabel="Additive condition",
-        ylabel=f"Multiplicative condition",
-        xlim=[-0.6, 2.5],
-        ylim=[-0.6, 1.6],
-    )
-    ax[1].set(
-        title=f"Bayesian parameter estimation",
-        xlabel="Additive condition",
-        ylabel=f"Multiplicative condition",
-        xlim=[-0.6, 2.5],
-        ylim=[-0.6, 1.6],
-    )
-
-    cmap = plt.cm.rainbow(np.linspace(0, 1, len(subjects)))
-    for i, k in enumerate(subjects):
-        df_tmp = c_log_reg[c_log_reg.kind == k]
-        ax[0].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
-        df_tmp = c_bayesian[c_bayesian.kind == k]
-        ax[0].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
-    ax[0].legend()
-    ax[1].legend()
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview.png"))
+    fig.savefig(os.path.join(save_path, f"simulation_overview_including_unvertainty.png"))
