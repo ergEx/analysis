@@ -194,7 +194,7 @@ def main(config_file, i, simulation_variant):
 
     if run_stage:
         print(f"\nREADING DATA \n{data_variant} \n{simulation_variant}")
-        reading_data(data_variant, data_folders[i], stages, n_agents, etas)
+        reading_data(data_variant, data_folders[i], stages, n_agents[i], etas)
 
 
 if __name__ == "__main__":
