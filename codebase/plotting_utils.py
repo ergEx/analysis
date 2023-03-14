@@ -244,9 +244,9 @@ def plot_bayesian_model_selection(dist: np.array, ax: plt.axis, n_subjects):
 def plot_parameter_estimation_subject_wise(
     save_path: str,
     data_variant: str,
-    subjects: list[str],
+    subjects,
     n_agents: int,
-    condition_specs: dict,
+    condition_specs,
     passive_phase_df: pd.DataFrame,
     active_phase_df: pd.DataFrame,
     bayesian_samples: np.array,
@@ -396,7 +396,7 @@ def plot_parameter_estimation_all_data_as_one(
 
 
 def plot_bayesian_model_selection_subject_wise(
-    save_path: str, subjects: list[str], samples: np.array
+    save_path: str, subjects, samples: np.array
 ):
     print("model selection not implemented yet")
     return  # NOT IMPLEMENTED YET
@@ -431,7 +431,7 @@ def plot_bayesian_model_selection_all_as_one(save_path: str, samples: np.array):
 def plot_simulation_overview(
     save_path: str,
     df: pd.DataFrame,
-    subjects: list[dict],
+    subjects,
     n_agents: int,
     condition_specs: dict,
     bayesian_samples: np.array,
@@ -441,10 +441,9 @@ def plot_simulation_overview(
     idx_log_reg = 0
     idx_bayesian = 0
     if bayesian_samples is not None:
-        n_samples_bayesian = np.shape(bayesian_samples)[0] + np.shape(bayesian_samples)[1]
+        n_samples_bayesian = np.shape(bayesian_samples['eta'])[0] * np.shape(bayesian_samples['eta'])[1]
     else:
         n_samples_bayesian = 1
-
     data_best_fit = {
         "log_reg": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
         "bayesian": {"0.0": [None] * N, "1.0": [None] * N, "kind": [None] * N},
@@ -498,136 +497,126 @@ def plot_simulation_overview(
                         np.argmax(kde.density)
                     ]
                     data_confidence["bayesian"][f"{c}.0"][
-                        idx_bayesian:idx_bayesian:n_samples_bayesian
-                    ]
+                        idx_bayesian:idx_bayesian+n_samples_bayesian
+                    ] = eta_dist
+                    
                 except Exception as e:
                     pass
             idx_log_reg += n_samples_log_reg
             idx_bayesian += n_samples_bayesian
     b_log_reg = pd.DataFrame.from_dict(data_best_fit["log_reg"])
-    b_log_reg.to_csv(os.path.join(save_path, "log_reg.csv"))
+    b_log_reg.to_csv(os.path.join(save_path, "0_log_reg.csv"), sep='\t')
     c_log_reg = pd.DataFrame.from_dict(data_confidence["log_reg"])
 
     b_bayesian = pd.DataFrame.from_dict(data_best_fit["bayesian"])
     c_bayesian = pd.DataFrame.from_dict(data_confidence["bayesian"])
-    b_bayesian.to_csv(os.path.join(save_path, "log_reg.csv"))
-    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-    fig.suptitle("Simulation Overview Best fit")
-    ax[0].set(
-        title=f"Logistic regression",
-        xlabel="Additive condition",
-        ylabel=f"Multiplicative condition",
-        xlim=[-0.6, 2.5],
-        ylim=[-0.6, 1.6],
-    )
-    ax[1].set(
-        title=f"Bayesian parameter estimation",
-        xlabel="Additive condition",
-        ylabel=f"Multiplicative condition",
-        xlim=[-0.6, 2.5],
-        ylim=[-0.6, 1.6],
-    )
-    if n_agents > 1:
+    b_bayesian.to_csv(os.path.join(save_path, "0_bayesian.csv"))
+    if n_agents > 3:
         try:
-            sns.kdeplot(
+            log_best_plot = sns.jointplot(
                 data=b_log_reg,
                 x="0.0",
                 y="1.0",
                 fill=True,
                 hue="kind",
                 bw_method=0.8,
-                ax=ax[0],
                 legend=True,
-                alpha=0.7,
+                alpha = 0.7,
+                kind = 'kde',
+                xlim = [-0.6,2.5],
+                ylim = [-0.6,2.5]
             )
         except:
+            log_best_plot = plt.figure()
             pass
         try:
-            sns.kdeplot(
+            bayesian_best_plot = sns.jointplot(
                 data=b_bayesian,
                 x="0.0",
                 y="1.0",
                 fill=True,
                 hue="kind",
                 bw_method=0.8,
-                ax=ax[1],
                 legend=True,
                 alpha=0.7,
+                hue_order = subjects,
+                kind = 'kde',
+                xlim = [-0.6,2.5],
+                ylim = [-0.6,2.5]
             )
         except:
+            bayesian_best_plot = plt.figure()
             pass
     else:
-        ax[0].set(
-            title=f"Logistic regression",
-            xlabel="Additive condition",
-            ylabel=f"Multiplicative condition",
-            xlim=[-0.6, 2.5],
-            ylim=[-0.6, 1.6],
-        )
-        ax[1].set(
-            title=f"Bayesian parameter estimation",
-            xlabel="Additive condition",
-            ylabel=f"Multiplicative condition",
-            xlim=[-0.6, 2.5],
-            ylim=[-0.6, 1.6],
-        )
+        try:
+            log_best_plot = sns.jointplot(
+                data=b_log_reg,
+                x="0.0",
+                y="1.0",
+                hue="kind",
+                legend=True,
+                alpha = 0.7,
+                kind = 'scatter',
+                xlim = [-0.6,2.5],
+                ylim = [-0.6,2.5]
+            )
+        except:
+            log_best_plot = plt.figure()
+            pass
+        try:
+            bayesian_best_plot = sns.jointplot(
+                data=b_bayesian,
+                x="0.0",
+                y="1.0",
+                hue='kind',
+                legend=True,
+                alpha = 0.7,
+                kind = 'scatter',
+                xlim = [-0.6,2.5],
+                ylim = [-0.6,2.5]
+            )
+        except:
+            bayesian_best_plot = plt.figure()
+            pass
 
-        cmap = plt.cm.rainbow(np.linspace(0, 1, len(subjects)))
-        for i, k in enumerate(subjects):
-            df_tmp = b_log_reg[b_log_reg.kind == k]
-            ax[0].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
-            df_tmp = b_bayesian[b_bayesian.kind == k]
-            ax[1].scatter(df_tmp["0.0"], df_tmp["1.0"], color=cmap[i], label=k)
-        ax[0].legend()
-        ax[1].legend()
-
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview_best_fit.png"))
-
-    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-    fig.suptitle("Simulation Overview")
-    ax[0].set(
-        title=f"Logistic regression",
-        xlabel="Additive condition",
-        ylabel=f"Multiplicative condition",
-        xlim=[-0.6, 2.5],
-        ylim=[-0.6, 1.6],
-    )
-    ax[1].set(
-        title=f"Bayesian parameter estimation",
-        xlabel="Additive condition",
-        ylabel=f"Multiplicative condition",
-        xlim=[-0.6, 2.5],
-        ylim=[-0.6, 1.6],
-    )
+    log_best_plot.savefig(os.path.join(save_path, 'simulation_overview_log_reg_best_estimate.png'))
+    bayesian_best_plot.savefig(os.path.join(save_path, 'simulation_overview_bayesian_best_estimate.png'))
+    
     try:
-        sns.kdeplot(
+        log_confidence_plot = sns.jointplot(
             data=c_log_reg,
             x="0.0",
             y="1.0",
             fill=True,
             hue="kind",
             bw_method=0.8,
-            ax=ax[0],
             legend=True,
             alpha=0.7,
+            kind = 'kde',
+            xlim = [-0.6,2.5],
+            ylim = [-0.6,2.5]
         )
     except:
+        log_confidence_plot = plt.figure()
         pass
+
     try:
-        sns.kdeplot(
+        bayesian_confidence_plot = sns.jointplot(
             data=c_bayesian,
             x="0.0",
             y="1.0",
             fill=True,
             hue="kind",
             bw_method=0.8,
-            ax=ax[1],
             legend=True,
             alpha=0.7,
+            kind='kde',
+            xlim = [-0.6,2.5],
+            ylim = [-0.6,2.5]
         )
     except:
+        bayesian_conficende_plot = plt.figure()
         pass
 
-    fig.tight_layout()
-    fig.savefig(os.path.join(save_path, f"simulation_overview_including_unvertainty.png"))
+    log_confidence_plot.savefig(os.path.join(save_path, f"simulation_overview_log_reg_incl_uncertainty.png"))
+    bayesian_confidence_plot.savefig(os.path.join(save_path, f"simulation_overview_bayesian_incl_uncertainty.png"))
