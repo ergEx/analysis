@@ -26,8 +26,8 @@ switch dataVersion
     case {1} %simulated data
         subjList = 1:(100*25);
         switch simVersion
-            case {1},  nTrials = 160;  folder = '0_simulation/n_160';
-            case {1},  nTrials = 1000; folder = '0_simulation/n_1000';
+            case {1}, subjList = 1:(25*100) nTrials = 160;  folder = '0_simulation/n_160';
+            case {2}, subjList = 1:(25*1) nTrials = 1000; folder = '0_simulation/n_1000';
         end %simVersion
     case {2}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
     case {3}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
