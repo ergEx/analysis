@@ -213,6 +213,7 @@ def add_info_to_df(df: pd.DataFrame, choice_dict: dict = {"right": 0, "left": 1}
         new_info[i, 0:4] = x_updates - trial.wealth
 
         root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3])
+
         if root is not None:
             new_info[i, 4] = round(root[0], 2)
             new_info[i, 5:8] = calculate_min_v_max(root[0], func, trial.selected_side_map)
@@ -250,10 +251,12 @@ def logistic_regression(df: pd.DataFrame):
     x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), len(df.indif_eta) * 5)
     X_test = add_constant(x_test)
     pred = model.predict(X_test)
-    se = np.sqrt(np.array([xx @ model.cov_params() @ xx for xx in X_test]))
-
-    ymin = expit(logit(pred) - 1.96 * se)
-    ymax = expit(logit(pred) + 1.96 * se)
+    cov = model.cov_params()
+    gradient = (pred * (1 - pred) * X_test.T).T
+    std_errors = np.array([np.sqrt(np.dot(np.dot(g, cov), g)) for g in gradient])
+    c = 1.96
+    upper = np.maximum(0, np.minimum(1, pred + std_errors * c))
+    lower = np.maximum(0, np.minimum(1, pred - std_errors * c))
 
     idx_m = (
         min([i for i in range(len(pred)) if pred[i] > 0.5])
@@ -261,17 +264,17 @@ def logistic_regression(df: pd.DataFrame):
         else len(x_test) - 1
     )
     idx_l = (
-        min([i for i in range(len(ymin)) if ymin[i] > 0.5])
-        if len([i for i in range(len(ymin)) if ymin[i] > 0.5]) > 0
+        min([i for i in range(len(lower)) if lower[i] > 0.5])
+        if len([i for i in range(len(lower)) if lower[i] > 0.5]) > 0
         else len(x_test) - 1
     )
     idx_h = (
-        min([i for i in range(len(ymax)) if ymax[i] > 0.5])
-        if len([i for i in range(len(ymax)) if ymax[i] > 0.5]) > 0
+        min([i for i in range(len(upper)) if upper[i] > 0.5])
+        if len([i for i in range(len(upper)) if upper[i] > 0.5]) > 0
         else len(x_test) - 1
     )
 
-    return x_test, pred, ymin, ymax, idx_m, idx_l, idx_h
+    return x_test, pred, lower, upper, idx_m, idx_l, idx_h
 
 
 def read_Bayesian_output(file_path: str) -> dict:
