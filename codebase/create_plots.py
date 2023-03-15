@@ -71,7 +71,7 @@ def main(config_file, i, simulation_variant):
 
     if sim_overview:
         print("\nSIMULATION OVERVIEW")
-        if sim_overview["generate data"]:
+        if sim_overview["stages"]["generate data"]:
             b_log_reg, c_log_reg, b_bayesian, c_bayesian = generate_sim_overview_data(
                 fig_folders[i],
                 indifference_eta_df,
@@ -81,12 +81,12 @@ def main(config_file, i, simulation_variant):
                 bayesian_samples_parameter_estimation,
             )
         else:
-            b_log_reg = pd.read_csv(fig_folders[i], "b_log_reg.csv", sep="\t")
-            c_log_reg = pd.read_csv(fig_folders[i], "c_log_reg.csv", sep="\t")
-            b_bayesian = pd.read_csv(fig_folders[i], "b_bayesian.csv", sep="\t")
-            c_bayesian = pd.read_csv(fig_folders[i], "c_bayesian.csv", sep="\t")
+            b_log_reg = pd.read_csv(os.path.join(fig_folders[i], "b_log_reg.csv"), sep="\t")
+            c_log_reg = pd.read_csv(os.path.join(fig_folders[i], "c_log_reg.csv"), sep="\t")
+            b_bayesian = pd.read_csv(os.path.join(fig_folders[i], "b_bayesian.csv"), sep="\t")
+            c_bayesian = pd.read_csv(os.path.join(fig_folders[i], "c_bayesian.csv"), sep="\t")
 
-        if sim_overview["plot data"]:
+        if sim_overview["stages"]["plot data"]:
             plot_simulation_overview(
                 fig_folders[i], subjects, n_agents[i], b_log_reg, c_log_reg, b_bayesian, c_bayesian
             )

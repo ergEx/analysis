@@ -518,7 +518,7 @@ def generate_sim_overview_data(
 
 
 def plot_simulation_overview(
-    save_path, n_agents, subjects, b_log_reg, c_log_reg, b_bayesian, c_bayesian
+    save_path, subjects, n_agents, b_log_reg, c_log_reg, b_bayesian, c_bayesian
 ):
     if n_agents > 3:
         try:

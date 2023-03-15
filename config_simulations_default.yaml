@@ -34,7 +34,7 @@ create_jasp:
 plots:
   run: True
   figures:
-    subject wise: True
+    subject wise: False
     group mean: False
 
 # This section provides control over the various steps in creating simulation overviews
@@ -42,5 +42,5 @@ simulation overview:
   run: True
 
   stages:
-    genereate data: True
+    generate data: False
     plot data: True
