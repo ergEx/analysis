@@ -258,23 +258,34 @@ def logistic_regression(df: pd.DataFrame):
     upper = np.maximum(0, np.minimum(1, pred + std_errors * c))
     lower = np.maximum(0, np.minimum(1, pred - std_errors * c))
 
-    idx_m = (
-        min([i for i in range(len(pred)) if pred[i] > 0.5])
-        if len([i for i in range(len(pred)) if pred[i] > 0.5]) > 0
-        else len(x_test) - 1
-    )
-    idx_l = (
-        min([i for i in range(len(lower)) if lower[i] > 0.5])
-        if len([i for i in range(len(lower)) if lower[i] > 0.5]) > 0
-        else len(x_test) - 1
-    )
-    idx_h = (
-        min([i for i in range(len(upper)) if upper[i] > 0.5])
-        if len([i for i in range(len(upper)) if upper[i] > 0.5]) > 0
-        else len(x_test) - 1
-    )
+    idx = np.argmin(np.abs(pred - 0.5))
+    decision_boundary = x_test[idx]
+    slope = np.gradient(pred)[idx]
 
-    return x_test, pred, lower, upper, idx_m, idx_l, idx_h
+    idx = np.argmin(np.abs(upper - 0.5))
+    decision_boundary_upper = x_test[idx]
+
+    idx = np.argmin(np.abs(lower - 0.5))
+    decision_boundary_lower = x_test[idx]
+
+    std_dev = (decision_boundary_upper - decision_boundary) / c
+
+    # Check if slope is negative at decision boundary
+    if slope < 0:
+        decision_boundary = np.nan
+        decision_boundary_upper = np.nan
+        decision_boundary_lower = np.nan
+
+    return (
+        x_test,
+        pred,
+        lower,
+        upper,
+        decision_boundary,
+        decision_boundary_lower,
+        decision_boundary_upper,
+        std_dev,
+    )
 
 
 def read_Bayesian_output(file_path: str) -> dict:

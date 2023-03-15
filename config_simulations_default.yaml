@@ -18,7 +18,7 @@ colors: ["#e28743", "#043d74"]
 
 # This section provides control over the various steps in the readingdata pipeline
 readingdata:
-  run: True
+  run: False
 
   stages:
     passive_output: False
@@ -34,13 +34,9 @@ create_jasp:
 plots:
   run: True
   figures:
-    subject wise: False
+    subject wise: True
     group mean: False
-
-# This section provides control over the various steps in creating simulation overviews
-simulation overview:
-  run: True
-
-  stages:
-    generate data: False
-    plot data: True
+    simulation overview:
+      run: True
+      generate data: False
+      plot data: True

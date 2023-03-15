@@ -166,13 +166,22 @@ def plot_indif_eta_logistic_reg(df: pd.DataFrame, ax: plt.axes):
     df_tmp_1 = df[df["min_max_val"] == 1]
     df_tmp_0 = df[df["min_max_val"] == 0]
 
-    x_test, pred, ymin, ymax, idx_m, idx_l, idx_h = logistic_regression(df)
+    (
+        x_test,
+        pred,
+        lower,
+        upper,
+        decision_boundary,
+        decision_boundary_lower,
+        decision_boundary_upper,
+        _,
+    ) = logistic_regression(df)
 
     ax.fill_between(
         x_test,
-        ymin,
-        ymax,
-        where=ymax >= ymin,
+        lower,
+        upper,
+        where=upper >= lower,
         facecolor="grey",
         interpolate=True,
         alpha=0.5,
@@ -210,7 +219,7 @@ def plot_indif_eta_logistic_reg(df: pd.DataFrame, ax: plt.axes):
         xticks=np.linspace(-5, 5, 11),
         xlim=[-5, 5],
     )
-    ax.axvline(x=x_test[idx_m], color="red", linestyle="--", label="Best estimate")
+    ax.axvline(x=decision_boundary, color="red", linestyle="--", ymax=0.5, label="Best estimate")
     ax.legend(loc="upper left", fontsize="xx-small")
 
     return ax
@@ -480,12 +489,11 @@ def generate_sim_overview_data(
                     engine="python",
                 ).reset_index(drop=True)
                 try:
-                    x_test, _, _, _, idx_m, idx_l, idx_h = logistic_regression(df_tmp)
-                    std = (x_test[idx_l] - x_test[idx_h]) / (2 * norm.ppf(0.975))
-                    data_best_fit["log_reg"][f"{c}.0"][n_agents * i + j] = x_test[idx_m]
+                    (_, _, _, _, decision_boundary, _, _, std_dev,) = logistic_regression(df_tmp)
+                    data_best_fit["log_reg"][f"{c}.0"][n_agents * i + j] = decision_boundary
                     data_confidence["log_reg"][f"{c}.0"][
                         idx_log_reg : idx_log_reg + n_samples_log_reg
-                    ] = np.random.normal(x_test[idx_m], std, n_samples_log_reg)
+                    ] = np.random.normal(decision_boundary, std_dev, n_samples_log_reg)
                 except Exception as e:
                     pass
 

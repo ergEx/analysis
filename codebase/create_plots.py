@@ -26,7 +26,6 @@ def main(config_file, i, simulation_variant):
     pal = sns.set_palette(sns.color_palette(colors))
     n_agents = config["n_agents"]
     stages = config["plots"]["figures"]
-    sim_overview = config["simulation overview"]
     etas = config["etas"]
 
     CONDITION_SPECS = condition_specs()
@@ -69,9 +68,9 @@ def main(config_file, i, simulation_variant):
             pal,
         )
 
-    if sim_overview:
+    if stages["simulation overview"]["run"]:
         print("\nSIMULATION OVERVIEW")
-        if sim_overview["stages"]["generate data"]:
+        if stages["simulation overview"]["generate data"]:
             b_log_reg, c_log_reg, b_bayesian, c_bayesian = generate_sim_overview_data(
                 fig_folders[i],
                 indifference_eta_df,
@@ -86,7 +85,7 @@ def main(config_file, i, simulation_variant):
             b_bayesian = pd.read_csv(os.path.join(fig_folders[i], "b_bayesian.csv"), sep="\t")
             c_bayesian = pd.read_csv(os.path.join(fig_folders[i], "c_bayesian.csv"), sep="\t")
 
-        if sim_overview["stages"]["plot data"]:
+        if stages["simulation overview"]["plot data"]:
             plot_simulation_overview(
                 fig_folders[i], subjects, n_agents[i], b_log_reg, c_log_reg, b_bayesian, c_bayesian
             )
