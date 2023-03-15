@@ -395,9 +395,7 @@ def plot_parameter_estimation_all_data_as_one(
     fig_bayesian.savefig(os.path.join(save_path, f"0_5_bayesian.png"))
 
 
-def plot_bayesian_model_selection_subject_wise(
-    save_path: str, subjects, samples: np.array
-):
+def plot_bayesian_model_selection_subject_wise(save_path: str, subjects, samples: np.array):
     print("model selection not implemented yet")
     return  # NOT IMPLEMENTED YET
     dist = np.empty([2, len(subjects)])
@@ -428,7 +426,7 @@ def plot_bayesian_model_selection_all_as_one(save_path: str, samples: np.array):
     fig.savefig(os.path.join(save_path, f"active_results_bayesian_model_selection_aggregated.png"))
 
 
-def plot_simulation_overview(
+def generate_sim_overview_data(
     save_path: str,
     df: pd.DataFrame,
     subjects,
@@ -441,7 +439,9 @@ def plot_simulation_overview(
     idx_log_reg = 0
     idx_bayesian = 0
     if bayesian_samples is not None:
-        n_samples_bayesian = np.shape(bayesian_samples['eta'])[0] * np.shape(bayesian_samples['eta'])[1]
+        n_samples_bayesian = (
+            np.shape(bayesian_samples["eta"])[0] * np.shape(bayesian_samples["eta"])[1]
+        )
     else:
         n_samples_bayesian = 1
     data_best_fit = {
@@ -497,20 +497,29 @@ def plot_simulation_overview(
                         np.argmax(kde.density)
                     ]
                     data_confidence["bayesian"][f"{c}.0"][
-                        idx_bayesian:idx_bayesian+n_samples_bayesian
+                        idx_bayesian : idx_bayesian + n_samples_bayesian
                     ] = eta_dist
-                    
+
                 except Exception as e:
                     pass
             idx_log_reg += n_samples_log_reg
             idx_bayesian += n_samples_bayesian
     b_log_reg = pd.DataFrame.from_dict(data_best_fit["log_reg"])
-    b_log_reg.to_csv(os.path.join(save_path, "0_log_reg.csv"), sep='\t')
     c_log_reg = pd.DataFrame.from_dict(data_confidence["log_reg"])
+    b_log_reg.to_csv(os.path.join(save_path, "b_log_reg.csv"), sep="\t")
+    c_log_reg.to_csv(os.path.join(save_path, "c_log_reg.csv"), sep="\t")
 
     b_bayesian = pd.DataFrame.from_dict(data_best_fit["bayesian"])
     c_bayesian = pd.DataFrame.from_dict(data_confidence["bayesian"])
-    b_bayesian.to_csv(os.path.join(save_path, "0_bayesian.csv"))
+    b_bayesian.to_csv(os.path.join(save_path, "b_bayesian.csv"))
+    c_bayesian.to_csv(os.path.join(save_path, "c_bayesian.csv"))
+
+    return b_log_reg, c_log_reg, b_bayesian, c_bayesian
+
+
+def plot_simulation_overview(
+    save_path, n_agents, subjects, b_log_reg, c_log_reg, b_bayesian, c_bayesian
+):
     if n_agents > 3:
         try:
             log_best_plot = sns.jointplot(
@@ -521,10 +530,10 @@ def plot_simulation_overview(
                 hue="kind",
                 bw_method=0.8,
                 legend=True,
-                alpha = 0.7,
-                kind = 'kde',
-                xlim = [-0.6,2.5],
-                ylim = [-0.6,2.5]
+                alpha=0.7,
+                kind="kde",
+                xlim=[-0.6, 2.5],
+                ylim=[-0.6, 2.5],
             )
         except:
             log_best_plot = plt.figure()
@@ -539,10 +548,10 @@ def plot_simulation_overview(
                 bw_method=0.8,
                 legend=True,
                 alpha=0.7,
-                hue_order = subjects,
-                kind = 'kde',
-                xlim = [-0.6,2.5],
-                ylim = [-0.6,2.5]
+                hue_order=subjects,
+                kind="kde",
+                xlim=[-0.6, 2.5],
+                ylim=[-0.6, 2.5],
             )
         except:
             bayesian_best_plot = plt.figure()
@@ -555,10 +564,10 @@ def plot_simulation_overview(
                 y="1.0",
                 hue="kind",
                 legend=True,
-                alpha = 0.7,
-                kind = 'scatter',
-                xlim = [-0.6,2.5],
-                ylim = [-0.6,2.5]
+                alpha=0.7,
+                kind="scatter",
+                xlim=[-0.6, 2.5],
+                ylim=[-0.6, 2.5],
             )
         except:
             log_best_plot = plt.figure()
@@ -568,20 +577,22 @@ def plot_simulation_overview(
                 data=b_bayesian,
                 x="0.0",
                 y="1.0",
-                hue='kind',
+                hue="kind",
                 legend=True,
-                alpha = 0.7,
-                kind = 'scatter',
-                xlim = [-0.6,2.5],
-                ylim = [-0.6,2.5]
+                alpha=0.7,
+                kind="scatter",
+                xlim=[-0.6, 2.5],
+                ylim=[-0.6, 2.5],
             )
         except:
             bayesian_best_plot = plt.figure()
             pass
 
-    log_best_plot.savefig(os.path.join(save_path, 'simulation_overview_log_reg_best_estimate.png'))
-    bayesian_best_plot.savefig(os.path.join(save_path, 'simulation_overview_bayesian_best_estimate.png'))
-    
+    log_best_plot.savefig(os.path.join(save_path, "simulation_overview_log_reg_best_estimate.png"))
+    bayesian_best_plot.savefig(
+        os.path.join(save_path, "simulation_overview_bayesian_best_estimate.png")
+    )
+
     try:
         log_confidence_plot = sns.jointplot(
             data=c_log_reg,
@@ -592,9 +603,9 @@ def plot_simulation_overview(
             bw_method=0.8,
             legend=True,
             alpha=0.7,
-            kind = 'kde',
-            xlim = [-0.6,2.5],
-            ylim = [-0.6,2.5]
+            kind="kde",
+            xlim=[-0.6, 2.5],
+            ylim=[-0.6, 2.5],
         )
     except:
         log_confidence_plot = plt.figure()
@@ -610,13 +621,18 @@ def plot_simulation_overview(
             bw_method=0.8,
             legend=True,
             alpha=0.7,
-            kind='kde',
-            xlim = [-0.6,2.5],
-            ylim = [-0.6,2.5]
+            kind="kde",
+            xlim=[-0.6, 2.5],
+            ylim=[-0.6, 2.5],
         )
     except:
-        bayesian_conficende_plot = plt.figure()
+        bayesian_confidence_plot = plt.figure()
         pass
 
-    log_confidence_plot.savefig(os.path.join(save_path, f"simulation_overview_log_reg_incl_uncertainty.png"))
-    bayesian_confidence_plot.savefig(os.path.join(save_path, f"simulation_overview_bayesian_incl_uncertainty.png"))
+    log_confidence_plot.savefig(
+        os.path.join(save_path, f"simulation_overview_log_reg_incl_uncertainty.png")
+    )
+    bayesian_confidence_plot.savefig(
+        os.path.join(save_path, f"simulation_overview_bayesian_incl_uncertainty.png")
+    )
+

@@ -8,6 +8,7 @@ import yaml
 from .base import get_config_filename
 from .experiment_specs import condition_specs, sub_specs
 from .plotting_utils import (
+    generate_sim_overview_data,
     plot_parameter_estimation_all_data_as_one,
     plot_parameter_estimation_subject_wise,
     plot_simulation_overview,
@@ -25,6 +26,7 @@ def main(config_file, i, simulation_variant):
     pal = sns.set_palette(sns.color_palette(colors))
     n_agents = config["n_agents"]
     stages = config["plots"]["figures"]
+    sim_overview = config["simulation overview"]
     etas = config["etas"]
 
     CONDITION_SPECS = condition_specs()
@@ -67,16 +69,27 @@ def main(config_file, i, simulation_variant):
             pal,
         )
 
-    if stages["simulation overview"]:
+    if sim_overview:
         print("\nSIMULATION OVERVIEW")
-        plot_simulation_overview(
-            fig_folders[i],
-            indifference_eta_df,
-            subjects,
-            n_agents[i],
-            CONDITION_SPECS,
-            bayesian_samples_parameter_estimation,
-        )
+        if sim_overview["generate data"]:
+            b_log_reg, c_log_reg, b_bayesian, c_bayesian = generate_sim_overview_data(
+                fig_folders[i],
+                indifference_eta_df,
+                subjects,
+                n_agents[i],
+                CONDITION_SPECS,
+                bayesian_samples_parameter_estimation,
+            )
+        else:
+            b_log_reg = pd.read_csv(fig_folders[i], "b_log_reg.csv", sep="\t")
+            c_log_reg = pd.read_csv(fig_folders[i], "c_log_reg.csv", sep="\t")
+            b_bayesian = pd.read_csv(fig_folders[i], "b_bayesian.csv", sep="\t")
+            c_bayesian = pd.read_csv(fig_folders[i], "c_bayesian.csv", sep="\t")
+
+        if sim_overview["plot data"]:
+            plot_simulation_overview(
+                fig_folders[i], subjects, n_agents[i], b_log_reg, c_log_reg, b_bayesian, c_bayesian
+            )
 
 
 if __name__ == "__main__":

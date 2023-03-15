@@ -36,4 +36,11 @@ plots:
   figures:
     subject wise: True
     group mean: False
-    simulation overview: True
+
+# This section provides control over the various steps in creating simulation overviews
+simulation overview:
+  run: True
+
+  stages:
+    genereate data: True
+    plot data: True
