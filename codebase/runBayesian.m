@@ -7,10 +7,8 @@
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
 % dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
-% simVersion    - if running on simulated data; low sensitivity, low n (1),
-%                                               high sensitivity, low n (2),
-%                                               low sensitivity, high n (3),
-%                                               high sensitivity, high n (4)
+% simVersion    - if running on simulated data; n_trials = 160, n_phenotypes = 26, n_agents = 100 (1)
+%                                               n_trials = 1000, n_phenotypes = 26, n_agents = 3 (2)
 
 % The idea is that this is written into by the user, then called by a
 % cluster job via the terminal:
@@ -23,9 +21,9 @@ addpath(fullfile(startDir,'/Bayesian_utils'));
 %% Specify variables
 inferenceMode = 1;
 whichJAGS = 1;
-whichQuals = 3:3;
+whichQuals = 1:1;
 doParallel = 0;
-dataVersion = 2;
+dataVersion = 1;
 
 %% Call setHLM
 for simVersion = 1:1

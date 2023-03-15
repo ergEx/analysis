@@ -9,10 +9,8 @@ function setBayesian(inferenceMode,whichJAGS,whichQuals,doParallel,startDir,data
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
 % dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
-% simVersion    - if running on simulated data; low sensitivity,  low n  (1),
-%                                               high sensitivity, low n  (2),
-%                                               low sensitivity,  high n (3),
-%                                               high sensitivity, high n (4)
+% simVersion    - if running on simulated data; n_trials = 160, n_phenotypes = 26, n_agents = 100 (1)
+%                                               n_trials = 1000, n_phenotypes = 26, n_agents = 3 (2)
 
 %% Specifies qualities to be selected from
 numRuns      = length(whichQuals);     %how many separate instances of an MCMC to run
@@ -24,10 +22,9 @@ nThin        = 10;                     %thinnning factor, 1 = no thinning, 2=eve
 %% Specifies subjects, trials and directory_name
 switch dataVersion
     case {1} %simulated data
-        subjList = 1:(100*25);
         switch simVersion
-            case {1}, subjList = 1:(25*100) nTrials = 160;  folder = '0_simulation/n_160';
-            case {2}, subjList = 1:(25*1) nTrials = 1000; folder = '0_simulation/n_1000';
+            case {1}, subjList = 1:(26*100); nTrials = 160;  folder = '0_simulation/n_160';
+            case {2}, subjList = 1:(26*3); nTrials = 1000; folder = '0_simulation/n_1000';
         end %simVersion
     case {2}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
     case {3}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
