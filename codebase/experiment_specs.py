@@ -1,7 +1,7 @@
 import itertools
 
 
-def sub_specs(data_variant: str, etas: list = None) -> dict[str, list]:
+def sub_specs(data_variant: str, etas: list = None):
     """
     Returns a dictionary of data specification for the given data variant.
 

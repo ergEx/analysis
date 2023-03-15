@@ -472,6 +472,7 @@ def generate_sim_overview_data(
     }
 
     for i, subject1 in enumerate(subjects):
+        print(subject1)
         for j in range(n_agents):
             subject = f"{j}_{subject1}"
             data_best_fit["log_reg"][f"kind"][n_agents * i + j] = subject1
@@ -530,6 +531,7 @@ def plot_simulation_overview(
 ):
     if n_agents > 3:
         try:
+            b_log_reg = b_log_reg[b_log_reg["kind"] != "random"]
             log_best_plot = sns.jointplot(
                 data=b_log_reg,
                 x="0.0",
@@ -537,16 +539,19 @@ def plot_simulation_overview(
                 fill=True,
                 hue="kind",
                 bw_method=0.8,
-                legend=True,
-                alpha=0.7,
+                legend=False,
+                alpha=0.5,
+                height=10,
                 kind="kde",
                 xlim=[-0.6, 2.5],
                 ylim=[-0.6, 2.5],
+                marginal_kws={"common_norm": False},
             )
         except:
             log_best_plot = plt.figure()
             pass
         try:
+            c_log_reg = c_log_reg[c_log_reg["kind"] != "random"]
             bayesian_best_plot = sns.jointplot(
                 data=b_bayesian,
                 x="0.0",
@@ -554,43 +559,50 @@ def plot_simulation_overview(
                 fill=True,
                 hue="kind",
                 bw_method=0.8,
-                legend=True,
-                alpha=0.7,
-                hue_order=subjects,
+                legend=False,
+                alpha=0.5,
+                height=10,
                 kind="kde",
                 xlim=[-0.6, 2.5],
                 ylim=[-0.6, 2.5],
+                marginal_kws={"common_norm": False},
             )
         except:
             bayesian_best_plot = plt.figure()
             pass
     else:
         try:
+            b_log_reg = b_log_reg[b_log_reg["kind"] != "random"]
             log_best_plot = sns.jointplot(
                 data=b_log_reg,
                 x="0.0",
                 y="1.0",
                 hue="kind",
-                legend=True,
+                legend=False,
                 alpha=0.7,
+                height=10,
                 kind="scatter",
                 xlim=[-0.6, 2.5],
                 ylim=[-0.6, 2.5],
+                marginal_kws={"common_norm": False},
             )
         except:
             log_best_plot = plt.figure()
             pass
         try:
+            b_bayesian = b_log_reg[b_log_reg["kind"] != "random"]
             bayesian_best_plot = sns.jointplot(
                 data=b_bayesian,
                 x="0.0",
                 y="1.0",
                 hue="kind",
-                legend=True,
+                legend=False,
                 alpha=0.7,
+                height=10,
                 kind="scatter",
                 xlim=[-0.6, 2.5],
                 ylim=[-0.6, 2.5],
+                marginal_kws={"common_norm": False},
             )
         except:
             bayesian_best_plot = plt.figure()
@@ -602,6 +614,7 @@ def plot_simulation_overview(
     )
 
     try:
+        c_log_reg = c_log_reg[c_log_reg["kind"] != "random"]
         log_confidence_plot = sns.jointplot(
             data=c_log_reg,
             x="0.0",
@@ -609,17 +622,20 @@ def plot_simulation_overview(
             fill=True,
             hue="kind",
             bw_method=0.8,
-            legend=True,
-            alpha=0.7,
+            legend=False,
+            alpha=0.5,
+            height=10,
             kind="kde",
             xlim=[-0.6, 2.5],
             ylim=[-0.6, 2.5],
+            marginal_kws={"common_norm": False},
         )
     except:
         log_confidence_plot = plt.figure()
         pass
 
     try:
+        c_bayesian = c_bayesian[c_bayesian["kind"] != "random"]
         bayesian_confidence_plot = sns.jointplot(
             data=c_bayesian,
             x="0.0",
@@ -627,11 +643,13 @@ def plot_simulation_overview(
             fill=True,
             hue="kind",
             bw_method=0.8,
-            legend=True,
-            alpha=0.7,
+            legend=False,
+            alpha=0.5,
+            height=10,
             kind="kde",
             xlim=[-0.6, 2.5],
             ylim=[-0.6, 2.5],
+            marginal_kws={"common_norm": False},
         )
     except:
         bayesian_confidence_plot = plt.figure()
