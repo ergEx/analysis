@@ -151,7 +151,7 @@ end %switch inferenceMode
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
 
-[samples] = matjags( ...
+[samples, stats] = matjags( ...
     dataStruct, ...                           % Observed data
     fullfile(jagsDir, [modelName '.txt']), ...% File that contains model definition
     init0, ...                                % Initial values for latent variables
@@ -172,15 +172,15 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save(fullfile(dataDir, append('Bayesian','_',mode)),'samples','-v7.3')
+save(fullfile(dataDir, append('Bayesian','_',mode)),'stats','samples','-v7.3')
 
 %% Print readouts
-%disp('stats:'),disp(stats)%print out structure of stats output
+disp('stats:'),disp(stats)%print out structure of stats output
 disp('samples:'),disp(samples);%print out structure of samples output
 try
     rhats=fields(stats.Rhat);
     for lp = 1: length(rhats)
-        disp(['stats.Rhat.',rhats{lp}]);
+        disp(['stats.Rhat.',rhats{lp}]);z<<<
         eval(strcat('stats.Rhat.',rhats{lp}))
     end
 catch

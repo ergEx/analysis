@@ -339,7 +339,7 @@ for i=1:nChains
     structArray(i) = S;
 end
 samples = structsToArrays(structArray);
-%stats = computeStats(samples,doboot);
+stats = computeStats(samples,doboot);
 
 
 cd( curdir );
