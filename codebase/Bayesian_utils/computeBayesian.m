@@ -180,7 +180,7 @@ disp('samples:'),disp(samples);%print out structure of samples output
 try
     rhats=fields(stats.Rhat);
     for lp = 1: length(rhats)
-        disp(['stats.Rhat.',rhats{lp}]);z<<<
+        disp(['stats.Rhat.',rhats{lp}]);
         eval(strcat('stats.Rhat.',rhats{lp}))
     end
 catch
