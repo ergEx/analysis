@@ -268,7 +268,7 @@ def logistic_regression(df: pd.DataFrame):
     idx = np.argmin(np.abs(lower - 0.5))
     decision_boundary_lower = x_test[idx]
 
-    std_dev = (decision_boundary_upper - decision_boundary) / c
+    std_dev = (decision_boundary_lower - decision_boundary) / c
 
     # Check if slope is negative at decision boundary
     if slope < 0:

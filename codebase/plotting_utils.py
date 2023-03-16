@@ -520,8 +520,8 @@ def generate_sim_overview_data(
 
     b_bayesian = pd.DataFrame.from_dict(data_best_fit["bayesian"])
     c_bayesian = pd.DataFrame.from_dict(data_confidence["bayesian"])
-    b_bayesian.to_csv(os.path.join(save_path, "b_bayesian.csv"))
-    c_bayesian.to_csv(os.path.join(save_path, "c_bayesian.csv"))
+    b_bayesian.to_csv(os.path.join(save_path, "b_bayesian.csv"), sep="\t")
+    c_bayesian.to_csv(os.path.join(save_path, "c_bayesian.csv"), sep="\t")
 
     return b_log_reg, c_log_reg, b_bayesian, c_bayesian
 
@@ -529,6 +529,7 @@ def generate_sim_overview_data(
 def plot_simulation_overview(
     save_path, subjects, n_agents, b_log_reg, c_log_reg, b_bayesian, c_bayesian
 ):
+    print("PLOTTING BEST FIT")
     if n_agents > 3:
         try:
             b_log_reg = b_log_reg[b_log_reg["kind"] != "random"]
@@ -551,7 +552,7 @@ def plot_simulation_overview(
             log_best_plot = plt.figure()
             pass
         try:
-            c_log_reg = c_log_reg[c_log_reg["kind"] != "random"]
+            b_bayesian = b_bayesian[b_bayesian["kind"] != "random"]
             bayesian_best_plot = sns.jointplot(
                 data=b_bayesian,
                 x="0.0",
@@ -590,7 +591,7 @@ def plot_simulation_overview(
             log_best_plot = plt.figure()
             pass
         try:
-            b_bayesian = b_log_reg[b_log_reg["kind"] != "random"]
+            b_bayesian = b_bayesian[b_bayesian["kind"] != "random"]
             bayesian_best_plot = sns.jointplot(
                 data=b_bayesian,
                 x="0.0",
@@ -613,6 +614,7 @@ def plot_simulation_overview(
         os.path.join(save_path, "simulation_overview_bayesian_best_estimate.png")
     )
 
+    print("PLOTTING W. CONFIDENCE INTERVAL")
     try:
         c_log_reg = c_log_reg[c_log_reg["kind"] != "random"]
         log_confidence_plot = sns.jointplot(

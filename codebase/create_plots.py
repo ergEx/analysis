@@ -16,7 +16,7 @@ from .plotting_utils import (
 )
 
 
-def main(config_file, i, simulation_variant):
+def main(config_file, i, simulation_variant=""):
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
     data_variant = config["data_variant"]
@@ -33,6 +33,7 @@ def main(config_file, i, simulation_variant):
     subjects = SUBJECT_SPECS["id"]
 
     print(f"\nCREATING FIGURES")
+    print(simulation_variant)
     (
         passive_phase_df,
         indifference_eta_df,
