@@ -131,9 +131,9 @@ def calculate_min_v_max(root: float, func, choice: int) -> np.array:
     """
     dx = misc.derivative(func, root)
     if dx < 0:
-        return np.array([0, 0, 0]) if choice == 0 else np.array([1, 1, 1])
+        return 0 if choice == 0 else 1
     else:
-        return np.array([0, 0, 0]) if choice == 1 else np.array([1, 1, 1])
+        return 0 if choice == 1 else 1
 
 
 def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
@@ -166,69 +166,6 @@ def is_statewise_dominated(gamble_pair: np.ndarray) -> bool:
         return False
 
 
-def add_info_to_df(df: pd.DataFrame, choice_dict: dict = {"right": 0, "left": 1}) -> pd.DataFrame:
-    """
-    Add new columns to a DataFrame containing information about changes in wealth and utility.
-
-    Parameters:
-    - df (pd.DataFrame): input DataFrame.
-    - choice_dict (dict): mapping of choices to integers (0 or 1).
-
-    Returns:
-    - pd.DataFrame: input DataFrame with new columns appended.
-    """
-    df["selected_side_map"] = df["selected_side"].map(choice_dict)
-    new_info = np.zeros([df.shape[0], 16])
-    new_info_col_names = [
-        "x1_1",
-        "x1_2",
-        "x2_1",
-        "x2_2",
-        "indif_eta",
-        "min_max_sign",
-        "min_max_color",
-        "min_max_val",
-        "add_gamma1_1",
-        "add_gamma1_2",
-        "add_gamma2_1",
-        "add_gamma2_2",
-        "mul_gamma1_1",
-        "mul_gamma1_2",
-        "mul_gamma2_1",
-        "mul_gamma2_2",
-    ]
-
-    for i, ii in enumerate(df.index):
-        trial = df.loc[ii, :]
-        x_updates = wealth_change(
-            x=trial.wealth,
-            gamma=[
-                trial.gamma_left_up,
-                trial.gamma_left_down,
-                trial.gamma_right_up,
-                trial.gamma_right_down,
-            ],
-            lambd=trial.eta,
-        )
-        new_info[i, 0:4] = x_updates - trial.wealth
-
-        root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3])
-
-        if root is not None:
-            new_info[i, 4] = round(root[0], 2)
-            new_info[i, 5:8] = calculate_min_v_max(root[0], func, trial.selected_side_map)
-        else:
-            new_info[i, 4:8] = np.array([np.nan, np.nan, np.nan, np.nan])
-
-        new_info[i, 8:12] = isoelastic_utility(x_updates, 0) - isoelastic_utility(trial.wealth, 0)
-        new_info[i, 12:16] = isoelastic_utility(x_updates, 1) - isoelastic_utility(trial.wealth, 1)
-
-    col_names = list(df.columns) + new_info_col_names
-    df = pd.concat([df, pd.DataFrame(new_info)], axis=1)
-    df.columns = col_names
-    return df
-
-
 def logistic_regression(df: pd.DataFrame):
     """Fit a logistic regression model to the data and compute prediction intervals.
 
@@ -245,10 +182,10 @@ def logistic_regression(df: pd.DataFrame):
             idx_l (int): Index of the point where the lower bound of the prediction interval crosses 0.5.
             idx_h (int): Index of the point where the upper bound of the prediction interval crosses 0.5.
     """
-    model = statsmodels.api.Logit(
-        np.array(df.min_max_val), add_constant(np.array(df.indif_eta))
-    ).fit(disp=0)
-    x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), len(df.indif_eta) * 5)
+    model = statsmodels.api.Logit(np.array(df.min_max), add_constant(np.array(df.indif_eta))).fit(
+        disp=0
+    )
+    x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), 1000)
     X_test = add_constant(x_test)
     pred = model.predict(X_test)
     cov = model.cov_params()
@@ -259,22 +196,12 @@ def logistic_regression(df: pd.DataFrame):
     lower = np.maximum(0, np.minimum(1, pred - std_errors * c))
 
     idx = np.argmin(np.abs(pred - 0.5))
-    decision_boundary = x_test[idx]
     slope = np.gradient(pred)[idx]
+    decision_boundary = x_test[idx] if slope > 0 else np.nan
 
-    idx = np.argmin(np.abs(upper - 0.5))
-    decision_boundary_upper = x_test[idx]
-
-    idx = np.argmin(np.abs(lower - 0.5))
-    decision_boundary_lower = x_test[idx]
-
-    std_dev = (decision_boundary_lower - decision_boundary) / c
-
-    # Check if slope is negative at decision boundary
-    if slope < 0:
-        decision_boundary = np.nan
-        decision_boundary_upper = np.nan
-        decision_boundary_lower = np.nan
+    std_dev = (
+        (x_test[np.argmin(np.abs(lower - 0.5))] - decision_boundary) / c if slope > 0 else np.nan
+    )
 
     return (
         x_test,
@@ -282,8 +209,6 @@ def logistic_regression(df: pd.DataFrame):
         lower,
         upper,
         decision_boundary,
-        decision_boundary_lower,
-        decision_boundary_upper,
         std_dev,
     )
 

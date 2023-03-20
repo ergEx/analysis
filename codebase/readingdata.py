@@ -8,7 +8,7 @@ import yaml
 
 from .base import get_config_filename
 from .experiment_specs import condition_specs, sub_specs
-from .utils import add_info_to_df
+from .utils import wealth_change
 
 
 def reading_participant_passive_data(
@@ -59,12 +59,34 @@ def reading_participant_active_data(
         active_phase_data = active_phase_data.query('event_type == "WealthUpdate"').reset_index(
             drop=True
         )
-    active_phase_data["wealth"] = active_phase_data["Numbers"] = np.concatenate(
-        (np.array([1000]), np.array(active_phase_data.wealth))
-    )[:-1]
+    # active_phase_data["wealth_shift"] = np.concatenate(
+    #    (np.array([1000]), np.array(active_phase_data.wealth))
+    # )[:-1]
 
-    if calc_indif_eta:
-        active_phase_data = add_info_to_df(active_phase_data)
+    for i, ii in enumerate(active_phase_data.index):
+        trial = active_phase_data.loc[ii, :]
+        x_updates = wealth_change(
+            x=trial.wealth,
+            gamma=[
+                trial.gamma_left_up,
+                trial.gamma_left_down,
+                trial.gamma_right_up,
+                trial.gamma_right_down,
+            ],
+            lambd=trial.eta,
+        )
+        active_phase_data.loc[ii, "x1_1"] = x_updates[0] - trial.wealth
+        active_phase_data.loc[ii, "x1_2"] = x_updates[1] - trial.wealth
+        active_phase_data.loc[ii, "x2_1"] = x_updates[2] - trial.wealth
+        active_phase_data.loc[ii, "x2_2"] = x_updates[3] - trial.wealth
+
+        active_phase_data.loc[ii, "selected_side_map"] = (
+            0 if active_phase_data.loc[ii, "selected_side"] == "right" else 1
+        )
+
+        active_phase_data.loc[ii, "selected_side_map"] = (
+            active_phase_data.loc[ii, "selected_side_map"] if min(x_updates) > 0 else np.nan
+        )
 
     return active_phase_data
 
@@ -129,9 +151,6 @@ def reading_data(
 
                 if stages["output .mat"]:
                     ##.mat
-                    active_participant_df.loc[
-                        np.isnan(active_participant_df["indif_eta"]), "selected_side_map"
-                    ] = np.nan
 
                     # Retrieve growth rates
                     datadict.setdefault(f'gr1_1{CONDITION_SPECS["txt_append"][c]}', []).append(
