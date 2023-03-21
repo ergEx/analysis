@@ -5,7 +5,7 @@ import warnings
 import yaml
 from sklearn.exceptions import ConvergenceWarning
 
-from codebase import base, create_JASP_input, create_plots, readingdata
+from codebase import base, create_JASP_input, create_plots, create_plotting_data, readingdata
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
         print(time.ctime(start_time))
 
         readingdata.main(config_file, i, simulation_variant)
-        create_JASP_input.main(config_file, i, simulation_variant)
+        create_plotting_data.main(config_file, i, simulation_variant)
         create_plots.main(config_file, i, simulation_variant)
 
         print(f"--- {(time.time() - start_time)} seconds ---")

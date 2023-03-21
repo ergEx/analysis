@@ -204,16 +204,19 @@ def reading_data(
 def main(config_file, i, simulation_variant):
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
-    data_variant = config["data_variant"]
-    n_agents = config["n_agents"]
-    data_folders = config["data_folders"]
-    etas = config["etas"]
-    run_stage = config["readingdata"]["run"]
+
+    if not config["readingdata"]["run"]:
+        return
+
     stages = config["readingdata"]["stages"]
 
-    if run_stage:
-        print(f"\nREADING DATA \n{data_variant} \n{simulation_variant}")
-        reading_data(data_variant, data_folders[i], stages, n_agents[i], etas)
+    data_folders = config["data_folders"]
+    data_variant = config["data_variant"]
+    n_agents = config["n_agents"]
+    etas = config["etas"]
+
+    print(f"\nREADING DATA \n{data_variant} \n{simulation_variant}")
+    reading_data(data_variant, data_folders[i], stages, n_agents[i], etas)
 
 
 if __name__ == "__main__":

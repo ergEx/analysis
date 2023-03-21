@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
+import yaml
 
 from .utils import (
     calculate_min_v_max,
@@ -53,10 +54,11 @@ def add_log_reg(df, df_log_reg, df_best, c, i=0):
     df_log_reg.loc[:, f"x_test_{c}_{i}"] = x_test
     df_log_reg.loc[:, f"confidence_lower_{c}_{i}"] = lower
     df_log_reg.loc[:, f"est_{c}_{i}"] = pred
-    df_log_reg.loc[:, f"confidence_uppwer_{c}_{i}"] = upper
+    df_log_reg.loc[:, f"confidence_upper_{c}_{i}"] = upper
 
-    df_best.loc[1, f"{c}_{i}"] = decision_boundary
-    df_best.loc[2, f"{c}_{i}"] = std_dev
+    df_best.loc[i, "participant"] = i
+    df_best.loc[i, f"log_reg_best_{c}"] = decision_boundary
+    df_best.loc[i, f"log_reg_std_{c}"] = std_dev
 
     return df_log_reg, df_best
 
@@ -67,87 +69,107 @@ def add_bayes(samples, df_bayesian_subjects, df_best, c, i=0):
 
     kde = sm.nonparametric.KDEUnivariate(samples).fit()
 
-    df_best.loc[3, f"{c}_{i}"] = kde.support[np.argmax(kde.density)]
+    df_best.loc[i, f"bayesian_best_{c}"] = kde.support[np.argmax(kde.density)]
 
     return df_bayesian_subjects, df_best
 
 
-def main(data_dir):
-    add_indif_eta = False
-    if add_indif_eta:
+def main(config_file, i, simulation_variant):
+    with open(config_file, "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
+    if not config["plot_data"]["run"]:
+        return
+
+    data_dir = config["data_folders"][i]
+
+    if config["plot_data"]["calculate_indif_eta"]:
         df = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
         df = add_indif_eta(df)
         df.to_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t")
     else:
-        df = df.read_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"))
+        df = pd.read_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t")
 
-    bayesian_samples = read_Bayesian_output(
-        os.path.join(data_dir, "Bayesian_parameter_estimation.mat")
-    )
     N = len(set(df.participant_id))
-
-    cols_all = (
-        [f"x_test_{c}_0" for c in range(2)]
-        + [f"confidence_lower_{c}_0" for c in range(2)]
-        + [f"est_{c}_0" for c in range(2)]
-        + [f"confidence_upper_{c}_0" for c in range(2)]
-    )
-
-    cols_subjects = (
-        [f"x_test_{c}_{i}" for i in range(N) for c in range(2)]
-        + [f"confidence_lower_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
-        + [f"est_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
-        + [f"confidence_upper_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
-    )
-
-    df_log_reg_all = pd.DataFrame(columns=cols_all)
-    df_bayesian_all = pd.DataFrame(columns=[f"{c}_0" for c in range(2)])
-    df_log_reg_subjects = pd.DataFrame(columns=cols_subjects)
-    df_bayesian_subjects = pd.DataFrame(
-        columns=[f"{c}_{i}" for c in range(2) for i in range(1, N + 1)]
-    )
-    df_best = pd.DataFrame(columns=[f"{c}_{i}" for i in range(N + 1) for c in range(2)])
 
     df = df.dropna(subset=["indif_eta"])
 
-    for c, con in enumerate(set(df.eta)):
-        print(c)
-        # log_reg
-        df_tmp = df.query("eta == @con").reset_index(drop=True)
-        df_log_reg_all, df_best = add_log_reg(df_tmp, df_log_reg_all, df_best, c)
-        print(df_best)
-
-        # bayesian
-        eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
-        df_bayesian_all, df_best = add_bayes(eta_dist, df_bayesian_all, df_best, c)
-
-        for i, participant in enumerate(set(df.participant_id)):
-            print("sub", i)
-            # log_reg
-            df_tmp = df.query("participant_id == @participant and eta == @con").reset_index(
-                drop=True
-            )
-
-            df_log_reg_subjects, df_best = add_log_reg(
-                df_tmp, df_log_reg_subjects, df_best, c, i + 1
-            )
-
-            # bayesian
-            eta_dist = bayesian_samples["eta"][:, :, i, c].flatten()
-            df_bayesian_subjects, df_best = add_bayes(
-                eta_dist, df_bayesian_subjects, df_best, c, i + 1
-            )
-
-    df_log_reg_subjects.to_csv(
-        os.path.join(data_dir, "plotting_files", "df_log_reg_subjects.csv"), sep="\t"
+    df_best = pd.DataFrame(
+        columns=[
+            "log_reg_best_0",
+            "log_reg_std_0",
+            "bayesian_best_0",
+            "log_reg_best_1",
+            "log_reg_std_1",
+            "bayesian_best_1",
+        ]
     )
-    df_log_reg_all.to_csv(os.path.join(data_dir, "plotting_files", "df_log_reg_all.csv"), sep="\t")
-    df_bayesian_subjects.to_csv(
-        os.path.join(data_dir, "plotting_files", "df_bayesian_subjects.csv"), sep="\t"
-    )
-    df_bayesian_all.to_csv(
-        os.path.join(data_dir, "plotting_files", "df_bayesian_all.csv"), sep="\t"
-    )
+
+    if config["plot_data"]["log_reg"]:
+        cols_all = (
+            [f"x_test_{c}_0" for c in range(2)]
+            + [f"confidence_lower_{c}_0" for c in range(2)]
+            + [f"est_{c}_0" for c in range(2)]
+            + [f"confidence_upper_{c}_0" for c in range(2)]
+        )
+
+        cols_subjects = (
+            [f"x_test_{c}_{i}" for i in range(N) for c in range(2)]
+            + [f"confidence_lower_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
+            + [f"est_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
+            + [f"confidence_upper_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
+        )
+
+        df_log_reg_all = pd.DataFrame(columns=cols_all)
+        df_log_reg_subjects = pd.DataFrame(columns=cols_subjects)
+
+        for c, con in enumerate(set(df.eta)):
+            df_tmp = df.query("eta == @con").reset_index(drop=True)
+            df_log_reg_all, df_best = add_log_reg(df_tmp, df_log_reg_all, df_best, c)
+
+            for i, participant in enumerate(set(df.participant_id)):
+                print("sub", i)
+                # log_reg
+                df_tmp = df.query("participant_id == @participant and eta == @con").reset_index(
+                    drop=True
+                )
+
+                df_log_reg_subjects, df_best = add_log_reg(
+                    df_tmp, df_log_reg_subjects, df_best, c, i + 1
+                )
+        df_log_reg_subjects.to_csv(
+            os.path.join(data_dir, "plotting_files", "df_log_reg_subjects.csv"), sep="\t"
+        )
+        df_log_reg_all.to_csv(
+            os.path.join(data_dir, "plotting_files", "df_log_reg_all.csv"), sep="\t"
+        )
+
+    if config["plot_data"]["bayesian"]:
+        bayesian_samples = read_Bayesian_output(
+            os.path.join(data_dir, "Bayesian_parameter_estimation.mat")
+        )
+        df_bayesian_all = pd.DataFrame(columns=[f"{c}_0" for c in range(2)])
+        df_bayesian_subjects = pd.DataFrame(
+            columns=[f"{c}_{i}" for c in range(2) for i in range(1, N + 1)]
+        )
+
+        for c, con in enumerate(set(df.eta)):
+            eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
+            df_bayesian_all, df_best = add_bayes(eta_dist, df_bayesian_all, df_best, c)
+
+            for i, participant in enumerate(set(df.participant_id)):
+                eta_dist = bayesian_samples["eta"][:, :, i, c].flatten()
+                df_bayesian_subjects, df_best = add_bayes(
+                    eta_dist, df_bayesian_subjects, df_best, c, i + 1
+                )
+
+            df_bayesian_subjects.to_csv(
+                os.path.join(data_dir, "plotting_files", "df_bayesian_subjects.csv"), sep="\t"
+            )
+            df_bayesian_all.to_csv(
+                os.path.join(data_dir, "plotting_files", "df_bayesian_all.csv"), sep="\t"
+            )
+    df_best.loc[0, "participant"] = "all"
     df_best.to_csv(os.path.join(data_dir, "plotting_files", "best_estimates.csv"), sep="\t")
 
 
