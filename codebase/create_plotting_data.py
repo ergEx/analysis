@@ -16,8 +16,8 @@ from .utils import (
 
 def add_indif_eta(df):
 
-    new_info = np.zeros([df.shape[0], 6])
-    new_info_col_names = ["x1_1", "x1_2", "x2_1", "x2_2", "indif_eta", "min_max"]
+    new_info = np.zeros([df.shape[0], 2])
+    new_info_col_names = ["indif_eta", "min_max"]
 
     for i, ii in enumerate(df.index):
         trial = df.loc[ii, :]
@@ -31,47 +31,20 @@ def add_indif_eta(df):
             ],
             lambd=trial.eta,
         )
-        new_info[i, 0:4] = x_updates - trial.wealth
 
         root, func = indiference_eta(x_updates[0], x_updates[1], x_updates[2], x_updates[3])
 
         if root is not None:
-            new_info[i, 4] = round(root[0], 2)
-            new_info[i, 5] = calculate_min_v_max(root[0], func, trial.selected_side_map)
+            new_info[i, 0] = round(root[0], 2)
+            new_info[i, 1] = calculate_min_v_max(root[0], func, trial.selected_side_map)
         else:
-            new_info[i, 4] = np.nan
-            new_info[i, 5] = np.nan
+            new_info[i, 0] = np.nan
+            new_info[i, 1] = np.nan
 
     col_names = list(df.columns) + new_info_col_names
     df = pd.concat([df, pd.DataFrame(new_info)], axis=1)
     df.columns = col_names
     return df
-
-
-def add_log_reg(df, df_log_reg, df_best, c, i=0):
-    (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df)
-
-    df_log_reg.loc[:, f"x_test_{c}_{i}"] = x_test
-    df_log_reg.loc[:, f"confidence_lower_{c}_{i}"] = lower
-    df_log_reg.loc[:, f"est_{c}_{i}"] = pred
-    df_log_reg.loc[:, f"confidence_upper_{c}_{i}"] = upper
-
-    df_best.loc[i, "participant"] = i
-    df_best.loc[i, f"log_reg_best_{c}"] = decision_boundary
-    df_best.loc[i, f"log_reg_std_{c}"] = std_dev
-
-    return df_log_reg, df_best
-
-
-def add_bayes(samples, df_bayesian_subjects, df_best, c, i=0):
-
-    df_bayesian_subjects.loc[:, f"{c}_{i}"] = samples
-
-    kde = sm.nonparametric.KDEUnivariate(samples).fit()
-
-    df_best.loc[i, f"bayesian_best_{c}"] = kde.support[np.argmax(kde.density)]
-
-    return df_bayesian_subjects, df_best
 
 
 def main(config_file, i, simulation_variant):
@@ -81,7 +54,9 @@ def main(config_file, i, simulation_variant):
     if not config["plot_data"]["run"]:
         return
 
-    data_dir = config["data_folders"][i]
+    data_dir = config["data directoty"][i]
+
+    # READING IN DATA
 
     if config["plot_data"]["calculate_indif_eta"]:
         df = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
@@ -90,87 +65,89 @@ def main(config_file, i, simulation_variant):
     else:
         df = pd.read_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t")
 
-    N = len(set(df.participant_id))
-
     df = df.dropna(subset=["indif_eta"])
 
-    df_best = pd.DataFrame(
-        columns=[
-            "log_reg_best_0",
-            "log_reg_std_0",
-            "bayesian_best_0",
-            "log_reg_best_1",
-            "log_reg_std_1",
-            "bayesian_best_1",
-        ]
+    bayesian_samples = read_Bayesian_output(
+        os.path.join(data_dir, "Bayesian_parameter_estimation.mat")
     )
 
-    if config["plot_data"]["log_reg"]:
-        cols_all = (
-            [f"x_test_{c}_0" for c in range(2)]
-            + [f"confidence_lower_{c}_0" for c in range(2)]
-            + [f"est_{c}_0" for c in range(2)]
-            + [f"confidence_upper_{c}_0" for c in range(2)]
-        )
+    etas = bayesian_samples["eta"]
+    mu_etas = bayesian_samples["mu_eta"]
 
-        cols_subjects = (
-            [f"x_test_{c}_{i}" for i in range(N) for c in range(2)]
-            + [f"confidence_lower_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
-            + [f"est_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
-            + [f"confidence_upper_{c}_{i}" for i in range(1, N + 1) for c in range(2)]
-        )
+    # CREATING MULTIINDEX DATAFRAMES
 
-        df_log_reg_all = pd.DataFrame(columns=cols_all)
-        df_log_reg_subjects = pd.DataFrame(columns=cols_subjects)
+    index_logistic = pd.MultiIndex.from_product(
+        [["all"] + list(set(df.participant_id)), [0.0, 1.0], range(1000)],
+        names=["participant", "dynamic", "measurement"],
+    )
+    df_logistic = pd.DataFrame(index=index_logistic, columns=["x_test", "pred", "lower", "upper"])
 
-        for c, con in enumerate(set(df.eta)):
-            df_tmp = df.query("eta == @con").reset_index(drop=True)
-            df_log_reg_all, df_best = add_log_reg(df_tmp, df_log_reg_all, df_best, c)
+    index_bayesian = pd.MultiIndex.from_product(
+        [
+            ["all"] + list(set(df.participant_id)),
+            [0.0, 1.0],
+            range(np.shape(etas)[0] * np.shape(etas)[1]),
+        ],
+        names=["participant", "dynamic", "measurement"],
+    )
+    df_bayesian = pd.DataFrame(index=index_bayesian, columns=["samples"])
 
-            for i, participant in enumerate(set(df.participant_id)):
-                print("sub", i)
-                # log_reg
-                df_tmp = df.query("participant_id == @participant and eta == @con").reset_index(
-                    drop=True
-                )
+    index_overview = pd.MultiIndex.from_product(
+        [["all"] + list(set(df.participant_id)), [0.0, 1.0], range(1)],
+        names=["participant", "dynamic", "measurement"],
+    )
+    df_overview = pd.DataFrame(
+        index=index_overview,
+        columns=["log_reg_decision_boundary", "log_reg_std_dev", "bayesian_decision_boundary"],
+    )
 
-                df_log_reg_subjects, df_best = add_log_reg(
-                    df_tmp, df_log_reg_subjects, df_best, c, i + 1
-                )
-        df_log_reg_subjects.to_csv(
-            os.path.join(data_dir, "plotting_files", "df_log_reg_subjects.csv"), sep="\t"
-        )
-        df_log_reg_all.to_csv(
-            os.path.join(data_dir, "plotting_files", "df_log_reg_all.csv"), sep="\t"
-        )
+    ## CALCULATING AND ADDING DATA
+    for c, con in enumerate(set(df.eta)):
+        # GROUP LEVEL DATA
+        df_tmp = df.query("eta == @con").reset_index(drop=True)
+        (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
+        idx = pd.IndexSlice
+        df_logistic.loc[idx["all", con, :], "x_test"] = x_test
+        df_logistic.loc[idx["all", con, :], "pred"] = pred
+        df_logistic.loc[idx["all", con, :], "lower"] = lower
+        df_logistic.loc[idx["all", con, :], "upper"] = upper
 
-    if config["plot_data"]["bayesian"]:
-        bayesian_samples = read_Bayesian_output(
-            os.path.join(data_dir, "Bayesian_parameter_estimation.mat")
-        )
-        df_bayesian_all = pd.DataFrame(columns=[f"{c}_0" for c in range(2)])
-        df_bayesian_subjects = pd.DataFrame(
-            columns=[f"{c}_{i}" for c in range(2) for i in range(1, N + 1)]
-        )
+        df_bayesian.loc[idx["all", con, :], "samples"] = etas[:, :, i, c].flatten()
 
-        for c, con in enumerate(set(df.eta)):
-            eta_dist = bayesian_samples["mu_eta"][:, :, c].flatten()
-            df_bayesian_all, df_best = add_bayes(eta_dist, df_bayesian_all, df_best, c)
+        kde = sm.nonparametric.KDEUnivariate(mu_etas[:, :, c].flatten()).fit()
 
-            for i, participant in enumerate(set(df.participant_id)):
-                eta_dist = bayesian_samples["eta"][:, :, i, c].flatten()
-                df_bayesian_subjects, df_best = add_bayes(
-                    eta_dist, df_bayesian_subjects, df_best, c, i + 1
-                )
+        df_overview.loc[idx["all", con, :], "log_reg_decision_boundary"] = decision_boundary
+        df_overview.loc[idx["all", con, :], "log_reg_std_dev"] = std_dev
+        df_overview.loc[idx["all", con, :], "bayesian_decision_boundary"] = kde.support[
+            np.argmax(kde.density)
+        ]
 
-            df_bayesian_subjects.to_csv(
-                os.path.join(data_dir, "plotting_files", "df_bayesian_subjects.csv"), sep="\t"
+        for i, participant in enumerate(set(df.participant_id)):
+            # INDIVIDUAL LEVEL DATA
+            df_tmp = df.query("participant_id == @participant and eta == @con").reset_index(
+                drop=True
             )
-            df_bayesian_all.to_csv(
-                os.path.join(data_dir, "plotting_files", "df_bayesian_all.csv"), sep="\t"
-            )
-    df_best.loc[0, "participant"] = "all"
-    df_best.to_csv(os.path.join(data_dir, "plotting_files", "best_estimates.csv"), sep="\t")
+            (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
+            idx = pd.IndexSlice
+            df_logistic.loc[idx[participant, con, :], "x_test"] = x_test
+            df_logistic.loc[idx[participant, con, :], "pred"] = pred
+            df_logistic.loc[idx[participant, con, :], "lower"] = lower
+            df_logistic.loc[idx[participant, con, :], "upper"] = upper
+
+            df_bayesian.loc[idx[participant, con, :], "samples"] = etas[:, :, i, c].flatten()
+
+            kde = sm.nonparametric.KDEUnivariate(etas[:, :, i, c].flatten()).fit()
+
+            df_overview.loc[
+                idx[participant, con, :], "log_reg_decision_boundary"
+            ] = decision_boundary
+            df_overview.loc[idx[participant, con, :], "log_reg_std_dev"] = std_dev
+            df_overview.loc[idx[participant, con, :], "bayesian_decision_boundary"] = kde.support[
+                np.argmax(kde.density)
+            ]
+    df_logistic.to_csv(os.path.join(data_dir, "plotting_files", "test1.csv"), sep="\t")
+    df_bayesian.to_csv(os.path.join(data_dir, "plotting_files", "test2.csv"), sep="\t")
+    df_overview.to_csv(os.path.join(data_dir, "plotting_files", "test3.csv"), sep="\t")
 
 
 if __name__ == "__main__":
