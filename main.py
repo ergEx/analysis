@@ -1,9 +1,7 @@
 import sys
 import time
 import warnings
-
 import yaml
-from sklearn.exceptions import ConvergenceWarning
 
 from codebase import base, create_JASP_input, create_plots, create_plotting_data, readingdata
 
