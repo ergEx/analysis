@@ -1,3 +1,5 @@
+*Note: currently requires python=3.9*
+
 # analysis
 
 ## To do:
