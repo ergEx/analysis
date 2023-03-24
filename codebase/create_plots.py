@@ -79,6 +79,8 @@ def plot_raincloud(ax, df, c, pal, title_dict={0: "Additive", 1: "Multiplicative
         orient="h",
         palette=pal,
         alpha=0.5,
+        move=0.225,
+        width_box=0.225,
         dodge=True,
     )
     ax.legend().set_visible(False)
@@ -281,6 +283,9 @@ def main(config_file, i, simulation_variant=""):
 
     data_dir = config["data directoty"][0]
     fig_dir = config["figure directoty"]
+
+    if not os.path.isdir(fig_dir):
+        os.makedirs(fig_dir)
 
     colors = config["colors"]
     pal = sns.set_palette(sns.color_palette(colors))
