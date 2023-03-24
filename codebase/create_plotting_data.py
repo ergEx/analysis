@@ -145,9 +145,14 @@ def main(config_file, i, simulation_variant):
             df_overview.loc[idx[participant, con, :], "bayesian_decision_boundary"] = kde.support[
                 np.argmax(kde.density)
             ]
-    df_logistic.to_csv(os.path.join(data_dir, "plotting_files", "test1.csv"), sep="\t")
-    df_bayesian.to_csv(os.path.join(data_dir, "plotting_files", "test2.csv"), sep="\t")
-    df_overview.to_csv(os.path.join(data_dir, "plotting_files", "test3.csv"), sep="\t")
+    df_logistic.to_csv(os.path.join(data_dir, "plotting_files", "logistic.csv"), sep="\t")
+    df_logistic.to_pickle(os.path.join(data_dir, "plotting_files", "logistic.pkl"))
+
+    df_bayesian.to_csv(os.path.join(data_dir, "plotting_files", "bayesian.csv"), sep="\t")
+    df_bayesian.to_pickle(os.path.join(data_dir, "plotting_files", "bayesian.pkl"))
+
+    df_overview.to_csv(os.path.join(data_dir, "plotting_files", "overview.csv"), sep="\t")
+    df_overview.to_pickle(os.path.join(data_dir, "plotting_files", "overview.pkl"))
 
 
 if __name__ == "__main__":
