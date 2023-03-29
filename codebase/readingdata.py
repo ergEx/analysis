@@ -1,3 +1,4 @@
+import itertools
 import os
 import sys
 
@@ -33,6 +34,7 @@ def reading_participant_passive_data(
 
 def reading_participant_active_data(
     data_folder: str,
+    phenotype: str,
     subject: str,
     first_run: str,
     bids_text: str,
@@ -44,7 +46,10 @@ def reading_participant_active_data(
     """Active phase data"""
     if data_variant == "0_simulation":
         active_phase_data = pd.read_csv(
-            os.path.join(data_folder, f"sim_agent_{subject}_lambd_{int(lambd)}.csv"), sep="\t",
+            os.path.join(
+                data_folder, f"sim_agent_phenotype_{phenotype}_{subject}_lambd_{int(lambd)}.csv"
+            ),
+            sep="\t",
         )
     else:
         active_phase_data = pd.read_csv(
@@ -59,9 +64,10 @@ def reading_participant_active_data(
         active_phase_data = active_phase_data.query('event_type == "WealthUpdate"').reset_index(
             drop=True
         )
-    # active_phase_data["wealth_shift"] = np.concatenate(
-    #    (np.array([1000]), np.array(active_phase_data.wealth))
-    # )[:-1]
+        active_phase_data["phenotype"] = "real_participant"
+    active_phase_data["wealth_shift"] = np.concatenate(
+        (np.array([1000]), np.array(active_phase_data.wealth))
+    )[:-1]
 
     for i, ii in enumerate(active_phase_data.index):
         trial = active_phase_data.loc[ii, :]
@@ -94,7 +100,6 @@ def reading_participant_active_data(
 def reading_data(
     data_variant: str,
     data_folder: str,
-    stages,
     n_agents: int = 1,
     etas: list = [],
     n_passive_runs: int = 3,
@@ -112,19 +117,16 @@ def reading_data(
     """
 
     CONDITION_SPECS = condition_specs()
-    SUBJECT_SPECS = sub_specs(data_variant, etas)
+    SUBJECT_SPECS = sub_specs(data_variant, n_agents)
+    phenotypes = list(itertools.product(etas, etas)) if len(etas) > 1 else [None]
 
     passive_phase_df = pd.DataFrame()
     active_phase_df = pd.DataFrame()
     datadict = dict()
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
-        print(f"\nCondition {condition}")
-        for i, subject1 in enumerate(SUBJECT_SPECS["id"]):
-            for j in range(n_agents):
-                subject = f"{j}_{subject1}" if data_variant == "0_simulation" else subject1
-                print(f"Subject {subject}")
-
-                if stages["passive_output"]:
+        for p, phenotype in enumerate(phenotypes):
+            for i, subject in enumerate(SUBJECT_SPECS["id"]):
+                if data_variant != "0_simulation":
                     passive_participant_df = reading_participant_passive_data(
                         data_folder=data_folder,
                         subject=subject,
@@ -135,70 +137,66 @@ def reading_data(
 
                     passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
 
-                if stages["active_output"]:
-                    active_participant_df = reading_participant_active_data(
-                        data_folder=data_folder,
-                        subject=subject,
-                        first_run=SUBJECT_SPECS["first_run"][i][c],
-                        bids_text=CONDITION_SPECS["bids_text"][c],
-                        data_variant=data_variant,
-                        lambd=CONDITION_SPECS["lambd"][c],
-                        calc_indif_eta=stages["include indif eta"],
-                    )
+                active_participant_df = reading_participant_active_data(
+                    data_folder=data_folder,
+                    phenotype=f"{phenotype[0]}x{phenotype[1]}",
+                    subject=subject,
+                    first_run=SUBJECT_SPECS["first_run"][i][c],
+                    bids_text=CONDITION_SPECS["bids_text"][c],
+                    data_variant=data_variant,
+                    lambd=CONDITION_SPECS["lambd"][c],
+                )
 
-                    ##CSV
-                    active_phase_df = pd.concat([active_phase_df, active_participant_df])
+                ##CSV
+                active_phase_df = pd.concat([active_phase_df, active_participant_df])
 
-                if stages["output .mat"]:
-                    ##.mat
+                ##.mat
 
-                    # Retrieve growth rates
-                    datadict.setdefault(f'gr1_1{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["gamma_left_up"])
-                    )
-                    datadict.setdefault(f'gr1_2{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["gamma_left_down"])
-                    )
-                    datadict.setdefault(f'gr2_1{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["gamma_right_up"])
-                    )
-                    datadict.setdefault(f'gr2_2{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["gamma_right_down"])
-                    )
+                # Retrieve growth rates
+                datadict.setdefault(f'gr1_1{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["gamma_left_up"])
+                )
+                datadict.setdefault(f'gr1_2{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["gamma_left_down"])
+                )
+                datadict.setdefault(f'gr2_1{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["gamma_right_up"])
+                )
+                datadict.setdefault(f'gr2_2{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["gamma_right_down"])
+                )
 
-                    # Retrieve wealth changes
-                    datadict.setdefault(f'x1_1{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["x1_1"])
-                    )
-                    datadict.setdefault(f'x1_2{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["x1_2"])
-                    )
-                    datadict.setdefault(f'x2_1{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["x2_1"])
-                    )
-                    datadict.setdefault(f'x2_2{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["x2_2"])
-                    )
+                # Retrieve wealth changes
+                datadict.setdefault(f'x1_1{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["x1_1"])
+                )
+                datadict.setdefault(f'x1_2{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["x1_2"])
+                )
+                datadict.setdefault(f'x2_1{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["x2_1"])
+                )
+                datadict.setdefault(f'x2_2{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["x2_2"])
+                )
 
-                    # Retrive wealth
-                    datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["wealth"])
-                    )
+                # Retrive wealth
+                datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["wealth"])
+                )
 
-                    # Retrieve keypresses
-                    datadict.setdefault(f'choice{CONDITION_SPECS["txt_append"][c]}', []).append(
-                        np.array(active_participant_df["selected_side_map"])
-                    )
+                # Retrieve keypresses
+                datadict.setdefault(f'choice{CONDITION_SPECS["txt_append"][c]}', []).append(
+                    np.array(active_participant_df["selected_side_map"])
+                )
 
-    if stages["passive_output"]:
+    if data_variant != "0_simulations":
         passive_phase_df.to_csv(os.path.join(data_folder, "all_passive_phase_data.csv"), sep="\t")
-    if stages["active_output"]:
-        active_phase_df.to_csv(os.path.join(data_folder, "all_active_phase_data.csv"), sep="\t")
-    if stages["output .mat"]:
-        scipy.io.savemat(
-            os.path.join(data_folder, "all_active_phase_data.mat"), datadict, oned_as="row"
-        )
-        np.savez(os.path.join(data_folder, "all_active_phase_data.mat.npz"), datadict=datadict)
+    active_phase_df.to_csv(os.path.join(data_folder, "all_active_phase_data.csv"), sep="\t")
+    scipy.io.savemat(
+        os.path.join(data_folder, "all_active_phase_data.mat"), datadict, oned_as="row"
+    )
+    np.savez(os.path.join(data_folder, "all_active_phase_data.mat.npz"), datadict=datadict)
 
 
 def main(config_file, i, simulation_variant):
@@ -208,15 +206,13 @@ def main(config_file, i, simulation_variant):
     if not config["readingdata"]["run"]:
         return
 
-    stages = config["readingdata"]["stages"]
-
-    data_folders = config["data_folders"]
+    data_dir = config["data directoty"]
     data_variant = config["data_variant"]
     n_agents = config["n_agents"]
     etas = config["etas"]
 
-    print(f"\nREADING DATA \n{data_variant} \n{simulation_variant}")
-    reading_data(data_variant, data_folders[i], stages, n_agents[i], etas)
+    print(f"\nREADING DATA")
+    reading_data(data_variant, data_dir[i], n_agents[i], etas)
 
 
 if __name__ == "__main__":
