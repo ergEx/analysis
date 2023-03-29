@@ -1,7 +1,7 @@
 import itertools
 
 
-def sub_specs(data_variant: str, etas: list = None):
+def sub_specs(data_variant: str, n_agents: int = 1):
     """
     Returns a dictionary of data specification for the given data variant.
 
@@ -14,13 +14,13 @@ def sub_specs(data_variant: str, etas: list = None):
     """
     if data_variant == "0_simulation":
         return {
-            "id": [f"{i[0]}x{i[1]}" for i in itertools.product(etas, etas)] + ["random"],
-            "first_run": [[1, 2]] * (len(etas) ** 2 + 1),
+            "id": list(range(n_agents)),
+            "first_run": [[1, 2]] * n_agents,
         }
     elif data_variant == "1_pilot":
         return {
             # ["000", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010"]
-            "id": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            "id": list(range(9)),
             "first_run": [
                 [1, 2],
                 [1, 2],

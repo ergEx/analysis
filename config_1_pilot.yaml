@@ -4,25 +4,28 @@
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/1_pilot"
-figure directoty: "figs/1_pilot"
+data directoty: ["data/1_pilot"]
+figure directoty: ["figs/1_pilot"]
 
 # This section specifies data variables
 data_variant: "1_pilot"
 
-simulation_varaints: " "
+simulation_varaints: [" "]
+
+n_agents: [1]
+etas: []
 
 # This section specifies plotting variables
 colors: ["#e28743", "#043d74"]
 
 # This section provides control over whether data needs to be re-read
 readingdata:
-  run: False
+  run: True
 
 # This section provides control over whether plot data needs to be re-calculated
 plot_data:
-  run: False
-  calculate_indif_eta: False
+  run: True
+  calculate_indif_eta: True
   log_reg: True
   bayesian: True
 

@@ -1,6 +1,7 @@
 import sys
 import time
 import warnings
+
 import yaml
 
 from codebase import base, create_JASP_input, create_plots, create_plotting_data, readingdata
@@ -13,9 +14,13 @@ def main():
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     simulation_variants = config["simulation_varaints"]
+    data_variant = config["data_variant"]
 
     for i, simulation_variant in enumerate(simulation_variants):
-        print("STARTING ANALYSIS")
+        print(f"\nSTARTING ANALYSIS")
+        print(f"Data: {data_variant}")
+        if len(simulation_variants) > 1:
+            print(f"Simulation variant: {simulation_variant}")
         start_time = time.time()
         print(time.ctime(start_time))
 

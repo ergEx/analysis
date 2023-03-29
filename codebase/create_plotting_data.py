@@ -1,3 +1,4 @@
+import itertools
 import os
 
 import numpy as np
@@ -56,6 +57,11 @@ def main(config_file, i, simulation_variant):
 
     data_dir = config["data directoty"][i]
 
+    print(f"\nCALCULATING PLOTTING DATA")
+
+    if not os.path.isdir(os.path.join(data_dir, "plotting_files")):
+        os.makedirs(os.path.join(data_dir, "plotting_files"))
+
     # READING IN DATA
 
     if config["plot_data"]["calculate_indif_eta"]:
@@ -63,38 +69,76 @@ def main(config_file, i, simulation_variant):
         df = add_indif_eta(df)
         df.to_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t")
     else:
-        df = pd.read_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t")
+        # ADD TRY EXCEPT STATEMENT HERE!
+        try:
+            df = pd.read_csv(
+                os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t"
+            )
+        except:
+            ValueError(
+                "Looks like you haven't calculated the indifference etas; please do that by changing in the .yaml file you use."
+            )
 
     df = df.dropna(subset=["indif_eta"])
 
-    bayesian_samples = read_Bayesian_output(
-        os.path.join(data_dir, "Bayesian_parameter_estimation.mat")
-    )
+    try:
+        bayesian_samples = read_Bayesian_output(
+            os.path.join(data_dir, "Bayesian_parameter_estimation.mat")
+        )
+        etas = bayesian_samples["eta"]
+        etas_t = etas.transpose((2, 0, 1, 3))
+        mu_etas = bayesian_samples["mu_eta"]
+        n_samples = np.shape(etas)[0] * np.shape(etas)[1]
 
-    etas = bayesian_samples["eta"]
-    mu_etas = bayesian_samples["mu_eta"]
+        run_bayesian = True
+    except:
+        run_bayesian = False
+        print(
+            "Looks like you haven't run the Bayesian model yet; you can still get the indifference eta results, but you need to run the Bayesian model if you want all the results."
+        )
+        pass
+
+    etas_agent = config["etas"]
+    tmp = list(itertools.product(etas_agent, etas_agent)) if len(etas_agent) > 1 else [None]
+    phenotypes = [f"{i[0]}x{i[1]}" for i in tmp]
 
     # CREATING MULTIINDEX DATAFRAMES
+    phenotype_groups = (
+        np.repeat(
+            np.arange(len(set(df.phenotype))), len(set(df.participant_id)) / len(set(df.phenotype))
+        )
+        if len(set(df.phenotype)) > 1
+        else []
+    )
 
     index_logistic = pd.MultiIndex.from_product(
-        [["all"] + list(set(df.participant_id)), [0.0, 1.0], range(1000)],
-        names=["participant", "dynamic", "measurement"],
+        [
+            ["all"] + list(set(df.participant_id)),
+            list(set(df.phenotype)),
+            [0.0, 1.0],
+            range(1000),
+        ],
+        names=["participant", "phenotype", "dynamic", "measurement"],
     )
     df_logistic = pd.DataFrame(index=index_logistic, columns=["x_test", "pred", "lower", "upper"])
 
-    index_bayesian = pd.MultiIndex.from_product(
-        [
-            ["all"] + list(set(df.participant_id)),
-            [0.0, 1.0],
-            range(np.shape(etas)[0] * np.shape(etas)[1]),
-        ],
-        names=["participant", "dynamic", "measurement"],
-    )
-    df_bayesian = pd.DataFrame(index=index_bayesian, columns=["samples"])
+    df_logistic.to_csv(os.path.join(data_dir, "plotting_files", "logistic.csv"), sep="\t")
+
+    if run_bayesian:
+        index_bayesian = pd.MultiIndex.from_product(
+            [
+                ["all"] + list(set(df.participant_id)),
+                list(set(df.phenotype)),
+                [0.0, 1.0],
+                range(n_samples),
+            ],
+            names=["participant", "phenotype", "dynamic", "measurement"],
+        )
+        df_bayesian = pd.DataFrame(index=index_bayesian, columns=["samples"])
 
     index_overview = pd.MultiIndex.from_product(
-        [["all"] + list(set(df.participant_id)), [0.0, 1.0], range(1)],
-        names=["participant", "dynamic", "measurement"],
+        [["all"] + list(set(df.participant_id)), list(set(df.phenotype)), [0.0, 1.0],],
+        names=["participant", "phenotype", "dynamic"],
     )
     df_overview = pd.DataFrame(
         index=index_overview,
@@ -104,52 +148,89 @@ def main(config_file, i, simulation_variant):
     ## CALCULATING AND ADDING DATA
     for c, con in enumerate(set(df.eta)):
         # GROUP LEVEL DATA
-        df_tmp = df.query("eta == @con").reset_index(drop=True)
-        (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
-        idx = pd.IndexSlice
-        df_logistic.loc[idx["all", con, :], "x_test"] = x_test
-        df_logistic.loc[idx["all", con, :], "pred"] = pred
-        df_logistic.loc[idx["all", con, :], "lower"] = lower
-        df_logistic.loc[idx["all", con, :], "upper"] = upper
-
-        df_bayesian.loc[idx["all", con, :], "samples"] = etas[:, :, i, c].flatten()
-
-        kde = sm.nonparametric.KDEUnivariate(mu_etas[:, :, c].flatten()).fit()
-
-        df_overview.loc[idx["all", con, :], "log_reg_decision_boundary"] = decision_boundary
-        df_overview.loc[idx["all", con, :], "log_reg_std_dev"] = std_dev
-        df_overview.loc[idx["all", con, :], "bayesian_decision_boundary"] = kde.support[
-            np.argmax(kde.density)
-        ]
-
-        for i, participant in enumerate(set(df.participant_id)):
-            # INDIVIDUAL LEVEL DATA
-            df_tmp = df.query("participant_id == @participant and eta == @con").reset_index(
-                drop=True
-            )
+        for p, phenotype in enumerate(phenotypes):
+            # PHENOTYPE LEVEL DATA
+            df_tmp = df.query("phenotype == @phenotype and eta == @con").reset_index(drop=True)
             (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
             idx = pd.IndexSlice
-            df_logistic.loc[idx[participant, con, :], "x_test"] = x_test
-            df_logistic.loc[idx[participant, con, :], "pred"] = pred
-            df_logistic.loc[idx[participant, con, :], "lower"] = lower
-            df_logistic.loc[idx[participant, con, :], "upper"] = upper
+            df_logistic.loc[idx[f"all", phenotype, con, :], "x_test"] = x_test
+            df_logistic.loc[idx[f"all", phenotype, con, :], "pred"] = pred
+            df_logistic.loc[idx[f"all", phenotype, con, :], "lower"] = lower
+            df_logistic.loc[idx[f"all", phenotype, con, :], "upper"] = upper
 
-            df_bayesian.loc[idx[participant, con, :], "samples"] = etas[:, :, i, c].flatten()
+            if run_bayesian:
+                if len(set(df.phenotype)) > 1:
+                    tmp = etas_t[:, :, :, c]
+                    tmp_flat = tmp.reshape((tmp.shape[0], -1))
+                    eta_phenotype_group = tmp_flat[phenotype_groups == p]
 
-            kde = sm.nonparametric.KDEUnivariate(etas[:, :, i, c].flatten()).fit()
+                    df_bayesian.loc[idx[f"all", phenotype, con, :], "samples"] = np.random.normal(
+                        np.mean(eta_phenotype_group.flatten()),
+                        np.std(eta_phenotype_group.flatten()),
+                        size=n_samples,
+                    )
+
+                    kde = sm.nonparametric.KDEUnivariate(eta_phenotype_group.flatten()).fit()
+                else:
+                    df_bayesian.loc[idx[f"all", phenotype, con, :], "samples"] = mu_etas[
+                        :, :, c
+                    ].flatten()
+                    kde = sm.nonparametric.KDEUnivariate(mu_etas[:, :, c].flatten()).fit()
 
             df_overview.loc[
-                idx[participant, con, :], "log_reg_decision_boundary"
+                idx[f"all", phenotype, con], "log_reg_decision_boundary"
             ] = decision_boundary
-            df_overview.loc[idx[participant, con, :], "log_reg_std_dev"] = std_dev
-            df_overview.loc[idx[participant, con, :], "bayesian_decision_boundary"] = kde.support[
-                np.argmax(kde.density)
-            ]
+            df_overview.loc[idx[f"all", phenotype, con], "log_reg_std_dev"] = std_dev
+
+            if run_bayesian:
+                df_overview.loc[
+                    idx[f"all", phenotype, con], "bayesian_decision_boundary"
+                ] = kde.support[np.argmax(kde.density)]
+
+            for i, participant in enumerate(set(df.participant_id)):
+                # INDIVIDUAL LEVEL DATA
+                df_tmp = df.query(
+                    "phenotype == @phenotype and participant_id == @participant and eta == @con"
+                ).reset_index(drop=True)
+                try:
+                    (
+                        x_test,
+                        pred,
+                        lower,
+                        upper,
+                        decision_boundary,
+                        std_dev,
+                    ) = logistic_regression(df_tmp)
+                    idx = pd.IndexSlice
+                    df_logistic.loc[idx[participant, phenotype, con, :], "x_test"] = x_test
+                    df_logistic.loc[idx[participant, phenotype, con, :], "pred"] = pred
+                    df_logistic.loc[idx[participant, phenotype, con, :], "lower"] = lower
+                    df_logistic.loc[idx[participant, phenotype, con, :], "upper"] = upper
+                except:
+                    pass
+
+                if run_bayesian:
+                    df_bayesian.loc[idx[participant, phenotype, con, :], "samples"] = etas[
+                        :, :, i, c
+                    ].flatten()
+
+                    kde = sm.nonparametric.KDEUnivariate(etas[:, :, i, c].flatten()).fit()
+
+                    df_overview.loc[
+                        idx[participant, phenotype, con], "bayesian_decision_boundary"
+                    ] = kde.support[np.argmax(kde.density)]
+
+                df_overview.loc[
+                    idx[participant, phenotype, con], "log_reg_decision_boundary"
+                ] = decision_boundary
+                df_overview.loc[idx[participant, phenotype, con], "log_reg_std_dev"] = std_dev
+
     df_logistic.to_csv(os.path.join(data_dir, "plotting_files", "logistic.csv"), sep="\t")
     df_logistic.to_pickle(os.path.join(data_dir, "plotting_files", "logistic.pkl"))
 
-    df_bayesian.to_csv(os.path.join(data_dir, "plotting_files", "bayesian.csv"), sep="\t")
-    df_bayesian.to_pickle(os.path.join(data_dir, "plotting_files", "bayesian.pkl"))
+    if run_bayesian:
+        df_bayesian.to_csv(os.path.join(data_dir, "plotting_files", "bayesian.csv"), sep="\t")
+        df_bayesian.to_pickle(os.path.join(data_dir, "plotting_files", "bayesian.pkl"))
 
     df_overview.to_csv(os.path.join(data_dir, "plotting_files", "overview.csv"), sep="\t")
     df_overview.to_pickle(os.path.join(data_dir, "plotting_files", "overview.pkl"))
