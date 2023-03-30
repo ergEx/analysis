@@ -69,14 +69,13 @@ def main(config_file, i, simulation_variant):
         df = add_indif_eta(df)
         df.to_csv(os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t")
     else:
-        # ADD TRY EXCEPT STATEMENT HERE!
         try:
             df = pd.read_csv(
                 os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t"
             )
         except:
             ValueError(
-                "Looks like you haven't calculated the indifference etas; please do that by changing in the .yaml file you use."
+                f"\nLooks like you haven't calculated the indifference etas; please do that by changing in the .yaml file you use.\n"
             )
 
     df = df.dropna(subset=["indif_eta"])
@@ -89,35 +88,27 @@ def main(config_file, i, simulation_variant):
         etas_t = etas.transpose((2, 0, 1, 3))
         mu_etas = bayesian_samples["mu_eta"]
         n_samples = np.shape(etas)[0] * np.shape(etas)[1]
-
         run_bayesian = True
     except:
         run_bayesian = False
         print(
-            "Looks like you haven't run the Bayesian model yet; you can still get the indifference eta results, but you need to run the Bayesian model if you want all the results."
+            f"\nLooks like you haven't run the Bayesian model yet; you can still get the indifference eta results, but you need to run the Bayesian model if you want all the results.\n"
         )
         pass
 
     etas_agent = config["etas"]
     tmp = list(itertools.product(etas_agent, etas_agent)) if len(etas_agent) > 1 else [None]
-    phenotypes = [f"{i[0]}x{i[1]}" for i in tmp]
+    phenotypes = [f"{i[0]}x{i[1]}" for i in tmp] if len(etas_agent) > 1 else ["real_participant"]
 
     # CREATING MULTIINDEX DATAFRAMES
     phenotype_groups = (
-        np.repeat(
-            np.arange(len(set(df.phenotype))), len(set(df.participant_id)) / len(set(df.phenotype))
-        )
-        if len(set(df.phenotype)) > 1
+        np.repeat(np.arange(len(phenotypes)), len(set(df.participant_id)))
+        if len(phenotypes) > 1
         else []
     )
 
     index_logistic = pd.MultiIndex.from_product(
-        [
-            ["all"] + list(set(df.participant_id)),
-            list(set(df.phenotype)),
-            [0.0, 1.0],
-            range(1000),
-        ],
+        [["all"] + list(set(df.participant_id)), phenotypes, [0.0, 1.0], range(1000),],
         names=["participant", "phenotype", "dynamic", "measurement"],
     )
     df_logistic = pd.DataFrame(index=index_logistic, columns=["x_test", "pred", "lower", "upper"])
@@ -126,29 +117,25 @@ def main(config_file, i, simulation_variant):
 
     if run_bayesian:
         index_bayesian = pd.MultiIndex.from_product(
-            [
-                ["all"] + list(set(df.participant_id)),
-                list(set(df.phenotype)),
-                [0.0, 1.0],
-                range(n_samples),
-            ],
+            [["all"] + list(set(df.participant_id)), phenotypes, [0.0, 1.0], range(n_samples),],
             names=["participant", "phenotype", "dynamic", "measurement"],
         )
         df_bayesian = pd.DataFrame(index=index_bayesian, columns=["samples"])
 
     index_overview = pd.MultiIndex.from_product(
-        [["all"] + list(set(df.participant_id)), list(set(df.phenotype)), [0.0, 1.0],],
+        [["all"] + list(set(df.participant_id)), phenotypes, [0.0, 1.0],],
         names=["participant", "phenotype", "dynamic"],
     )
     df_overview = pd.DataFrame(
         index=index_overview,
         columns=["log_reg_decision_boundary", "log_reg_std_dev", "bayesian_decision_boundary"],
     )
-
+    print(len(set(df.participant_id)))
     ## CALCULATING AND ADDING DATA
     for c, con in enumerate(set(df.eta)):
         # GROUP LEVEL DATA
         for p, phenotype in enumerate(phenotypes):
+            print(phenotype)
             # PHENOTYPE LEVEL DATA
             df_tmp = df.query("phenotype == @phenotype and eta == @con").reset_index(drop=True)
             (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
@@ -159,9 +146,10 @@ def main(config_file, i, simulation_variant):
             df_logistic.loc[idx[f"all", phenotype, con, :], "upper"] = upper
 
             if run_bayesian:
-                if len(set(df.phenotype)) > 1:
+                if len(phenotypes) > 1:
                     tmp = etas_t[:, :, :, c]
                     tmp_flat = tmp.reshape((tmp.shape[0], -1))
+
                     eta_phenotype_group = tmp_flat[phenotype_groups == p]
 
                     df_bayesian.loc[idx[f"all", phenotype, con, :], "samples"] = np.random.normal(
@@ -211,10 +199,13 @@ def main(config_file, i, simulation_variant):
 
                 if run_bayesian:
                     df_bayesian.loc[idx[participant, phenotype, con, :], "samples"] = etas[
-                        :, :, i, c
+                        :, :, i + p * len(set(df.participant_id)), c
                     ].flatten()
+                    print(i + p * len(set(df.participant_id)))
 
-                    kde = sm.nonparametric.KDEUnivariate(etas[:, :, i, c].flatten()).fit()
+                    kde = sm.nonparametric.KDEUnivariate(
+                        etas[:, :, i + p * len(set(df.participant_id)), c].flatten()
+                    ).fit()
 
                     df_overview.loc[
                         idx[participant, phenotype, con], "bayesian_decision_boundary"
