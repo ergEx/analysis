@@ -208,7 +208,6 @@ def plot_log_reg(df, df_logistic, df_overview, fig_dir):
 
 
 def plot_bayesian(df, df_bayesian, fig_dir, legend_dict={0: "Additive", 1: "Multiplicative"}):
-    df_bayesian.to_csv(os.path.join(fig_dir, f"0_8_bayesian_heatmap.csv"))
     for p, phenotype in enumerate(set(df.phenotype)):
         fig_bayesian, ax_bayesian = plt.subplots(1, 1)
         for c, con in enumerate(set(df.eta)):
@@ -262,18 +261,17 @@ def plot_bayesian(df, df_bayesian, fig_dir, legend_dict={0: "Additive", 1: "Mult
             fig_bayesian_subjects.savefig(os.path.join(fig_dir, f"5_bayesian_{i}_{phenotype}.png"))
 
 
-def plot_heatmaps(df, fig_dir):
-    df = df[df.index.get_level_values(0) != "all"]
-    df.to_csv(os.path.join(fig_dir, f"0_7_bayesian_heatmap.csv"))
-    df_dynamics = df.unstack(level="dynamic")
+def plot_heatmaps(df_bayesian, fig_dir, data_variant):
+    df_bayesian = df_bayesian[df_bayesian.index.get_level_values(0) != "all"]
+    df_dynamics = df_bayesian.unstack(level="dynamic")
     df_dynamics.columns = ["_".join(map(str, col)).strip() for col in df_dynamics.columns.values]
 
     df_dynamics = df_dynamics.reset_index()
 
     df_dynamics["samples_0.0"] = df_dynamics["samples_0.0"].astype(float)
     df_dynamics["samples_1.0"] = df_dynamics["samples_1.0"].astype(float)
-    hue = "phenotype"  # 'participant'
-    df_dynamics.to_csv(os.path.join(fig_dir, f"0_6_bayesian_heatmap.csv"))
+
+    hue = "participant" if data_variant != "0_simulation" else "phenotype"
     test = sns.jointplot(
         data=df_dynamics,
         x="samples_0.0",
@@ -337,5 +335,5 @@ def main(config_file, i, simulation_variant=""):
     if run_bayesian:
         plot_bayesian(df_active, df_bayesian, fig_dir)
 
-        plot_heatmaps(df_bayesian, fig_dir)
+        plot_heatmaps(df_bayesian, fig_dir, data_variant)
 
