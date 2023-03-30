@@ -21,9 +21,9 @@ def reading_participant_passive_data(
         df = pd.read_csv(
             os.path.join(
                 data_folder,
-                f"sub-00{subject}",
+                f"sub-{subject}",
                 f"ses-{first_run}",
-                f"sub-00{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_beh.csv",
+                f"sub-{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_beh.csv",
             ),
             sep="\t",
         )
@@ -55,9 +55,9 @@ def reading_participant_active_data(
         active_phase_data = pd.read_csv(
             os.path.join(
                 data_folder,
-                f"sub-00{subject}",
+                f"sub-{subject}",
                 f"ses-{first_run}",
-                f"sub-00{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv",
+                f"sub-{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv",
             ),
             sep="\t",
         )
@@ -72,7 +72,7 @@ def reading_participant_active_data(
     for i, ii in enumerate(active_phase_data.index):
         trial = active_phase_data.loc[ii, :]
         x_updates = wealth_change(
-            x=trial.wealth,
+            x=trial.wealth_shift,
             gamma=[
                 trial.gamma_left_up,
                 trial.gamma_left_down,
@@ -81,10 +81,10 @@ def reading_participant_active_data(
             ],
             lambd=trial.eta,
         )
-        active_phase_data.loc[ii, "x1_1"] = x_updates[0] - trial.wealth
-        active_phase_data.loc[ii, "x1_2"] = x_updates[1] - trial.wealth
-        active_phase_data.loc[ii, "x2_1"] = x_updates[2] - trial.wealth
-        active_phase_data.loc[ii, "x2_2"] = x_updates[3] - trial.wealth
+        active_phase_data.loc[ii, "x1_1"] = x_updates[0] - trial.wealth_shift
+        active_phase_data.loc[ii, "x1_2"] = x_updates[1] - trial.wealth_shift
+        active_phase_data.loc[ii, "x2_1"] = x_updates[2] - trial.wealth_shift
+        active_phase_data.loc[ii, "x2_2"] = x_updates[3] - trial.wealth_shift
 
         active_phase_data.loc[ii, "selected_side_map"] = (
             0 if active_phase_data.loc[ii, "selected_side"] == "right" else 1
@@ -118,13 +118,17 @@ def reading_data(
 
     CONDITION_SPECS = condition_specs()
     SUBJECT_SPECS = sub_specs(data_variant, n_agents)
-    phenotypes = list(itertools.product(etas, etas)) if len(etas) > 1 else [None]
+    phenotypes = ["random"] + list(itertools.product(etas, etas)) if len(etas) > 1 else [None]
 
     passive_phase_df = pd.DataFrame()
     active_phase_df = pd.DataFrame()
     datadict = dict()
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
         for p, phenotype in enumerate(phenotypes):
+            if len(phenotypes) > 1:
+                phe = f"{phenotype[0]}x{phenotype[1]}" if phenotype != "random" else "random"
+            else:
+                phe = ""
             for i, subject in enumerate(SUBJECT_SPECS["id"]):
                 if data_variant != "0_simulation":
                     passive_participant_df = reading_participant_passive_data(
@@ -139,7 +143,7 @@ def reading_data(
 
                 active_participant_df = reading_participant_active_data(
                     data_folder=data_folder,
-                    phenotype=f"{phenotype[0]}x{phenotype[1]}",
+                    phenotype=phe,
                     subject=subject,
                     first_run=SUBJECT_SPECS["first_run"][i][c],
                     bids_text=CONDITION_SPECS["bids_text"][c],
@@ -182,7 +186,7 @@ def reading_data(
 
                 # Retrive wealth
                 datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}', []).append(
-                    np.array(active_participant_df["wealth"])
+                    np.array(active_participant_df["wealth_shift"])
                 )
 
                 # Retrieve keypresses
