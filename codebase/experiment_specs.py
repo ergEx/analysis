@@ -20,7 +20,7 @@ def sub_specs(data_variant: str, n_agents: int = 1):
     elif data_variant == "1_pilot":
         return {
             # ["000", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010"]
-            "id": list(range(9)),
+            "id": [str(i).zfill(3) for i in range(11)],
             "first_run": [
                 [1, 2],
                 [1, 2],
