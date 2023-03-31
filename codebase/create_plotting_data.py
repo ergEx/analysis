@@ -98,7 +98,11 @@ def main(config_file, i, simulation_variant):
 
     etas_agent = config["etas"]
     tmp = list(itertools.product(etas_agent, etas_agent)) if len(etas_agent) > 1 else [None]
-    phenotypes = [f"{i[0]}x{i[1]}" for i in tmp] if len(etas_agent) > 1 else ["real_participant"]
+    phenotypes = (
+        ["random"] + [f"{i[0]}x{i[1]}" for i in tmp]
+        if len(etas_agent) > 1
+        else ["real_participant"]
+    )
 
     # CREATING MULTIINDEX DATAFRAMES
     phenotype_groups = (
