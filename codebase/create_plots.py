@@ -157,7 +157,7 @@ def plot_regplot(ax, df, v, label_dict={0: "Lower bound", 1: "Upper bound"}):
     return ax
 
 
-def plot_log_reg(df, df_logistic, df_overview, fig_dir):
+def plot_log_reg(df, df_logistic, df_overview, fig_dir, data_variant):
 
     # GROUP LEVEL
     for p, phenotype in enumerate(set(df.phenotype)):
@@ -180,34 +180,40 @@ def plot_log_reg(df, df_logistic, df_overview, fig_dir):
         fig_log_reg.tight_layout()
         fig_log_reg.savefig(os.path.join(fig_dir, f"0_4_log_reg_{phenotype}.png"))
 
-    # PARTICIPANT LEVEL
-    for p, phenotype in enumerate(set(df.phenotype)):
-        for i, participant in enumerate(set(df.participant_id)):
-            fig_log_reg_subject, ax_log_reg_subject = plt.subplots(2, 1)
-            for c, con in enumerate(set(df.eta)):
-                idx = pd.IndexSlice
-                tmp = df_logistic.loc[idx[participant, phenotype, con, :]]
-                est = df_overview.loc[idx[participant, phenotype, con]]
-                ax_log_reg_subject[c] = log_reg_plot(
-                    ax_log_reg_subject[c], tmp, est.log_reg_decision_boundary, c, fig_dir
+    if data_variant != "0_simulation":
+        # PARTICIPANT LEVEL
+        for p, phenotype in enumerate(set(df.phenotype)):
+            for i, participant in enumerate(set(df.participant_id)):
+                fig_log_reg_subject, ax_log_reg_subject = plt.subplots(2, 1)
+                for c, con in enumerate(set(df.eta)):
+                    idx = pd.IndexSlice
+                    tmp = df_logistic.loc[idx[participant, phenotype, con, :]]
+                    est = df_overview.loc[idx[participant, phenotype, con]]
+                    ax_log_reg_subject[c] = log_reg_plot(
+                        ax_log_reg_subject[c], tmp, est.log_reg_decision_boundary, c, fig_dir
+                    )
+                    df_tmp = df.query("participant_id == @participant and eta == @con")
+
+                    ax_log_reg_subject[c] = plot_regplot(ax_log_reg_subject[c], df_tmp, 1)
+                    ax_log_reg_subject[c] = plot_regplot(ax_log_reg_subject[c], df_tmp, 0)
+
+                    ax_log_reg[c].legend(loc="upper left", fontsize="xx-small")
+
+                    fig_log_reg_subject.suptitle(
+                        f"Logistic regression for participant {i+1} phenotype{p}"
+                    )
+
+                fig_log_reg_subject.suptitle(f"Logistic regression participant {i} {phenotype}")
+                fig_log_reg_subject.tight_layout()
+                fig_log_reg_subject.savefig(
+                    os.path.join(fig_dir, f"4_log_reg_{i}_{phenotype}.png")
                 )
-                df_tmp = df.query("participant_id == @participant and eta == @con")
-
-                ax_log_reg_subject[c] = plot_regplot(ax_log_reg_subject[c], df_tmp, 1)
-                ax_log_reg_subject[c] = plot_regplot(ax_log_reg_subject[c], df_tmp, 0)
-
-                ax_log_reg[c].legend(loc="upper left", fontsize="xx-small")
-
-                fig_log_reg_subject.suptitle(
-                    f"Logistic regression for participant {i+1} phenotype{p}"
-                )
-
-            fig_log_reg_subject.suptitle(f"Logistic regression participant {i} {phenotype}")
-            fig_log_reg_subject.tight_layout()
-            fig_log_reg_subject.savefig(os.path.join(fig_dir, f"4_log_reg_{i}_{phenotype}.png"))
 
 
-def plot_bayesian(df, df_bayesian, fig_dir, legend_dict={0: "Additive", 1: "Multiplicative"}):
+def plot_bayesian(
+    df, df_bayesian, fig_dir, data_variant, legend_dict={0: "Additive", 1: "Multiplicative"}
+):
+    # GROUP LEVEL
     for p, phenotype in enumerate(set(df.phenotype)):
         fig_bayesian, ax_bayesian = plt.subplots(1, 1)
         for c, con in enumerate(set(df.eta)):
@@ -232,33 +238,37 @@ def plot_bayesian(df, df_bayesian, fig_dir, legend_dict={0: "Additive", 1: "Mult
         )
         fig_bayesian.savefig(os.path.join(fig_dir, f"0_5_bayesian_{phenotype}.png"))
 
-    for p, phenotype in enumerate(set(df.phenotype)):
-        for i, participant in enumerate(set(df.participant_id)):
-            fig_bayesian_subjects, ax_bayesian_subjects = plt.subplots(1, 1)
-            for c, con in enumerate(set(df.eta)):
-                idx = pd.IndexSlice
-                tmp = df_bayesian.loc[idx[participant, phenotype, con, :]]
-                ax_bayesian_subjects = sns.kdeplot(
-                    tmp.samples.astype(float),
-                    ax=ax_bayesian_subjects,
-                    label=legend_dict[c],
-                    fill=True,
+    # PARTICIPANT LEVEL
+    if data_variant != "0_simulation":
+        for p, phenotype in enumerate(set(df.phenotype)):
+            for i, participant in enumerate(set(df.participant_id)):
+                fig_bayesian_subjects, ax_bayesian_subjects = plt.subplots(1, 1)
+                for c, con in enumerate(set(df.eta)):
+                    idx = pd.IndexSlice
+                    tmp = df_bayesian.loc[idx[participant, phenotype, con, :]]
+                    ax_bayesian_subjects = sns.kdeplot(
+                        tmp.samples.astype(float),
+                        ax=ax_bayesian_subjects,
+                        label=legend_dict[c],
+                        fill=True,
+                    )
+                    xs, ys = ax_bayesian_subjects.collections[-1].get_paths()[0].vertices.T
+                    ax_bayesian_subjects.fill_between(xs, ys, color="red", alpha=0.05)
+                    mode_idx = np.argmax(ys)
+                    ax_bayesian_subjects.vlines(
+                        xs[mode_idx], 0, ys[mode_idx], ls="--", color="red", label="Prediction"
+                    )
+                ax_bayesian_subjects.legend(loc="upper left", fontsize="xx-small")
+                ax_bayesian_subjects.set(
+                    title=f"Bayesian parameter estimation for participant {i} {phenotype}",
+                    xlabel="Riskaversion parameter",
+                    ylabel="",
+                    yticks=[],
+                    xlim=[-1, 2],
                 )
-                xs, ys = ax_bayesian_subjects.collections[-1].get_paths()[0].vertices.T
-                ax_bayesian_subjects.fill_between(xs, ys, color="red", alpha=0.05)
-                mode_idx = np.argmax(ys)
-                ax_bayesian_subjects.vlines(
-                    xs[mode_idx], 0, ys[mode_idx], ls="--", color="red", label="Prediction"
+                fig_bayesian_subjects.savefig(
+                    os.path.join(fig_dir, f"5_bayesian_{i}_{phenotype}.png")
                 )
-            ax_bayesian_subjects.legend(loc="upper left", fontsize="xx-small")
-            ax_bayesian_subjects.set(
-                title=f"Bayesian parameter estimation for participant {i} {phenotype}",
-                xlabel="Riskaversion parameter",
-                ylabel="",
-                yticks=[],
-                xlim=[-1, 2],
-            )
-            fig_bayesian_subjects.savefig(os.path.join(fig_dir, f"5_bayesian_{i}_{phenotype}.png"))
 
 
 def plot_heatmaps(df_bayesian, fig_dir, data_variant):
@@ -306,7 +316,6 @@ def main(config_file, i, simulation_variant=""):
 
     if data_variant != "0_simulation":
         df_passive = pd.read_csv(os.path.join(data_dir, "all_passive_phase_data.csv"), sep="\t")
-        plot_passive(df_passive, fig_dir)
 
     df_active = pd.read_csv(
         os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t"
@@ -326,14 +335,17 @@ def main(config_file, i, simulation_variant=""):
             "Looks like you haven't run the Bayesian model yet; you can still get the indifference eta results, but you need to run the Bayesian model if you want all the results."
         )
 
-    plot_active(df_active, fig_dir)
+    if data_variant != "0_simulation":
+        plot_passive(df_passive, fig_dir)
 
-    plot_indif_eta(df_active, pal, fig_dir)
+        plot_active(df_active, fig_dir)
 
-    plot_log_reg(df_active, df_logistic, df_overview, fig_dir)
+        plot_indif_eta(df_active, pal, fig_dir)
+
+    plot_log_reg(df_active, df_logistic, df_overview, fig_dir, data_variant)
 
     if run_bayesian:
-        plot_bayesian(df_active, df_bayesian, fig_dir)
+        plot_bayesian(df_active, df_bayesian, fig_dir, data_variant)
 
         plot_heatmaps(df_bayesian, fig_dir, data_variant)
 
