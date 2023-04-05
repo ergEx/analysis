@@ -20,11 +20,11 @@ colors: ["#e28743", "#043d74"]
 
 # This section provides control over whether data needs to be re-read
 readingdata:
-  run: True
+  run: False
 
 # This section provides control over whether plot data needs to be re-calculated
 plot_data:
-  run: True
+  run: False
   calculate_indif_eta: True
   log_reg: True
   bayesian: True
