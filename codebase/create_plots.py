@@ -37,9 +37,9 @@ def plot_trajectory(
 
 
 def plot_passive(df_passive, fig_dir, colors):
-    fig_passive, ax_passive = plt.subplots(2, 1)
+    fig_passive, ax_passive = plt.subplots(2, 1, figsize=(10, 7))
     for i, participant in enumerate(set(df_passive.participant_id)):
-        fig_passive_subject, ax_passive_subject = plt.subplots(2, 1)
+        fig_passive_subject, ax_passive_subject = plt.subplots(2, 1, figsize=(10, 7))
         for c, cond in enumerate(set(df_passive.eta)):
             df_tmp = df_passive.query(
                 "participant_id == @participant and eta == @cond"
@@ -57,9 +57,9 @@ def plot_passive(df_passive, fig_dir, colors):
 
 
 def plot_active(df_active, fig_dir, colors):
-    fig_active, ax_active = plt.subplots(2, 1)
+    fig_active, ax_active = plt.subplots(2, 1, figsize=(10, 7))
     for i, participant in enumerate(set(df_active.participant_id)):
-        fig_active_subject, ax_active_subject = plt.subplots(2, 1)
+        fig_active_subject, ax_active_subject = plt.subplots(2, 1, figsize=(10, 7))
         for c, cond in enumerate(set(df_active.eta)):
             df_tmp = df_active.query(
                 "participant_id == @participant and eta == @cond"
@@ -96,12 +96,19 @@ def plot_raincloud(ax, df, c, title_dict={0: "Additive", 1: "Multiplicative"}):
         dodge=True,
     )
     ax.legend().set_visible(False)
-    ax.set(title=title_dict[c], xlabel="Indifference eta", ylabel="", yticks=[], xlim=[-6, 6])
+    ax.set(
+        title=title_dict[c],
+        xlabel="Indifference eta",
+        ylabel="",
+        yticks=[],
+        xlim=[-6, 6],
+        xticks=np.linspace(-5, 5, 11),
+    )
     return ax
 
 
 def plot_indif_eta(df_active, fig_dir):
-    fig_indif_eta, ax_indif_eta = plt.subplots(2, 1)
+    fig_indif_eta, ax_indif_eta = plt.subplots(2, 1, figsize=(10, 7))
     for c, cond in enumerate(set(df_active.eta)):
         df_tmp = df_active.query("eta == @cond").reset_index(drop=True)
 
@@ -111,7 +118,7 @@ def plot_indif_eta(df_active, fig_dir):
     fig_indif_eta.tight_layout()
     fig_indif_eta.savefig(os.path.join(fig_dir, f"0_3_indif_eta"))
     for i, participant in enumerate(set(df_active.participant_id)):
-        fig_indif_eta_subject, ax_indif_eta_subject = plt.subplots(2, 1)
+        fig_indif_eta_subject, ax_indif_eta_subject = plt.subplots(2, 1, figsize=(10, 7))
         for c, cond in enumerate(set(df_active.eta)):
             df_tmp = df_active.query(
                 "participant_id == @participant and eta == @cond"
@@ -147,7 +154,7 @@ def log_reg_plot(ax, df, est, c, title_dict={0: "Additive", 1: "Multiplicative"}
         xlabel="Indifference eta",
         ylabel="",
         xlim=[-6, 6],
-        yticks=[0, 0.5, 1],
+        yticks=[],
         xticks=np.linspace(-5, 5, 11),
     )
 
@@ -172,7 +179,7 @@ def plot_log_reg(df, df_logistic, df_overview, fig_dir, data_variant):
 
     # GROUP LEVEL
     for p, phenotype in enumerate(set(df.phenotype)):
-        fig_log_reg, ax_log_reg = plt.subplots(2, 1)
+        fig_log_reg, ax_log_reg = plt.subplots(2, 1, figsize=(10, 7))
         for c, con in enumerate(set(df.eta)):
             idx = pd.IndexSlice
             tmp = df_logistic.loc[idx["all", phenotype, con, :]]
@@ -193,7 +200,7 @@ def plot_log_reg(df, df_logistic, df_overview, fig_dir, data_variant):
         # PARTICIPANT LEVEL
         for p, phenotype in enumerate(set(df.phenotype)):
             for i, participant in enumerate(set(df.participant_id)):
-                fig_log_reg_subject, ax_log_reg_subject = plt.subplots(2, 1)
+                fig_log_reg_subject, ax_log_reg_subject = plt.subplots(2, 1, figsize=(10, 7))
                 for c, con in enumerate(set(df.eta)):
                     idx = pd.IndexSlice
                     tmp = df_logistic.loc[idx[participant, phenotype, con, :]]
@@ -233,7 +240,7 @@ def plot_bayesian(
 ):
     # GROUP LEVEL
     for p, phenotype in enumerate(set(df.phenotype)):
-        fig_bayesian, ax_bayesian = plt.subplots(1, 1)
+        fig_bayesian, ax_bayesian = plt.subplots(1, 1, figsize=(10, 7))
         for c, con in enumerate(set(df.eta)):
             idx = pd.IndexSlice
             tmp = df_bayesian.loc[idx["all", phenotype, con, :]]
@@ -254,8 +261,9 @@ def plot_bayesian(
             title=f"Bayesian parameter estimation {phenotype}",
             xlabel="Riskaversion parameter",
             ylabel="",
+            xlim=[-6, 6],
             yticks=[],
-            xlim=[-1, 2],
+            xticks=np.linspace(-5, 5, 11),
         )
         fig_bayesian.savefig(os.path.join(fig_dir, f"0_5_bayesian_{phenotype}.png"))
 
@@ -263,7 +271,7 @@ def plot_bayesian(
     if data_variant != "0_simulation":
         for p, phenotype in enumerate(set(df.phenotype)):
             for i, participant in enumerate(set(df.participant_id)):
-                fig_bayesian_subjects, ax_bayesian_subjects = plt.subplots(1, 1)
+                fig_bayesian_subjects, ax_bayesian_subjects = plt.subplots(1, 1, figsize=(10, 7))
                 for c, con in enumerate(set(df.eta)):
                     idx = pd.IndexSlice
                     tmp = df_bayesian.loc[idx[participant, phenotype, con, :]]
@@ -286,8 +294,9 @@ def plot_bayesian(
                     title=f"Bayesian parameter estimation for participant {i} {phenotype}",
                     xlabel="Riskaversion parameter",
                     ylabel="",
+                    xlim=[-6, 6],
                     yticks=[],
-                    xlim=[-1, 2],
+                    xticks=np.linspace(-5, 5, 11),
                 )
                 fig_bayesian_subjects.savefig(
                     os.path.join(fig_dir, f"5_bayesian_{i}_{phenotype}.png")
