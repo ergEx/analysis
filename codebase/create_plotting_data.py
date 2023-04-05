@@ -1,11 +1,13 @@
 import itertools
 import os
+import sys
 
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import yaml
 
+from .base import get_config_filename
 from .utils import (
     calculate_min_v_max,
     indiference_eta,
@@ -232,8 +234,10 @@ def main(config_file, i, simulation_variant):
 
 
 if __name__ == "__main__":
-    print(os.path.dirname(os.path.realpath(__file__)))
-    data_dir = os.path.join(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data", "1_pilot")
-    )
-    main(data_dir)
+    config_file = get_config_filename(sys.argv)
+
+    with open(f"config_files/{config_file}", "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
+    main(config_file)
+

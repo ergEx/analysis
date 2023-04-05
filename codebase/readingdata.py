@@ -217,9 +217,14 @@ def main(config_file, i, simulation_variant):
 
     print(f"\nREADING DATA")
     reading_data(data_variant, data_dir[i], n_agents[i], etas)
+    print("\nDATA READ SUCCESFULLY")
 
 
 if __name__ == "__main__":
     config_file = get_config_filename(sys.argv)
+
+    with open(f"config_files/{config_file}", "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
     main(config_file)
 
