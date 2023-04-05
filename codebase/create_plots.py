@@ -305,6 +305,7 @@ def plot_heatmaps(df_bayesian, fig_dir, data_variant, colors):
     df_dynamics["samples_1.0"] = df_dynamics["samples_1.0"].astype(float)
 
     hue = "participant" if data_variant != "0_simulation" else "phenotype"
+    limits = [-0.5, 1.5] if data_variant != "0_simulation" else [-1.0, 2.0]
     bayesian_heatmap = sns.jointplot(
         data=df_dynamics,
         x="samples_0.0",
@@ -314,8 +315,8 @@ def plot_heatmaps(df_bayesian, fig_dir, data_variant, colors):
         kind="kde",
         alpha=0.7,
         fill=True,
-        xlim=[-0.5, 1.5],
-        ylim=[-0.5, 1.5],
+        xlim=limits,
+        ylim=limits,
     )
     bayesian_heatmap.savefig(os.path.join(fig_dir, f"0_6_bayesian_heatmap.png"))
 
