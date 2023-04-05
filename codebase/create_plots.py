@@ -53,7 +53,7 @@ def plot_passive(df_passive, fig_dir, colors):
         fig_passive_subject.savefig(os.path.join(fig_dir, f"1_passive_{i}"))
     fig_passive.suptitle(f"Wealth trajectory in learning task")
     fig_passive.tight_layout()
-    fig_passive.savefig(os.path.join(fig_dir, f"0_1_passive"))
+    fig_passive.savefig(os.path.join(fig_dir, f"0_1_passive.pdf"))
 
 
 def plot_active(df_active, fig_dir, colors):
@@ -77,7 +77,7 @@ def plot_active(df_active, fig_dir, colors):
         fig_active_subject.savefig(os.path.join(fig_dir, f"2_active_{i}"))
     fig_active.suptitle("Wealth trajectories in gamblig task")
     fig_active.tight_layout()
-    fig_active.savefig(os.path.join(fig_dir, f"0_2_active"))
+    fig_active.savefig(os.path.join(fig_dir, f"0_2_active.pdf"))
 
 
 def plot_raincloud(ax, df, c, title_dict={0: "Additive", 1: "Multiplicative"}):
@@ -128,7 +128,7 @@ def plot_indif_eta(df_active, fig_dir):
 
         fig_indif_eta_subject.suptitle(f"Desctriptive indifference eta for participant {i+1}")
         fig_indif_eta_subject.tight_layout()
-        fig_indif_eta_subject.savefig(os.path.join(fig_dir, f"3_indif_eta_{i}"))
+        fig_indif_eta_subject.savefig(os.path.join(fig_dir, f"3_indif_eta_{i}.pdf"))
 
 
 def log_reg_plot(ax, df, est, c, title_dict={0: "Additive", 1: "Multiplicative"}):
@@ -194,7 +194,7 @@ def plot_log_reg(df, df_logistic, df_overview, fig_dir, data_variant):
             ax_log_reg[c].legend(loc="upper left", fontsize="xx-small")
         fig_log_reg.suptitle(f"Logistic regression {phenotype}")
         fig_log_reg.tight_layout()
-        fig_log_reg.savefig(os.path.join(fig_dir, f"0_4_log_reg_{phenotype}.png"))
+        fig_log_reg.savefig(os.path.join(fig_dir, f"0_4_log_reg_{phenotype}.pdf"))
 
     if data_variant != "0_simulation":
         # PARTICIPANT LEVEL
@@ -226,7 +226,7 @@ def plot_log_reg(df, df_logistic, df_overview, fig_dir, data_variant):
                 fig_log_reg_subject.suptitle(f"Logistic regression participant {i} {phenotype}")
                 fig_log_reg_subject.tight_layout()
                 fig_log_reg_subject.savefig(
-                    os.path.join(fig_dir, f"4_log_reg_{i}_{phenotype}.png")
+                    os.path.join(fig_dir, f"4_log_reg_{i}_{phenotype}.pdf")
                 )
 
 
@@ -265,7 +265,7 @@ def plot_bayesian(
             yticks=[],
             xticks=np.linspace(-5, 5, 11),
         )
-        fig_bayesian.savefig(os.path.join(fig_dir, f"0_5_bayesian_{phenotype}.png"))
+        fig_bayesian.savefig(os.path.join(fig_dir, f"0_5_bayesian_{phenotype}.pdf"))
 
     # PARTICIPANT LEVEL
     if data_variant != "0_simulation":
@@ -299,7 +299,7 @@ def plot_bayesian(
                     xticks=np.linspace(-5, 5, 11),
                 )
                 fig_bayesian_subjects.savefig(
-                    os.path.join(fig_dir, f"5_bayesian_{i}_{phenotype}.png")
+                    os.path.join(fig_dir, f"5_bayesian_{i}_{phenotype}.pdf")
                 )
 
 
@@ -327,7 +327,7 @@ def plot_heatmaps(df_bayesian, fig_dir, data_variant, colors):
         xlim=limits,
         ylim=limits,
     )
-    bayesian_heatmap.savefig(os.path.join(fig_dir, f"0_6_bayesian_heatmap.png"))
+    bayesian_heatmap.savefig(os.path.join(fig_dir, f"0_6_bayesian_heatmap.pdf"))
 
 
 def main(config_file, i, simulation_variant=""):
