@@ -204,7 +204,7 @@ def reading_data(
 
 
 def main(config_file, i, simulation_variant):
-    with open(config_file, "r") as f:
+    with open(f"config_files/{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     if not config["readingdata"]["run"]:
