@@ -17,6 +17,67 @@ def get_colors(n):
     return colors
 
 
+def plot_rankings(df_rankings, fig_dir, colors):
+    fig_rankings, ax_rankings = plt.subplots(1, 2, figsize=(10, 3.5))
+    for c, cond in enumerate(set(df_rankings.eta)):
+        df_rankings_copy = df_rankings.copy()
+        df_rankings_copy["trial_bins"] = pd.cut(
+            df_rankings_copy["trial"], bins=[40, 70, 110, 160], labels=["First", "Second", "Third"]
+        )
+        df_prop = (
+            df_rankings_copy.groupby(["participant_id", "trial_bins"])
+            .mean()["response_correct"]
+            .reset_index()
+        )
+        sns.scatterplot(
+            x="trial_bins",
+            y="response_correct",
+            hue="participant_id",
+            palette=colors,
+            data=df_prop,
+            s=20,
+            marker="x",
+            ax=ax_rankings[c],
+        )
+        ax_rankings[c].set(
+            ylim=(0, 1), ylabel="Proportion of correct rankings", xlabel="", title=cond
+        )
+        ax_rankings[c].legend().remove()
+        ax_rankings[c].axhline(y=0.8, color="black", linestyle="--")
+    fig_rankings.suptitle(f"Ranking performance in learning task")
+    fig_rankings.tight_layout()
+    fig_rankings.savefig(os.path.join(fig_dir, f"0_0_rankings.pdf"))
+
+
+def plot_rankings2(df_rankings, fig_dir, colors):
+    fig_rankings, ax_rankings = plt.subplots(2, 1, figsize=(10, 7))
+    for c, cond in enumerate(set(df_rankings.eta)):
+        df_rankings_copy = df_rankings.copy()
+        df_rankings_copy["trial_bins"] = pd.cut(
+            df_rankings_copy["trial"], bins=[40, 70, 110, 160], labels=["First", "Second", "Third"]
+        )
+        df_prop = (
+            df_rankings_copy.groupby(["participant_id", "trial_bins"])
+            .mean()["response_correct"]
+            .reset_index()
+        )
+        sns.scatterplot(
+            x="participant_id",
+            y="response_correct",
+            hue="trial_bins",
+            data=df_prop,
+            s=20,
+            ax=ax_rankings[c],
+        )
+        ax_rankings[c].set(
+            ylim=(0, 1), ylabel="Proportion of correct rankings", xlabel="", title=cond
+        )
+        ax_rankings[c].axhline(y=0.8, color="black", linestyle="--")
+    fig_rankings.suptitle(f"Ranking performance in learning task")
+    fig_rankings.tight_layout()
+    fig_rankings.savefig(os.path.join(fig_dir, f"0_0_ranking_participant.pdf"))
+
+
 def plot_trajectory(
     ax, df, c, color, title_dict={0: "Additive", 1: "Multiplicative"}, session="passive"
 ):
@@ -347,6 +408,7 @@ def main(config_file, i, simulation_variant=""):
 
     if data_variant != "0_simulation":
         df_passive = pd.read_csv(os.path.join(data_dir, "all_passive_phase_data.csv"), sep="\t")
+        df_rankings = pd.read_csv(os.path.join(data_dir, "all_ranking_phase_data.csv"), sep="\t")
 
     df_active = pd.read_csv(
         os.path.join(data_dir, "plotting_files", "indif_eta_data.csv"), sep="\t"
@@ -370,6 +432,9 @@ def main(config_file, i, simulation_variant=""):
 
     if data_variant != "0_simulation":
         plot_passive(df_passive, fig_dir, colors)
+
+        plot_rankings(df_rankings, fig_dir, colors)
+        plot_rankings2(df_rankings, fig_dir, colors)
 
         plot_active(df_active, fig_dir, colors)
 
