@@ -56,8 +56,8 @@ muLogBetaL=-2.3;muLogBetaU=3.4; %bounds on mean of distribution log beta
 sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on the std of distribution of log beta
 
 %eta
-muMuEta=0.5; sigmaMuEta=0.5; %parameters for the mean of the eta parameter (normal distributed)
-muSigmaEta=-2.2251; sigmaSigmaEta=1.48348; %parameter for the standard diviation on the eta parameter (log normal distributed)
+muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly distributed)
+sigmaEtaL=0.01; sigmaEtaL=2; %parameter for the standard diviation on the eta parameter (uniformly distributed)
 
 %% Print information for user
 disp('**************');

@@ -3,8 +3,8 @@
 model{
 
 ##LIKELIHOOD
-for (i in 1:nSubjects){
 for (c in 1:nConditions){
+for (i in 1:nSubjects){
 oneminEta[i,c] = 1 - eta[i,c]                                                    #1 minus eta term
 for (t in 1:nTrials){
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                       #wealth if outcome Left Upper
@@ -56,9 +56,9 @@ for (i in 1:nSubjects){
     sigma_log_beta[i,c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
 
     #eta parameter
-    mu_eta[i,c]            ~ dnorm(muMuEta,sigmaMuEta)            #mean of eta
+    mu_eta[i,c]            ~ dunif(muEtaL,muEtaU)            #mean of eta
     tau_eta[i,c]           = pow(sigma_eta[i,c],-2)                 #precision of eta
-    sigma_eta[i,c]         ~ dnorm(muSigmaEta,sigmaSigmaEta)      #std on eta
+    sigma_eta[i,c]         ~ dunif(sigmaEtaL,sigmaEtaL)      #std on eta
 }#end of subjects
 }#end of conditions
 

@@ -3,8 +3,8 @@
 model{
 
 ##LIKELIHOOD
-for (i in 1:nSubjects){
 for (c in 1:nConditions){
+for (i in 1:nSubjects){
 oneminEta[i,c] = 1 - eta[i,c]                                                    #1 minus eta term
 for (t in 1:nTrials){
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                       #wealth if outcome Left Upper
@@ -38,14 +38,15 @@ for (t in 1:nTrials){
 
 
 ## PRIORS
-for (i in 1:nSubjects){
 for (c in 1:nConditions){
+eta_g[c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta group
+
+for (i in 1:nSubjects){
     log_beta[i,c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled from normal hyperprior
     beta[i,c]      = exp(log_beta[i,c])                      # transforms from logspace, now lognormally distributed prior
     eta[i,c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta
-    eta_g[c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta group
-}#end of conditions
 }#end of subjects
+}#end of conditions
 
 
 ##HYPERPRIORS
@@ -56,9 +57,9 @@ for (c in 1:nConditions){
     sigma_log_beta[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
 
     #eta parameter
-    mu_eta[c]            ~ dnorm(muMuEta,sigmaMuEta)            #mean of eta
+    mu_eta[c]            ~ dunif(muEtaL,muEtaU)            #mean of eta
     tau_eta[c]           = pow(sigma_eta[c],-2)                 #precision of eta
-    sigma_eta[c]         ~ dnorm(muSigmaEta,sigmaSigmaEta)      #std on eta
+    sigma_eta[c]         ~ dunif(sigmaEtaL,sigmaEtaL)      #std on eta
 }#end of conditions
 
 }
