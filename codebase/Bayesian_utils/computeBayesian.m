@@ -129,15 +129,15 @@ switch inferenceMode
                                     'mu_log_beta','tau_log_beta','sigma_log_beta',...
                                     'log_beta','beta','eta'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-
+        end %i
     case {2}
         for i = 1:nChains
             monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
                                     'mu_log_beta','tau_log_beta','sigma_log_beta',...
                                     'log_beta','beta','eta', 'eta_g'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-
-end %i
+        end %i
+end %switch
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
 
