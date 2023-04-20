@@ -55,7 +55,7 @@ for (c in 1:nConditions){
     #eta parameter
     mu_eta[c]            ~ dunif(muEtaL,muEtaU)            #mean of eta
     tau_eta[c]           = pow(sigma_eta[c],-2)                 #precision of eta
-    sigma_eta[c]         ~ dunif(muSigmaEta,sigmaSigmaEta)      #std on eta
+    sigma_eta[c]         ~ dunif(sigmaEtaL,sigmaEtaU)      #std on eta
 }#end of conditions
 
 }

@@ -57,7 +57,7 @@ sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on
 
 %eta
 muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly distributed)
-sigmaEtaL=0.01; sigmaEtaL=2; %parameter for the standard diviation on the eta parameter (uniformly distributed)
+sigmaEtaL=0.01; sigmaEtaU=2; %parameter for the standard diviation on the eta parameter (uniformly distributed)
 
 %% Print information for user
 disp('**************');
@@ -120,7 +120,7 @@ dataStruct = struct(...
             'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
             'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
             'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-            'muMuEta',muMuEta,'muSigmaEta',muSigmaEta,'sigmaMuEta',sigmaMuEta,'sigmaSigmaEta',sigmaSigmaEta);
+            'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
 switch inferenceMode
     case {1,3}

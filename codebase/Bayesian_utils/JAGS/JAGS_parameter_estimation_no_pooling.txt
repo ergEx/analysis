@@ -58,7 +58,7 @@ for (i in 1:nSubjects){
     #eta parameter
     mu_eta[i,c]            ~ dunif(muEtaL,muEtaU)            #mean of eta
     tau_eta[i,c]           = pow(sigma_eta[i,c],-2)                 #precision of eta
-    sigma_eta[i,c]         ~ dunif(sigmaEtaL,sigmaEtaL)      #std on eta
+    sigma_eta[i,c]         ~ dunif(sigmaEtaL,sigmaEtaU)      #std on eta
 }#end of subjects
 }#end of conditions
 
