@@ -4,7 +4,10 @@ function setBayesian(inferenceMode,whichJAGS,whichQuals,doParallel,startDir,data
 
 % This function takes the following inputs:
 
-% inferenceMode - set whether to do patameter estimation (1) or model selection (2)
+% inferenceMode - set whether to do parameter estimation without pooling (1)
+%                                   parameter estimation with pooling allowing individual differences (2)
+%                                   parameter estimation with pooing and no individual differences (super individual) (3)
+% whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel

@@ -5,7 +5,7 @@ model{
 ##LIKELIHOOD
 for (i in 1:nSubjects){
 for (c in 1:nConditions){
-oneminEta[i,c] = 1 - eta[i,c]                                                    #1 minus eta term
+onemineta[c] = 1 - eta[c]                                                    #1 minus eta term
 for (t in 1:nTrials){
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                       #wealth if outcome Left Upper
     wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]                                       #wealth if outcome Left Lower
@@ -16,11 +16,11 @@ for (t in 1:nTrials){
     wRUp[i,c,t] = ifelse(wRU[i,c,t] > 0, wRU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
     wRLp[i,c,t] = ifelse(wRL[i,c,t] > 0, wRL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
     wp[i,c,t]   = ifelse(w[i,c,t] > 0, w[i,c,t], 1)                              #replacing if negative (doesn't matter cause choice is deleted in input)
-    u[i,c,t]      = (pow(wp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]          #utility of wealth prior to trial
-    uLU[i,c,t]    = (pow(wLUp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
-    uLL[i,c,t]    = (pow(wLLp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
-    uRU[i,c,t]    = (pow(wRUp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
-    uRL[i,c,t]    = (pow(wRLp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
+    u[i,c,t]      = (pow(wp[i,c,t],onemineta[c]) - 1) / onemineta[c]          #utility of wealth prior to trial
+    uLU[i,c,t]    = (pow(wLUp[i,c,t],onemineta[c]) - 1) / onemineta[c]        #transforms wealth into utility
+    uLL[i,c,t]    = (pow(wLLp[i,c,t],onemineta[c]) - 1) / onemineta[c]        #transforms wealth into utility
+    uRU[i,c,t]    = (pow(wRUp[i,c,t],onemineta[c]) - 1) / onemineta[c]        #transforms wealth into utility
+    uRL[i,c,t]    = (pow(wRLp[i,c,t],onemineta[c]) - 1) / onemineta[c]        #transforms wealth into utility
     duLU[i,c,t]   = uLU[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Left Upper
     duLL[i,c,t]   = uLL[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Left Lower
     duRU[i,c,t]   = uRU[i,c,t] - u[i,c,t]                                        #delta utility of wealth outcome Right Upper
@@ -28,7 +28,7 @@ for (t in 1:nTrials){
     eduL[i,c,t]   = (duLU[i,c,t] + duLL[i,c,t]) / 2                              #expected change in utility for Left gamble
     eduR[i,c,t]   = (duRU[i,c,t] + duRL[i,c,t]) / 2                              #expected change in utility for Right gamble
     deu[i,c,t]    = eduL[i,c,t] - eduR[i,c,t]                                    #computes difference in expected change in utility
-    sdeu[i,c,t]   = -1 * beta[i,c] * deu[i,c,t]                                  #scaled by sensitivity parameter
+    sdeu[i,c,t]   = -1 * beta[c] * deu[i,c,t]                                  #scaled by sensitivity parameter
     cp[i,c,t]     = 1 / (1 + (exp(sdeu[i,c,t])))                                 #choice probability
     theta[i,c,t]  = max( 0.000001 , min(0.999999 , cp[i,c,t]) )                  #ensure 0 < cp < 1
     y[i,c,t]      ~ dbern(theta[i,c,t])                                          #bernoulli distributed choice
@@ -38,13 +38,11 @@ for (t in 1:nTrials){
 
 
 ## PRIORS
-for (i in 1:nSubjects){
 for (c in 1:nConditions){
-    log_beta[i,c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled from normal hyperprior
-    beta[i,c]      = exp(log_beta[i,c])                      # transforms from logspace, now lognormally distributed prior
-    eta[i,c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta
+    log_beta[c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled from normal hyperprior
+    beta[c]      = exp(log_beta[c])                      # transforms from logspace, now lognormally distributed prior
+    eta[c]       ~ dnorm(mu_eta[c],tau_eta[c])             # eta
 }#end of conditions
-}#end of subjects
 
 
 ##HYPERPRIORS

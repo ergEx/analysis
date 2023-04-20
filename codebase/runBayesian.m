@@ -2,7 +2,9 @@
 
 % It provides the following inputs when calling setHLM:
 
-% inferenceMode - set whether to do patameter estimation (1) or model selection (2)
+% inferenceMode - set whether to do parameter estimation without pooling (1)
+%                                   parameter estimation with pooling allowing individual differences (2)
+%                                   parameter estimation with pooing and no individual differences (super individual) (3)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
@@ -19,7 +21,6 @@ restoredefaultpath
 addpath(fullfile(startDir,'/Bayesian_utils'));
 
 %% Specify variables
-inferenceMode = 1;
 whichJAGS = 1;
 whichQuals = 1:1;
 doParallel = 0;
@@ -27,5 +28,7 @@ dataVersion = 1;
 
 %% Call setHLM
 for simVersion = 1:1
+for inferenceMode = 1:3
     setBayesian(inferenceMode,whichJAGS,whichQuals,doParallel,startDir,dataVersion,simVersion)
+end
 end
