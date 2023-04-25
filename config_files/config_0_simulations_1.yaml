@@ -1,15 +1,15 @@
---- # Ergex config file for pilot data
+--- # Ergex config file for simulation 1
 
 # This file allows control over the data processing pipeline without any need
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/1_pilot"
-figure directoty: "figs/1_pilot"
+data directoty: "data/0_simulation/full_grid"
+figure directoty: "figs/0_simulation/full_grid"
 
 # This section specifies data variables
-data_type: "real_data"
-data_variant: "1_pilot"
+data_type: "0_simulation"
+data_variant: "full_grid"
 
 # This section provides control over whether data needs to be re-read
 readingdata:

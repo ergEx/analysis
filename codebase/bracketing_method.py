@@ -47,10 +47,21 @@ def main(config_file):
     with open(f"config_files/{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    if not config["bracketing method"]["run"]:
-        return
+    data_dir = config["data directoty"]
 
-    data_dir = config["data directoty"][i]
+    if not config["bracketing method"]["run"]:
+        try:
+            df = pd.read_csv(
+                os.path.join(data_dir, "logistic.csv"), sep="\t"
+            )
+            df = pd.read_csv(
+                os.path.join(data_dir, "bracketing_overview.csv"), sep="\t"
+            )
+            return
+        except:
+            ValueError(f"\nLooks like you haven't calculated bracketing method; please do that by changing in the .yaml file you use.\n")
+
+
 
     if config["bracketing method"]["calculate_indif_eta"]:
         print('ADDING INDIFFERENCE ETAS')
