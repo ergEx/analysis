@@ -17,6 +17,7 @@ def reading_participant_passive_data(
 ):
     """Passive phase data"""
     passive_phase_data = pd.DataFrame()
+    ranking_phase_data = pd.DataFrame()
     for run in range(1, n_passive_runs + 1):
         df = pd.read_csv(
             os.path.join(
@@ -27,9 +28,11 @@ def reading_participant_passive_data(
             ),
             sep="\t",
         )
-        df = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
-        passive_phase_data = pd.concat([passive_phase_data, df])
-    return passive_phase_data
+        df_passive = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
+        df_ranking = df.query('event_type == "SideSelection" and part == 1').reset_index(drop=True)
+        passive_phase_data = pd.concat([passive_phase_data, df_passive])
+        ranking_phase_data = pd.concat([ranking_phase_data, df_ranking])
+    return passive_phase_data, ranking_phase_data
 
 
 def reading_participant_active_data(
@@ -121,6 +124,7 @@ def reading_data(
     phenotypes = ["random"] + list(itertools.product(etas, etas)) if len(etas) > 1 else [None]
 
     passive_phase_df = pd.DataFrame()
+    ranking_phase_df = pd.DataFrame()
     active_phase_df = pd.DataFrame()
     datadict = dict()
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
@@ -131,7 +135,10 @@ def reading_data(
                 phe = ""
             for i, subject in enumerate(SUBJECT_SPECS["id"]):
                 if data_variant != "0_simulation":
-                    passive_participant_df = reading_participant_passive_data(
+                    (
+                        passive_participant_df,
+                        ranking_participant_df,
+                    ) = reading_participant_passive_data(
                         data_folder=data_folder,
                         subject=subject,
                         first_run=SUBJECT_SPECS["first_run"][i][c],
@@ -140,6 +147,7 @@ def reading_data(
                     )
 
                     passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
+                    ranking_phase_df = pd.concat([ranking_phase_df, ranking_participant_df])
 
                 active_participant_df = reading_participant_active_data(
                     data_folder=data_folder,
@@ -196,6 +204,7 @@ def reading_data(
 
     if data_variant != "0_simulations":
         passive_phase_df.to_csv(os.path.join(data_folder, "all_passive_phase_data.csv"), sep="\t")
+        ranking_phase_df.to_csv(os.path.join(data_folder, "all_ranking_phase_data.csv"), sep="\t")
     active_phase_df.to_csv(os.path.join(data_folder, "all_active_phase_data.csv"), sep="\t")
     scipy.io.savemat(
         os.path.join(data_folder, "all_active_phase_data.mat"), datadict, oned_as="row"
