@@ -1,7 +1,7 @@
 import itertools
 
 
-def sub_specs(data_variant: str, n_agents: int = 1):
+def sub_specs(data_type: str, data_variant: str):
     """
     Returns a dictionary of data specification for the given data variant.
 
@@ -12,33 +12,49 @@ def sub_specs(data_variant: str, n_agents: int = 1):
 
     Returns a dictionary containing relevant information on the subject structure of the data in the given data variant.
     """
-    if data_variant == "0_simulation":
-        return {
-            "id": list(range(n_agents)),
-            "first_run": [[1, 2]] * n_agents,
-        }
-    elif data_variant == "1_pilot":
-        return {
-            # ["000", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010"]
-            "id": [str(i).zfill(3) for i in range(11)],
-            "first_run": [
-                [1, 2],
-                [1, 2],
-                [1, 2],
-                [1, 2],
-                [2, 1],
-                [2, 1],
-                [2, 1],
-                [1, 2],
-                [2, 1],
-                [2, 1],
-                [2, 1],
-            ],
-        }
-    elif data_variant == "2_full_data":
-        raise ValueError("Full data doesn't exist yet")
+    if data_type == "0_simulation":
+        if data_variant == 'full_grid':
+            return {
+            "id": list(range(260)),
+            "first_run": [[1, 2]] * 260,
+            }
+        elif data_variant == 'varying_variance':
+            return {
+            "id": list(range(30)),
+            "first_run": [[1, 2]] * 30,
+            }
+        elif data_variant == 'strong_weak_signal':
+            return {
+            "id": list(range(30)),
+            "first_run": [[1, 2]] * 30,
+            }
+        else:
+            return ValueError("Data variant not supported")
+
+    elif data_type == "real_data":
+        if data_variant == "1_pilot":
+            return {
+                "id": [str(i).zfill(3) for i in range(11)],
+                "first_run": [
+                    [1, 2],
+                    [1, 2],
+                    [1, 2],
+                    [1, 2],
+                    [2, 1],
+                    [2, 1],
+                    [2, 1],
+                    [1, 2],
+                    [2, 1],
+                    [2, 1],
+                    [2, 1],
+                ],
+            }
+        elif data_variant == "2_full_data":
+            raise ValueError("Full data doesn't exist yet")
+        else:
+            ValueError("Data variant not supported")
     else:
-        raise ValueError("Unknown variant")
+        ValueError("Data type not supported")
 
 
 def condition_specs():
