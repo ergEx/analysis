@@ -17,6 +17,7 @@ def reading_participant_passive_data(
 ):
     """Passive phase data"""
     passive_phase_data = pd.DataFrame()
+    no_brainer_data = pd.DataFrame()
     for run in range(1, n_passive_runs + 1):
         df = pd.read_csv(
             os.path.join(
@@ -28,8 +29,10 @@ def reading_participant_passive_data(
             sep="\t",
         )
         df = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
+        no_brainers = df.query('event_type == "SideSelection" and part == 1').reset_index(drop=True)
         passive_phase_data = pd.concat([passive_phase_data, df])
-    return passive_phase_data
+        no_brainer_data = pd.concat([no_brainer_data, no_brainers])
+    return passive_phase_data, no_brainer_data
 
 
 def reading_participant_active_data(
@@ -116,12 +119,13 @@ def reading_data(
     SUBJECT_SPECS = sub_specs(data_type, data_variant)
 
     passive_phase_df = pd.DataFrame()
+    no_brainer_df = pd.DataFrame()
     active_phase_df = pd.DataFrame()
     datadict = dict()
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
         for i, subject in enumerate(SUBJECT_SPECS["id"]):
             if data_type != "0_simulation":
-                passive_participant_df = reading_participant_passive_data(
+                passive_participant_df, no_brainer_participant_df = reading_participant_passive_data(
                     data_folder=data_folder,
                     subject=subject,
                     first_run=SUBJECT_SPECS["first_run"][i][c],
@@ -130,6 +134,7 @@ def reading_data(
                 )
 
                 passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
+                no_brainer_df = pd.concat([no_brainer_df, no_brainer_participant_df])
 
             active_participant_df = reading_participant_active_data(
                 data_type=data_type,
@@ -185,6 +190,7 @@ def reading_data(
 
     if data_variant != "0_simulations":
         passive_phase_df.to_csv(os.path.join(data_folder, "all_passive_phase_data.csv"), sep="\t")
+        no_brainer_df.to_csv(os.path.join(data_folder, "all_no_brainer_data.csv"), sep="\t")
     active_phase_df.to_csv(os.path.join(data_folder, "all_active_phase_data.csv"), sep="\t")
     scipy.io.savemat(
         os.path.join(data_folder, "all_active_phase_data.mat"), datadict, oned_as="row"
