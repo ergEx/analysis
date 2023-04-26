@@ -3,3 +3,4 @@ __pycache__/
 .ipynb_checkpoints
 playground_notebook.ipynb
 *.asv
+ergex_env/
