@@ -50,24 +50,16 @@ def main(config_file):
     data_dir = config["data directoty"]
 
     if not config["bracketing method"]["run"]:
-        try:
-            df = pd.read_csv(
-                os.path.join(data_dir, "logistic.csv"), sep="\t"
-            )
-            df = pd.read_csv(
-                os.path.join(data_dir, "bracketing_overview.csv"), sep="\t"
-            )
-            return
-        except:
-            ValueError(f"\nLooks like you haven't calculated bracketing method; please do that by changing in the .yaml file you use.\n")
+        return
 
 
 
     if config["bracketing method"]["calculate_indif_eta"]:
-        print('ADDING INDIFFERENCE ETAS')
+        print(f'\nADDING INDIFFERENCE ETAS')
         df = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
         df = add_indif_eta(df)
         df.to_csv(os.path.join(data_dir, "all_active_phase_data_w_indif_etas.csv"), sep="\t")
+        df.to_pickle(os.path.join(data_dir, "all_active_phase_data_w_indif_etas.pkl"))
     else:
         try:
             df = pd.read_csv(
@@ -78,6 +70,9 @@ def main(config_file):
                 f"\nLooks like you haven't calculated the indifference etas; please do that by changing in the .yaml file you use.\n"
             )
 
+    if not config["bracketing method"]["log_reg"]:
+        return
+
     df = df.dropna(subset=["indif_eta"])
 
     index_logistic = pd.MultiIndex.from_product(
@@ -86,17 +81,17 @@ def main(config_file):
     )
     df_logistic = pd.DataFrame(index=index_logistic, columns=["x_test", "pred", "lower", "upper"])
 
-    df_logistic.to_csv(os.path.join(data_dir, "plotting_files", "logistic.csv"), sep="\t")
-
     index_bracketing_overview = pd.MultiIndex.from_product(
         [["all"] + list(set(df.participant_id)), [0.0, 1.0],],
-        names=["participant", "phenotype", "dynamic"],
+        names=["participant", "dynamic"],
     )
     df_bracketing_overview = pd.DataFrame(
         index=index_bracketing_overview,
         columns=["log_reg_decision_boundary", "log_reg_std_dev"],
     )
+
     ## CALCULATING AND ADDING DATA
+    print(f'\nCALCULATING LOGISTIC REGRESSION')
     for c, con in enumerate(set(df.eta)):
         # GROUP LEVEL DATA
         df_tmp = df.query("eta == @con").reset_index(drop=True)
@@ -144,6 +139,8 @@ def main(config_file):
 
     df_bracketing_overview.to_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep="\t")
     df_bracketing_overview.to_pickle(os.path.join(data_dir, "bracketing_overview.pkl"))
+
+    print(f'\nRESULTS FROM BRACKETING METHOD SAVED SUCCESFULLY')
 
 
 if __name__ == "__main__":
