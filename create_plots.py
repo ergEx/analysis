@@ -1,10 +1,12 @@
 #%% # -*- coding: utf-8 -*-
 import os
 
+import mat73
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy.stats import gaussian_kde
 
 #%% Variables from config file
 data_type = "0_simulation"
@@ -23,13 +25,17 @@ title_dict={0: "Additive", 1: "Multiplicative"}
 
 soft_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
+n_agents = 11
+
+cmap = plt.get_cmap("tab20")
+colors = [cmap(i) for i in np.linspace(0, 1, n_agents)]
+
 #%% read in the data
 if data_type == 'real_data':
     df_passive = pd.read_csv(os.path.join(data_dir, "all_passive_phase_data.csv"), sep="\t")
-    #df_no_brainer = pd.read_csv(os.path.join(data_dir, "all_no_brainer_data.csv"), sep="\t")
+    df_no_brainer = pd.read_csv(os.path.join(data_dir, "all_no_brainer_data.csv"), sep="\t")
     df_active = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
-    cmap = plt.get_cmap("tab20")
-    colors = [cmap(i) for i in np.linspace(0, 1, 11)]
+
 
 
 #%% plot passive trajectories
@@ -103,5 +109,123 @@ if data_type == 'real_data':
         #ax[c].legend(loc="upper left")
     fig.tight_layout()
     fig.show()
+
+#%%
+def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative']):
+    maxi = np.empty([2,2])
+    for i in range(2):
+        sns.kdeplot(data[i], color=colors[i], label=labels[i], fill=True, ax=ax)
+
+        kde = gaussian_kde(data[i])
+
+        maxi[i,0] = data[i][np.argmax(kde.pdf(data[i]))]
+        maxi[i,1] = kde.pdf(maxi[i,0])
+
+    ax.axvline(maxi[0,0], ymax=maxi[0,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
+    ax.axvline(maxi[1,0], ymax=maxi[1,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
+    ax.plot([], ls="--", color="black", label="Estimates")
+    ax.legend(loc="upper left")
+    ax.set(
+        title="",
+        xlabel="Riskaversion parameter",
+        ylabel="",
+        xlim=limits,
+        yticks=[],
+        xticks=np.linspace(limits[0], limits[1], limits[1]-limits[0]+1)
+    )
+    return ax
+# %% Bracketing method risk aversion parameter
+bracketing_overview = pd.read_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep = '\t')
+
+#Full pooling
+df = bracketing_overview[bracketing_overview.participant == 'all']
+add = np.random.normal(df[df.dynamic == 0.0].log_reg_decision_boundary, df[df.dynamic == 0.0].log_reg_std_dev, 5000 * 4)
+mul = np.random.normal(df[df.dynamic == 1.0].log_reg_decision_boundary, df[df.dynamic == 1.0].log_reg_std_dev, 5000 * 4)
+fig, ax = plt.subplots(1, 1)
+ax = plot_single_kde([add,mul], ax)
+plt.show()
+
+#%%
+def read_Bayesian_output(file_path: str) -> dict:
+    """Read HLM output file.
+
+    Args:
+        Filepath to where the Bayesian output is found
+
+    Returns:
+        dict: Dictionary containing the HLM samples.
+
+    """
+    mat = mat73.loadmat(file_path)
+    return mat["samples"]
+
+#%% #bayesian method risk aversion parameter
+# partial pooling
+bayesian_samples_partial_pooling = read_Bayesian_output(
+            os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_pooling_individuals.mat")
+        )
+eta_group = bayesian_samples_partial_pooling["eta_g"]
+fig, ax = plt.subplots(1, 1)
+ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
+plt.show()
+
+# full pooling
+bayesian_samples_full_pooling = read_Bayesian_output(
+            os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_group.mat")
+            )
+eta_group = bayesian_samples_full_pooling["eta"]
+fig, ax = plt.subplots(1, 1)
+ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
+plt.show()
+# %%
+def plot_individual_heatmaps(data, colors, limits = [-3,4], hue = np.repeat(np.arange(n_agents), 4 * 5000)):
+    h1 = sns.jointplot(
+        data=data,
+        x=data[:,0],
+        y=data[:,1],
+        hue=hue,
+        kind="kde",
+        alpha=0.7,
+        fill=True,
+        palette = sns.color_palette(colors),
+        xlim = limits,
+        ylim = limits,
+        legend = False
+        )
+
+    h1.set_axis_labels("Additive condition", "Multiplicative condition")
+    h1.ax_joint.set_xticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
+    h1.ax_joint.set_yticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
+    sns.lineplot(x=limits, y=limits, color='black', linestyle='--', ax=h1.ax_joint)
+    return h1
+
+#%% bracketing method
+df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
+etas = np.empty([n_agents,5000*4,2])
+for i, participant in enumerate(list(set(df_tmp.participant))):
+    for c, con in enumerate(list(set(df_tmp.dynamic))):
+        tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
+        etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, 5000*4)
+etas_log_r = np.reshape(etas, (n_agents * 5000 * 4, 2))
+h1 = plot_individual_heatmaps(etas_log_r, colors)
+plt.show()
+# %% bayesian mathods
+# no pooling
+bayesian_samples_no_pooling = read_Bayesian_output(
+            os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
+        )
+eta_i = bayesian_samples_no_pooling["eta"]
+eta_i_t = eta_i.transpose((2, 0, 1, 3))
+eta_i_t_r = np.reshape(eta_i_t, (11 * 5000 * 4, 2))
+h1 = plot_individual_heatmaps(eta_i_t_r, colors)
+h1.savefig(os.path.join(fig_dir, f"0_7_bayesian_nopool_heatmap.pdf"))
+
+#partial pooling
+eta_i = bayesian_samples_partial_pooling["eta"]
+eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
+eta_i_part_t_r = np.reshape(eta_i_part_t, (11 * 5000 * 4, 2))
+h1 = plot_individual_heatmaps(eta_i_part_t_r, colors)
+h1.savefig(os.path.join(fig_dir, f"0_7_bayesian_partialpool_heatmap.pdf"))
+plt.show()
 
 # %%
