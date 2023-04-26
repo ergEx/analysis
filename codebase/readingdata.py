@@ -200,12 +200,12 @@ def main(config_file):
         return
 
     data_dir = config["data directoty"]
-    data_type = config["data type"]
+    data_type = config["data_type"]
     data_variant = config["data_variant"]
 
     print(f"\nREADING DATA")
     reading_data(data_type, data_variant, data_dir)
-    print("\nDATA READ SUCCESFULLY")
+    print("\nDATA READ SUCCESFULLY\n")
 
 
 if __name__ == "__main__":
