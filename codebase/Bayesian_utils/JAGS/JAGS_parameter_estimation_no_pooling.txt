@@ -1,21 +1,21 @@
-# Fit condition specific params for isoelastic model for each subject
+# Fit condition specific params for isoelastic model for each subject using no pooling of information
 
 model{
 
 ##LIKELIHOOD
 for (c in 1:nConditions){
 for (i in 1:nSubjects){
-oneminEta[i,c] = 1 - eta[i,c]                                                    #1 minus eta term
+oneminEta[i,c] = 1 - eta_i[i,c]                                                    #1 minus eta term
 for (t in 1:nTrials){
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                       #wealth if outcome Left Upper
     wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]                                       #wealth if outcome Left Lower
     wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]                                       #wealth if outcome Right Upper
     wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]                                       #wealth if outcome Right Lower
-    wLUp[i,c,t] = ifelse(wLU[i,c,t] > 0, wLU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
-    wLLp[i,c,t] = ifelse(wLL[i,c,t] > 0, wLL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
-    wRUp[i,c,t] = ifelse(wRU[i,c,t] > 0, wRU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
-    wRLp[i,c,t] = ifelse(wRL[i,c,t] > 0, wRL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
-    wp[i,c,t]   = ifelse(w[i,c,t] > 0, w[i,c,t], 1)                              #replacing if negative (doesn't matter cause choice is deleted in input)
+    wLUp[i,c,t]   = ifelse(wLU[i,c,t] > 0, wLU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wLLp[i,c,t]   = ifelse(wLL[i,c,t] > 0, wLL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wRUp[i,c,t]   = ifelse(wRU[i,c,t] > 0, wRU[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wRLp[i,c,t]   = ifelse(wRL[i,c,t] > 0, wRL[i,c,t], 1)                          #replacing if negative (doesn't matter cause choice is deleted in input)
+    wp[i,c,t]     = ifelse(w[i,c,t] > 0, w[i,c,t], 1)                              #replacing if negative (doesn't matter cause choice is deleted in input)
     u[i,c,t]      = (pow(wp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]          #utility of wealth prior to trial
     uLU[i,c,t]    = (pow(wLUp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
     uLL[i,c,t]    = (pow(wLLp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]        #transforms wealth into utility
@@ -28,7 +28,7 @@ for (t in 1:nTrials){
     eduL[i,c,t]   = (duLU[i,c,t] + duLL[i,c,t]) / 2                              #expected change in utility for Left gamble
     eduR[i,c,t]   = (duRU[i,c,t] + duRL[i,c,t]) / 2                              #expected change in utility for Right gamble
     deu[i,c,t]    = eduL[i,c,t] - eduR[i,c,t]                                    #computes difference in expected change in utility
-    sdeu[i,c,t]   = -1 * beta[i,c] * deu[i,c,t]                                  #scaled by sensitivity parameter
+    sdeu[i,c,t]   = -1 * beta_i[i,c] * deu[i,c,t]                                  #scaled by sensitivity parameter
     cp[i,c,t]     = 1 / (1 + (exp(sdeu[i,c,t])))                                 #choice probability
     theta[i,c,t]  = max( 0.000001 , min(0.999999 , cp[i,c,t]) )                  #ensure 0 < cp < 1
     y[i,c,t]      ~ dbern(theta[i,c,t])                                          #bernoulli distributed choice
@@ -38,28 +38,32 @@ for (t in 1:nTrials){
 
 
 ## PRIORS
-for (i in 1:nSubjects){
 for (c in 1:nConditions){
-    log_beta[i,c]  ~ dnorm(mu_log_beta[i,c], tau_log_beta[i,c])  # log beta_lin sampled from normal hyperprior
-    beta[i,c]      = exp(log_beta[i,c])                      # transforms from logspace, now lognormally distributed prior
-    eta[i,c]       ~ dnorm(mu_eta[i,c],tau_eta[i,c])             # eta
-}#end of conditions
+eta_g[c]       ~ dnorm(0,1)   # Not used
+log_beta_g[c]  ~ dnorm(0,1)   # Not used
+beta_g[c]      = exp(1)       # Not used
+
+for (i in 1:nSubjects){
+    log_beta_i[i,c]  ~ dnorm(mu_log_beta[c,i], tau_log_beta[ci,])  # log beta_lin sampled from normal hyperprior
+    beta_i[i,c]      = exp(log_beta_i[i,c])                    # transforms from logspace, now lognormally distributed prior
+    eta_i[i,c]       ~ dnorm(mu_eta[c,i],tau_eta[c,i])             # eta
 }#end of subjects
+}#end of conditions
 
 
 ##HYPERPRIORS
 for (c in 1:nConditions){
 for (i in 1:nSubjects){
     #beta parameter
-    mu_log_beta[i,c]       ~ dunif(muLogBetaL,muLogBetaU)         #mean of log beta
-    tau_log_beta[i,c]      = pow(sigma_log_beta[i,c],-2)            #precision on log beta
-    sigma_log_beta[i,c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
+    mu_log_beta[c,i]       ~ dunif(muLogBetaL,muLogBetaU)         #mean of log beta
+    tau_log_beta[c,i]      = pow(sigma_log_beta[c,i],-2)            #precision on log beta
+    sigma_log_beta[c,i]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
 
     #eta parameter
-    mu_eta[i,c]            ~ dunif(muEtaL,muEtaU)            #mean of eta
-    tau_eta[i,c]           = pow(sigma_eta[i,c],-2)                 #precision of eta
-    sigma_eta[i,c]         ~ dunif(sigmaEtaL,sigmaEtaU)      #std on eta
+    mu_eta[c,i]            ~ dunif(muEtaL,muEtaU)            #mean of eta
+    tau_eta[c,i]           = pow(sigma_eta[c,i],-2)                 #precision of eta
+    sigma_eta[c,i]         ~ dunif(sigmaEtaL,sigmaEtaU)      #std on eta
 }#end of subjects
 }#end of conditions
 
-} #end of model
+}

@@ -1,4 +1,4 @@
-function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder)
+function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -7,9 +7,13 @@ function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% inferenceMode - set whether to do parameter estimation without pooling (1)
-%                                   parameter estimation with pooling allowing individual differences (2)
-%                                   parameter estimation with pooing and no individual differences (super individual) (3)
+% DataSource  - set which data source is used; Simualtion (0)
+%                                              Pilot (1)
+%                                              Full experiment (2)
+% dataPooling - set whether to do No pooling (1)
+%                                 Partial pooling (individual estimates from group level distributions) (2)
+%                                 Full pooling (super individual) (3)
+$ inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % nBurnin       - specifies how many burn in samples to run
 % nSamples      - specifies the number of samples to run
@@ -19,7 +23,6 @@ function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % whichJAGS     - sets which copy of matjags to run
 % doParallel    - sets whether to run chains in parallel
 % startDir      - root directory for the repo
-% dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
 % nTrials       - number of trials in experiment
 % folder        - folder within the datafolder the relevant data is stored
 
@@ -37,10 +40,15 @@ load(fullfile(dataDir, 'all_active_phase_data.mat'))
 
 %% Choose JAGS file
 switch inferenceMode
-    case {1}, modelName = 'JAGS_parameter_estimation_no_pooling';
-    case {2}, modelName = 'JAGS_parameter_estimation_pooling_individuals';
-    case {3}, modelName = 'JAGS_parameter_estimation_group';
-end %switch inferencemode
+    case {1}
+    switch dataPooling
+        case {1}, modelName = 'JAGS_parameter_estimation_no_pooling';
+        case {2}, modelName = 'JAGS_parameter_estimation_partial_pooling';
+        case {3}, modelName = 'JAGS_parameter_estimation_full_pooling';
+    end %switch dataPooling
+    case {2}
+        %not implemented yet
+end %switch inferenceMode
 
 %% Set key variables
 nConditions=2;%number of dynamics
@@ -58,6 +66,16 @@ sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on
 %eta
 muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly distributed)
 sigmaEtaL=0.01; sigmaEtaU=2; %parameter for the standard diviation on the eta parameter (uniformly distributed)
+
+%% set bounds for hyperpriors connected to the mechanistic model
+%eta for h1
+%not implemented yet
+
+%eta for h2
+%not implemented yet
+
+%Model indicator
+%not implemented yet
 
 %% Print information for user
 disp('**************');
@@ -81,8 +99,6 @@ w=dim;%initialise wealth
 %We allow all agents to have different session length. Therefore we add random gambles to pad out to maxTrials. This
 %allows jags to work since doesn't work for partial observation. This does not affect
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
-
-%shift wealth data
 
 trialInds = 1:nTrials;
 for c = 1:nConditions
@@ -116,27 +132,22 @@ disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 %% Configure data structure for graphical model & parameters to monitor
 %everything you want jags to use
 
-dataStruct = struct(...
-            'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-            'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
-            'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-            'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
-
 switch inferenceMode
-    case {1,3}
+    case {1}
+    dataStruct = struct(...
+                'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+                'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
+                'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
+
         for i = 1:nChains
             monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
-                                    'mu_log_beta','tau_log_beta','sigma_log_beta',...
-                                    'log_beta','beta','eta'};
+                                 'mu_log_beta','tau_log_beta','sigma_log_beta',...
+                                 'log_beta','beta_i', 'beta_g','eta_i', 'eta_g'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
     case {2}
-        for i = 1:nChains
-            monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
-                                    'mu_log_beta','tau_log_beta','sigma_log_beta',...
-                                    'log_beta','beta','eta', 'eta_g'};
-            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-        end %i
+    %not implemented yet
 end %switch
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
@@ -162,7 +173,7 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
+save(fullfile(dataDir, append('Bayesian','_',inferenceMode)),'stats','samples','-v7.3')
 
 %% Print readouts
 disp('stats:'),disp(stats)%print out structure of stats output

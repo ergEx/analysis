@@ -2,15 +2,20 @@
 
 % It provides the following inputs when calling setHLM:
 
-% inferenceMode - set whether to do parameter estimation without pooling (1)
-%                                   parameter estimation with pooling allowing individual differences (2)
-%                                   parameter estimation with pooing and no individual differences (super individual) (3)
+% DataSource  - set which data source is used; Simualtion (0)
+%                                              Pilot (1)
+%                                              Full experiment (2)
+% SimVersion - set which simulation to run (only used if DataSource is simulation);
+%                                              full grid (1)
+%                                              varying noise (2)
+%                                              varying ground truth risk aversion, and varying noise (3)
+% dataPooling - set whether to do No pooling (1)
+%                                 Partial pooling (individual estimates from group level distributions) (2)
+%                                 Full pooling (super individual) (3)
+$ inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
-% dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
-% simVersion    - if running on simulated data; n_trials = 160, n_phenotypes = 26, n_agents = 100 (1)
-%                                               n_trials = 1000, n_phenotypes = 26, n_agents = 3 (2)
 
 % The idea is that this is written into by the user, then called by a
 % cluster job via the terminal:
@@ -21,14 +26,16 @@ restoredefaultpath
 addpath(fullfile(startDir,'/Bayesian_utils'));
 
 %% Specify variables
+dataSource = 1;
+simVersion = 1;
+dataPooling = 1;
+inferenceMode = 1;
 whichJAGS = 1;
 whichQuals = 1:1;
 doParallel = 0;
-dataVersion = 1;
 
 %% Call setHLM
-for simVersion = 1:1
-for inferenceMode = 1:3
-    setBayesian(inferenceMode,whichJAGS,whichQuals,doParallel,startDir,dataVersion,simVersion)
-end
+
+for infMode 1:length(inferenceMode)
+    setBayesian(dataSource,simVersion,dataPooling,infMode,whichJAGS,whichQuals,doParallel,startDir)
 end
