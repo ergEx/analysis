@@ -1,0 +1,189 @@
+# Fit condition specific params for isoelastic model for each subject using partial pooling of information
+
+model{
+
+##LIKELIHOOD
+for (c in 1:nConditions){
+for (i in 1:nSubjects){
+oneminEta_h0[i,c] = 1 - eta_i_h0[i]                                                  #1 minus eta term in h0
+oneminEta_h1[i,c] = 1 - eta_i_h1[i,c]                                                #1 minus eta term in h1
+oneminEta_h2[i,c] = 1 - eta_i_h2[i,c]                                                #1 minus eta term in h2
+for (t in 1:nTrials){
+    wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                           #wealth if outcome Left Upper
+    wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]                                           #wealth if outcome Left Lower
+    wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]                                           #wealth if outcome Right Upper
+    wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]                                           #wealth if outcome Right Lower
+    wLUp[i,c,t]   = ifelse(wLU[i,c,t] > 0, wLU[i,c,t], 1)                            #replacing if negative (doesn't matter cause choice is deleted in input)
+    wLLp[i,c,t]   = ifelse(wLL[i,c,t] > 0, wLL[i,c,t], 1)                            #replacing if negative (doesn't matter cause choice is deleted in input)
+    wRUp[i,c,t]   = ifelse(wRU[i,c,t] > 0, wRU[i,c,t], 1)                            #replacing if negative (doesn't matter cause choice is deleted in input)
+    wRLp[i,c,t]   = ifelse(wRL[i,c,t] > 0, wRL[i,c,t], 1)                            #replacing if negative (doesn't matter cause choice is deleted in input)
+    wp[i,c,t]     = ifelse(w[i,c,t] > 0, w[i,c,t], 1)                                #replacing if negative (doesn't matter cause choice is deleted in input)
+
+    #H0
+    u_h0[i,c,t]      = (pow(wp[i,c,t],oneminEta_h0[i,c]) - 1) / oneminEta_h0[i,c]    #utility of wealth prior to trial
+    uLU_h0[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_h0[i,c]) - 1) / oneminEta_h0[i,c]  #transforms wealth into utility
+    uLL_h0[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_h0[i,c]) - 1) / oneminEta_h0[i,c]  #transforms wealth into utility
+    uRU_h0[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_h0[i,c]) - 1) / oneminEta_h0[i,c]  #transforms wealth into utility
+    uRL_h0[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_h0[i,c]) - 1) / oneminEta_h0[i,c]  #transforms wealth into utility
+    duLU_h0[i,c,t]   = uLU_h0[i,c,t] - u_h0[i,c,t]                                   #delta utility of wealth outcome Left Upper
+    duLL_h0[i,c,t]   = uLL_h0[i,c,t] - u_h0[i,c,t]                                   #delta utility of wealth outcome Left Lower
+    duRU_h0[i,c,t]   = uRU_h0[i,c,t] - u_h0[i,c,t]                                   #delta utility of wealth outcome Right Upper
+    duRL_h0[i,c,t]   = uRL_h0[i,c,t] - u_h0[i,c,t]                                   #delta utility of wealth outcome right Lower
+    eduL_h0[i,c,t]   = (duLU_h0[i,c,t] + duLL_h0[i,c,t]) / 2                         #expected change in utility for Left gamble
+    eduR_h0[i,c,t]   = (duRU_h0[i,c,t] + duRL_h0[i,c,t]) / 2                         #expected change in utility for Right gamble
+    deu_h0[i,c,t]    = eduL_h0[i,c,t] - eduR_h0[i,c,t]                               #computes difference in expected change in utility
+    sdeu_h0[i,c,t]   = -1 * beta_i_h0[i,c] * deu_h0[i,c,t]                           #scaled by sensitivity parameter
+    cp_h0[i,c,t]     = 1 / (1 + (exp(sdeu_h0[i,c,t])))                               #choice probability
+    theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_h0[i,c,t]))                    # ensure 0 < cp < 1
+    theta[i,c,t,4]     = max(0.000001,min(0.999999,cp_h0[i,c,t]))                    # ensure 0 < cp < 1
+    theta[i,c,t,7]     = max(0.000001,min(0.999999,cp_h0[i,c,t]))                    # ensure 0 < cp < 1
+    theta[i,c,t,10]    = max(0.000001,min(0.999999,cp_h0[i,c,t]))                    # ensure 0 < cp < 1, accomodates parameter expansion for z
+
+    #H1
+    u_h1[i,c,t]      = (pow(wp[i,c,t],oneminEta_h1[i,c]) - 1) / oneminEta_h1[i,c]    #utility of wealth prior to trial
+    uLU_h1[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_h1[i,c]) - 1) / oneminEta_h1[i,c]  #transforms wealth into utility
+    uLL_h1[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_h1[i,c]) - 1) / oneminEta_h1[i,c]  #transforms wealth into utility
+    uRU_h1[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_h1[i,c]) - 1) / oneminEta_h1[i,c]  #transforms wealth into utility
+    uRL_h1[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_h1[i,c]) - 1) / oneminEta_h1[i,c]  #transforms wealth into utility
+    duLU_h1[i,c,t]   = uLU_h1[i,c,t] - u_h1[i,c,t]                                   #delta utility of wealth outcome Left Upper
+    duLL_h1[i,c,t]   = uLL_h1[i,c,t] - u_h1[i,c,t]                                   #delta utility of wealth outcome Left Lower
+    duRU_h1[i,c,t]   = uRU_h1[i,c,t] - u_h1[i,c,t]                                   #delta utility of wealth outcome Right Upper
+    duRL_h1[i,c,t]   = uRL_h1[i,c,t] - u_h1[i,c,t]                                   #delta utility of wealth outcome right Lower
+    eduL_h1[i,c,t]   = (duLU_h1[i,c,t] + duLL_h1[i,c,t]) / 2                         #expected change in utility for Left gamble
+    eduR_h1[i,c,t]   = (duRU_h0[i,c,t] + duRL_h1[i,c,t]) / 2                         #expected change in utility for Right gamble
+    deu_h1[i,c,t]    = eduL_h1[i,c,t] - eduR_h1[i,c,t]                               #computes difference in expected change in utility
+    sdeu_h1[i,c,t]   = -1 * beta_i_h1[i,c] * deu_h1[i,c,t]                           #scaled by sensitivity parameter
+    cp_h1[i,c,t]     = 1 / (1 + (exp(sdeu_h1[i,c,t])))                               #choice probability
+    theta[i,c,t,2]     = max(0.000001,min(0.999999,cp_h1[i,c,t]))                    #ensure 0 < cp < 1
+    theta[i,c,t,5]     = max(0.000001,min(0.999999,cp_h1[i,c,t]))                    #ensure 0 < cp < 1
+    theta[i,c,t,8]     = max(0.000001,min(0.999999,cp_h1[i,c,t]))                    #ensure 0 < cp < 1
+    theta[i,c,t,11]    = max(0.000001,min(0.999999,cp_h1[i,c,t]))                    #ensure 0 < cp < 1, accomodates parameter expansion for z
+
+    #H0
+    u_h2[i,c,t]      = (pow(wp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]     #utility of wealth prior to trial
+    uLU_h2[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]   #transforms wealth into utility
+    uLL_h2[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]   #transforms wealth into utility
+    uRU_h2[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]   #transforms wealth into utility
+    uRL_h2[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]   #transforms wealth into utility
+    duLU_h2[i,c,t]   = uLU_h2[i,c,t] - u_h2[i,c,t]                                    #delta utility of wealth outcome Left Upper
+    duLL_h2[i,c,t]   = uLL_h2[i,c,t] - u_h2[i,c,t]                                    #delta utility of wealth outcome Left Lower
+    duRU_h2[i,c,t]   = uRU_h2[i,c,t] - u_h2[i,c,t]                                    #delta utility of wealth outcome Right Upper
+    duRL_h2[i,c,t]   = uRL_h2[i,c,t] - u_h2[i,c,t]                                    #delta utility of wealth outcome right Lower
+    eduL_h2[i,c,t]   = (duLU_h2[i,c,t] + duLL_h2[i,c,t]) / 2                          #expected change in utility for Left gamble
+    eduR_h2[i,c,t]   = (duRU_h2[i,c,t] + duRL_h2[i,c,t]) / 2                          #expected change in utility for Right gamble
+    deu_h2[i,c,t]    = eduL_h2[i,c,t] - eduR_h2[i,c,t]                                #computes difference in expected change in utility
+    sdeu_h2[i,c,t]   = -1 * beta_i_h2[i,c] * deu_h2[i,c,t]                            #scaled by sensitivity parameter
+    cp_h2[i,c,t]     = 1 / (1 + (exp(sdeu_h2[i,c,t])))                                #choice probability
+    theta[i,c,t,3]     = max(0.000001,min(0.999999,cp_h2[i,c,t]))                     #ensure 0 < cp < 1
+    theta[i,c,t,6]     = max(0.000001,min(0.999999,cp_h2[i,c,t]))                     #ensure 0 < cp < 1
+    theta[i,c,t,9]     = max(0.000001,min(0.999999,cp_h2[i,c,t]))                     #ensure 0 < cp < 1
+    theta[i,c,t,12]    = max(0.000001,min(0.999999,cp_h2[i,c,t]))                     #ensure 0 < cp < 1, accomodates parameter expansion for z
+
+    #choice
+    y[i,c,t]           ~ dbern(theta[i,c,t,z[i]])
+
+}# end of trials
+}# end of conditions
+}# end of subjects
+
+
+## PRIORS
+#model indicator
+#the model indicator variable z can take on any value from 1:n, and is subject to two stochastic processes, to prevent getting stuck
+#the n values map onto just 3 models, and is simply a means of obtaining parameter expansion for the model indication
+for (i in 1:nSubjects){
+    px_z1[i]    ~ dcat(pz[])                                                          #parameter expansion variable for z, takes on integers 1:n with equal probability
+    px_z2[i]    ~ dcat(pz[])                                                          #parameter expansion variable for z, takes on integers 1:n with equal probability
+    delta_z1[i] = px_z2[i]-1                                                          #parameter expansion variable for z, takes on integers 0:n-1 with equal probability
+    sum_z[i]    = px_z1[i]+delta_z1[i]                                                #sum takes on integers 1:2*n -1 with equal probability
+    z[i]        = (sum_z[i] - (12 * trunc(sum_z[i]/12))) + 1                          #modulo n, adding 1 to return to values 1 to 12
+}
+
+#submodels
+eta_g_h0 ~ dnorm(mu_eta_h0,tau_eta_h0) #group eta distribution for h0
+
+eta_g_h1[0] ~ dnorm(eta_h1_add,tau_eta_h0[0]) #group eta distribution in additive for h1
+eta_g_h1[1] ~ dnorm(eta_h1_mul,tau_eta_h0[1]) #group eta distribution in multiplicative for h1
+
+eta_g_h2[0]     ~ dnorm(mu_eta_h2[0],tau_eta_h2[0])                                   #group eta distribution in additive for h2
+d_log_eta_g_h2  ~ dnorm(mu_eta_h2[1], tau_eta_h2[1])                                  #log delta eta sampled from normal hyperprior
+d_eta_g_h2      = exp(d_log_eta_g_h2)                                                 #delta eta (ie. increase from additive to multiplicative) transforms from logspace, now lognormally distributed prior
+eta_g_h2[1]     = eta_g_h2[0] + d_eta_g_h2                                            #group eta distribution in multiplicative for h1
+
+for (i in 1:nSubjects){
+    eta_g_h0[i]   ~ dnorm(mu_eta_h0,tau_eta_h0)                                       #individual eta distribution for h0
+
+    eta_g_h1[i,0] ~ dnorm(eta_h1_add,tau_eta_h0[0])                                   #individual eta distribution for h1
+    eta_g_h1[i,1] ~ dnorm(eta_h1_mul,tau_eta_h0[1])                                   #individual eta distribution for h1
+
+    eta_g_h2[i,0]      ~ dnorm(mu_eta_h2[0],tau_eta_h2[0])                            #individual eta distribution for h2
+    d_log_eta_g_h2[i]  ~ dnorm(mu_eta_h2[1], tau_eta_h2[1])                           #log delta eta sampled from normal hyperprior
+    d_eta_g_h2[i]      = exp(d_log_eta_g_h2[i])                                       #delta eta (ie. increase from additive to multiplicative) transforms from logspace, now lognormally distributed prior
+    eta_g_h2[i,1]      = eta_g_h2[i,0] + d_eta_g_h2[i]                                #individual eta distribution for h1
+}
+
+for (c in 1:nConditions){
+log_beta_g_h0[c]  ~ dnorm(mu_log_beta_h0[c], tau_log_beta_h0[c])                      #log beta_lin sampled from normal hyperprior for h0
+beta_g_h0[c]      = exp(log_beta_g_h0[c])                                             #transforms from logspace, now lognormally distributed prior for h0
+
+log_beta_g_h1[c]  ~ dnorm(mu_log_beta_h1[c], tau_log_beta_h1[c])                      #log beta_lin sampled from normal hyperprior for h1
+beta_g_h1[c]      = exp(log_beta_g_h1[c])                                             #transforms from logspace, now lognormally distributed prior for h1
+
+log_beta_g_h2[c]  ~ dnorm(mu_log_beta_h2[c], tau_log_beta_h2[c])                      #log beta_lin sampled from normal hyperprior for h2
+beta_g_h2[c]      = exp(log_beta_g_h2[c])                                             #transforms from logspace, now lognormally distributed prior for h2
+
+for (i in 1:nSubjects){
+    log_beta_i_h0[i,c]  ~ dnorm(mu_log_beta_h0[c], tau_log_beta_h0[c])                #log beta_lin sampled from normal hyperprior for h0
+    beta_i_h0[i,c]      = exp(log_beta_i_h0[i,c])                                     #transforms from logspace, now lognormally distributed prior for h0
+    eta_i_h0[i,c]       ~ dnorm(mu_eta_h0[c],tau_eta_h0[c])                           #eta for h0
+
+    log_beta_i_h1[i,c]  ~ dnorm(mu_log_beta_h1[c], tau_log_beta_h0[c])                #log beta_lin sampled from normal hyperprior for h1
+    beta_i_h1[i,c]      = exp(log_beta_i_h1[i,c])                                     #transforms from logspace, now lognormally distributed prior for h1
+    eta_i_h1[i,c]       ~ dnorm(mu_eta_h1[c],tau_eta_h0[c])                           #eta for h1
+
+    log_beta_i_h2[i,c]  ~ dnorm(mu_log_beta_h2[c], tau_log_beta_h2[c])                #log beta_lin sampled from normal hyperprior for h2
+    beta_i_h2[i,c]      = exp(log_beta_i_h2[i,c])                                     #transforms from logspace, now lognormally distributed prior for h2
+    eta_i_h2[i,c]       ~ dnorm(mu_eta_h2[c],tau_eta_h2[c])                           #eta for h2
+}#end of subjects
+}#end of conditions
+
+
+##HYPERPRIORS
+for (c in 1:nConditions){
+    ##beta parameter
+    #h0
+    mu_log_beta_h0[c]       ~ dunif(muLogBetaL,muLogBetaU)                            #mean of log beta in h0
+    tau_log_beta_h0[c]      = pow(sigma_log_beta_h0[c],-2)                            #precision on log beta in h0
+    sigma_log_beta_h0[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)                      #std on log beta in h0
+
+    #h1
+    mu_log_beta_h1[c]       ~ dunif(muLogBetaL,muLogBetaU)                            #mean of log beta in h1
+    tau_log_beta_h1[c]      = pow(sigma_log_beta_h1[c],-2)                            #precision on log beta in h1
+    sigma_log_beta_h1[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)                      #std on log beta in h1
+
+    #h0
+    mu_log_beta_h1[c]       ~ dunif(muLogBetaL,muLogBetaU)                            #mean of log beta in h2
+    tau_log_beta_h1[c]      = pow(sigma_log_beta_h1[c],-2)                            #precision on log beta in h2
+    sigma_log_beta_h1[c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)                      #std on log beta in h2
+
+    #eta parameter
+    #h1
+    tau_eta_h1[c]           = pow(sigma_eta_h1[c],-2)                                 #precision of eta in h1
+    sigma_eta_h1[c]         ~ dunif(sigmaEtaL,sigmaEtaU)                              #std on eta in h1
+
+    #h2
+    tau_eta_h2[c]           = pow(sigma_eta_h0[c],-2)                                 #precision of eta in h2
+    sigma_eta_h2[c]         ~ dunif(sigmaEtaL,sigmaEtaU)                              #std on eta in h2
+}#end of conditions
+
+#eta parameter
+#h0
+mu_eta_h0    ~ dunif(muEtaL,muEtaU)                                                   #mean of eta in h0
+tau_eta_h0   = pow(sigma_eta_h0,-2)                                                   #precision of eta in h0
+sigma_eta_h0 ~ dunif(sigmaEtaL,sigmaEtaU)                                             #std on eta in h0
+
+#h2
+mu_eta_h2[0] ~ dunif(muEtaL,muEtaU)                                                   #mean of eta in additive for h2
+mu_eta_h2[1] ~ dunif(muLogEtaL_h2,muLogEtaU_h2)                                       #mean of delta eta in multiplicative for h2
+
+}

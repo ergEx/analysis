@@ -77,7 +77,6 @@ eta_h1_add = 0; eta_h1_mul = 0.9999 %parameters for the eta parameter (note poin
 
 %eta for h2
 muLogEtaL_h2=-2.3;muLogEtaU_h2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
-sigmaLogEtaL=0.01;sigmaLogEtaU=1.6; %bounds on sd of distribution log eta (potential positive increase from additive to multiplicative)
 
 %Model indicator
 pz=repmat(1/12,1,12);%sets flat prior over models [h0 = no change, h1 = time optimal, h2 = increase from add to mul]
