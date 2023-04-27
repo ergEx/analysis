@@ -3,7 +3,7 @@ import time
 
 import yaml
 
-from codebase import base, create_plots, create_plotting_data, readingdata
+from codebase import base, bracketing_method, create_plots2, readingdata
 
 
 def main():
@@ -12,33 +12,19 @@ def main():
     with open(f"config_files/{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    simulation_variants = config["simulation_varaints"]
+    data_type = config["data_type"]
     data_variant = config["data_variant"]
 
-    for i, simulation_variant in enumerate(simulation_variants):
-        print(f"\nSTARTING ANALYSIS")
-        print(f"Data: {data_variant}")
-        if len(simulation_variants) > 1:
-            print(f"Simulation variant: {simulation_variant}")
-        start_time = time.time()
-        print(time.ctime(start_time))
+    start_time = time.time()
+    print(f"\n--- {time.ctime(start_time)} --- ")
+    print(f"\nSTARTING ANALYSIS")
+    print(f"Data: {data_type} \nVariant: {data_variant}")
 
-        try:
-            readingdata.main(config_file, i, simulation_variant)
-        except Exception as e:
-            ValueError("Reading data failed. Error: {e}")
+    readingdata.main(config_file)
+    bracketing_method.main(config_file)
+    create_plots2.main(config_file)
 
-        try:
-            create_plotting_data.main(config_file, i, simulation_variant)
-        except Exception as e:
-            ValueError("Creating plotting data failed. Error: {e}")
-
-        try:
-            create_plots.main(config_file, i, simulation_variant)
-        except Exception as e:
-            ValueError("Creating plots failed. Error: {e}")
-
-        print(f"--- Code ran in {(time.time() - start_time)} seconds ---")
+    print(f"\n--- Code ran in {(time.time() - start_time):.2f} seconds ---")
 
 
 if __name__ == "__main__":
