@@ -47,7 +47,11 @@ switch inferenceMode
         case {3}, modelName = 'JAGS_parameter_estimation_full_pooling';
     end %switch dataPooling
     case {2}
-        %not implemented yet
+    switch dataPooling
+        case {1}, modelName = 'JAGS_model_selection_no_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+        case {2}, modelName = 'JAGS_model_selection_partial_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+        case {3}, modelName = 'JAGS_model_selection_full_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+    end %switch dataPooling
 end %switch inferenceMode
 
 %% Set key variables
@@ -61,21 +65,22 @@ nSubjects=length(subjList);%number of subjects
 
 %beta - prior on log since cannot be less than 0; note same bounds used for independent priors on all utility models
 muLogBetaL=-2.3;muLogBetaU=3.4; %bounds on mean of distribution log beta
-sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on the std of distribution of log beta
+sigmaLogBetaL=0.01;sigmaLogBetaU=1.6;%bounds on the std of distribution of log beta
 
 %eta
 muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly distributed)
-sigmaEtaL=0.01; sigmaEtaU=2; %parameter for the standard diviation on the eta parameter (uniformly distributed)
+sigmaEtaL=0.01; sigmaEtaU=1.6; %parameter for the standard diviation on the eta parameter (uniformly distributed)
 
 %% set bounds for hyperpriors connected to the mechanistic model
 %eta for h1
-%not implemented yet
+eta_h1_add = 0; eta_h1_mul = 0.9999 %parameters for the eta parameter (note point estimates)
 
 %eta for h2
-%not implemented yet
+muLogEtaL_h2=-2.3;muLogEtaU_h2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
+sigmaLogEtaL=0.01;sigmaLogEtaU=1.6; %bounds on sd of distribution log eta (potential positive increase from additive to multiplicative)
 
 %Model indicator
-%not implemented yet
+pz=repmat(1/12,1,12);%sets flat prior over models [h0 = no change, h1 = time optimal, h2 = increase from add to mul]
 
 %% Print information for user
 disp('**************');
@@ -143,11 +148,26 @@ switch inferenceMode
         for i = 1:nChains
             monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
                                  'mu_log_beta','tau_log_beta','sigma_log_beta',...
-                                 'log_beta','beta_i', 'beta_g','eta_i', 'eta_g'};
+                                 'beta_i', 'beta_g','eta_i', 'eta_g'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
     case {2}
-    %not implemented yet
+        dataStruct = struct(...
+                'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+                'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
+                'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
+                'eta_h1_add',eta_h1_add,'eta_h1_mul',eta_h1_mul,...
+                'muLogEtaL_h2',muLogEtaL_h2,'muLogEtaU_h2',muLogEtaU_h2,'sigmaLogEtaL',sigmaLogEtaL,'sigmaLogEtaU',sigmaLogEtaL,...
+                'pz',pz);
+
+        for i = 1:nChains
+            monitorParameters = {'beta_i_h0', 'beta_g_h0','eta_i_h0', 'eta_g_h0',...
+                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
+                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
+                                 'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
+            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
+        end %i
 end %switch
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
