@@ -246,7 +246,7 @@ if doParallel==1
             cmd = sprintf( '%sjags %s' ,jagsPrefix, jagsScript );
 
             %if run on DRCMR Cluster
-            %cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript')
+            cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript')
 
             if verbosity > 0
                 fprintf( 'Running chain %d (parallel execution)\n' , whchain  );
@@ -267,7 +267,7 @@ else % Run each chain serially
             cmd = sprintf( '%sjags %s' ,jagsPrefix, jagsScript );
 
             %if run on DRCMR Cluster
-            %cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript')
+            cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript')
 
         end
         if verbosity > 0
