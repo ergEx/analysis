@@ -12,7 +12,7 @@
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
-$ inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
+% inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
@@ -36,6 +36,6 @@ doParallel = 0;
 
 %% Call setHLM
 
-for infMode 1:length(inferenceMode)
-    setBayesian(dataSource,simVersion,dataPooling,infMode,whichJAGS,whichQuals,doParallel,startDir)
+for inferenceMode
+    setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,whichQuals,doParallel,startDir)
 end

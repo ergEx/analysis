@@ -13,7 +13,7 @@ function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,n
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
-$ inferenceMode - set whether to do parameter estimation (1)
+% inferenceMode - set whether to do parameter estimation (1)
 %                                   Bayesian model comparison of hypotheses (2)
 %                                   Bayesian model comparison of data pooling (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
@@ -76,7 +76,7 @@ sigmaEtaL=0.01; sigmaEtaU=1.6; %parameter for the standard diviation on the eta 
 
 %% set bounds for hyperpriors connected to the mechanistic model
 %eta for h1
-eta_h1_add = 0; eta_h1_mul = 0.9999 %parameters for the eta parameter (note point estimates)
+eta_h1_add = 0; eta_h1_mul = 0.9999; %parameters for the eta parameter (note point estimates)
 
 %eta for h2
 muLogEtaL_h2=-2.3;muLogEtaU_h2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
@@ -176,7 +176,7 @@ switch inferenceMode
                 'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
                 'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
                 'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
-                'pz'.pz);
+                'pz',pz);
 
         for i = 1:nChains
             monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',...
@@ -210,7 +210,7 @@ toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save(fullfile(dataDir, append('Bayesian','_',inferenceMode)),'stats','samples','-v7.3')
+save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
 
 %% Print readouts
 disp('stats:'),disp(stats)%print out structure of stats output

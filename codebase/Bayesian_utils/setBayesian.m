@@ -14,7 +14,7 @@ function setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,w
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
-$ inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
+% inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
@@ -30,15 +30,15 @@ nThin        = 10;                     %thinnning factor, 1 = no thinning, 2=eve
 switch dataSource
     case {0}
         switch simVersion
-            case {1}, subjList = 1:(26*10); nTrials = 160; folder = '0_simulation/full_grid':
-            case {2}, subjList = 1:(3*10);  nTrials = 160; folder = '0_simulation/varying_variance':
-            case {3}, subjList = 1:(3*10);  nTrials = 160; folder = '0_simulation/strong_weak_signal':
+            case {1}, subjList = 1:(26*10); nTrials = 160; folder = '0_simulation/full_grid';
+            case {2}, subjList = 1:(3*10);  nTrials = 160; folder = '0_simulation/varying_variance';
+            case {3}, subjList = 1:(3*10);  nTrials = 160; folder = '0_simulation/strong_weak_signal';
         end %simVersion
-    case {2}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
-    case {3}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
+    case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
+    case {2}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
 end %dataSource
 
 %% Runs HLMs sequentially
 for i=1:numRuns
-    computeBayesian(datasource,dataPooling,inferenceMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,nTrials,folder)
+    computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,nTrials,folder)
 end
