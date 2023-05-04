@@ -59,7 +59,7 @@ for (t in 1:nTrials){
     theta[i,c,t,8]     = max(0.000001,min(0.999999,cp_h1[i,c,t]))                    #ensure 0 < cp < 1
     theta[i,c,t,11]    = max(0.000001,min(0.999999,cp_h1[i,c,t]))                    #ensure 0 < cp < 1, accomodates parameter expansion for z
 
-    #H0
+    #H2
     u_h2[i,c,t]      = (pow(wp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]     #utility of wealth prior to trial
     uLU_h2[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]   #transforms wealth into utility
     uLL_h2[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_h2[i,c]) - 1) / oneminEta_h2[i,c]   #transforms wealth into utility
