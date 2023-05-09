@@ -44,9 +44,9 @@ log_beta_g[c]  ~ dnorm(0,1)   # Not used
 beta_g[c]      = exp(1)       # Not used
 
 for (i in 1:nSubjects){
-    log_beta_i[i,c]  ~ dnorm(mu_log_beta[c,i], tau_log_beta[ci,])  # log beta_lin sampled from normal hyperprior
+    log_beta_i[i,c]  ~ dnorm(mu_log_beta[i,c], tau_log_beta[i,c])  # log beta_lin sampled from normal hyperprior
     beta_i[i,c]      = exp(log_beta_i[i,c])                    # transforms from logspace, now lognormally distributed prior
-    eta_i[i,c]       ~ dnorm(mu_eta[c,i],tau_eta[c,i])             # eta
+    eta_i[i,c]       ~ dnorm(mu_eta[i,c],tau_eta[i,c])             # eta
 }#end of subjects
 }#end of conditions
 
@@ -55,14 +55,14 @@ for (i in 1:nSubjects){
 for (c in 1:nConditions){
 for (i in 1:nSubjects){
     #beta parameter
-    mu_log_beta[c,i]       ~ dunif(muLogBetaL,muLogBetaU)         #mean of log beta
-    tau_log_beta[c,i]      = pow(sigma_log_beta[c,i],-2)            #precision on log beta
-    sigma_log_beta[c,i]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
+    mu_log_beta[i,c]       ~ dunif(muLogBetaL,muLogBetaU)         #mean of log beta
+    tau_log_beta[i,c]      = pow(sigma_log_beta[i,c],-2)            #precision on log beta
+    sigma_log_beta[i,c]    ~ dunif(sigmaLogBetaL,sigmaLogBetaU)   #std on log beta
 
     #eta parameter
-    mu_eta[c,i]            ~ dunif(muEtaL,muEtaU)            #mean of eta
-    tau_eta[c,i]           = pow(sigma_eta[c,i],-2)                 #precision of eta
-    sigma_eta[c,i]         ~ dunif(sigmaEtaL,sigmaEtaU)      #std on eta
+    mu_eta[i,c]            ~ dunif(muEtaL,muEtaU)            #mean of eta
+    tau_eta[i,c]           = pow(sigma_eta[i,c],-2)                 #precision of eta
+    sigma_eta[i,c]         ~ dunif(sigmaEtaL,sigmaEtaU)      #std on eta
 }#end of subjects
 }#end of conditions
 
