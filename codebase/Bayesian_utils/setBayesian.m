@@ -8,9 +8,9 @@ function setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,w
 %                                              Pilot (1)
 %                                              Full experiment (2)
 % SimVersion - set which simulation to run (only used if DataSource is simulation);
-%                                              full grid (1)
-%                                              varying noise (2)
-%                                              varying ground truth risk aversion, and varying noise (3)
+%                                              grid with varying values (1-6)
+%                                              varying noise (7)
+%                                              varying ground truth risk aversion, and varying noise (8)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
@@ -30,9 +30,14 @@ nThin        = 10;                     %thinnning factor, 1 = no thinning, 2=eve
 switch dataSource
     case {0}
         switch simVersion
-            case {1}, subjList = 1:(26*10); nTrials = 160; folder = '0_simulation/full_grid';
-            case {2}, subjList = 1:(3*10);  nTrials = 160; folder = '0_simulation/varying_variance';
-            case {3}, subjList = 1:(3*10);  nTrials = 160; folder = '0_simulation/strong_weak_signal';
+            case {1}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_n05';
+            case {2}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_00';
+            case {3}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_05';
+            case {4}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_10';
+            case {5}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_15';
+            case {6}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/time_optimal';
+            case {7}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/varying_variance';
+            case {8}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/strong_weak_signal';
         end %simVersion
     case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
     case {2}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
@@ -40,5 +45,5 @@ end %dataSource
 
 %% Runs HLMs sequentially
 for i=1:numRuns
-    computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,nTrials,folder)
+    computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,nTrials,folder,type)
 end

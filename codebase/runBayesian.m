@@ -6,9 +6,9 @@
 %                                              Pilot (1)
 %                                              Full experiment (2)
 % SimVersion - set which simulation to run (only used if DataSource is simulation);
-%                                              full grid (1)
-%                                              varying noise (2)
-%                                              varying ground truth risk aversion, and varying noise (3)
+%                                              grid with varying values (1-6)
+%                                              varying noise (7)
+%                                              varying ground truth risk aversion, and varying noise (8)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)

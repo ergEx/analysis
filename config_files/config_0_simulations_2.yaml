@@ -1,19 +1,19 @@
---- # Ergex config file for pilot data
+--- # Ergex config file for simulation 1
 
 # This file allows control over the data processing pipeline without any need
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/0_simulation/varying_variance"
-figure directoty: "figs/0_simulation/varying_variance"
+data directoty: "data/0_simulation/grid/eta_00"
+figure directoty: "figs/0_simulation/grid/eta_00"
 
 # This section specifies data variables
 data_type: "0_simulation"
-data_variant: "varying_variance"
+data_variant: "grid"
 
 # This section provides control over whether data needs to be re-read
 readingdata:
-  run: False
+  run: True
 
 # This section provides control over whether plot data needs to be re-calculated
 bracketing method:
@@ -23,4 +23,4 @@ bracketing method:
 
 # This section provides control over the various steps in the plotting pipeline
 plots:
-  run: True
+  run: False

@@ -13,20 +13,20 @@ def sub_specs(data_type: str, data_variant: str):
     Returns a dictionary containing relevant information on the subject structure of the data in the given data variant.
     """
     if data_type == "0_simulation":
-        if data_variant == 'full_grid':
+        if data_variant == 'grid':
             return {
-            "id": list(range(260)),
-            "first_run": [[1, 2]] * 260,
+            "id": list(range(10)),
+            "first_run": [[1, 2]] * 10,
             }
         elif data_variant == 'varying_variance':
             return {
-            "id": list(range(30)),
-            "first_run": [[1, 2]] * 30,
+            "id": list(range(20)),
+            "first_run": [[1, 2]] * 20,
             }
         elif data_variant == 'strong_weak_signal':
             return {
-            "id": list(range(30)),
-            "first_run": [[1, 2]] * 30,
+            "id": list(range(20)),
+            "first_run": [[1, 2]] * 20,
             }
         else:
             return ValueError("Data variant not supported")

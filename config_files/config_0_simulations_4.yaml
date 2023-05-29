@@ -4,8 +4,8 @@
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/0_simulation/grid/eta_n05"
-figure directoty: "figs/0_simulation/grid/eta_n05"
+data directoty: "data/0_simulation/grid/eta_10"
+figure directoty: "figs/0_simulation/grid/eta_10"
 
 # This section specifies data variables
 data_type: "0_simulation"
