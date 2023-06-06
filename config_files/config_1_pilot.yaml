@@ -29,6 +29,10 @@ bracketing method:
   calculate_indif_eta: True
   log_reg: True
 
+# This section provides control over whether user wants to re-compute the JASP input
+JASP input: True
+  run: True
+
 # This section provides control over the various steps in the plotting pipeline
 plots:
   run: True
