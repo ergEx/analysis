@@ -173,3 +173,42 @@ def main(config_file):
         eta_i_t_r = np.reshape(eta_i_t, (11 * 5000 * 4, 2))
         h1 = plot_individual_heatmaps(eta_i_t_r, colors)
         h1.savefig(os.path.join(fig_dir, f"9_riskaversion_no_pooling_individual_bayesian.pdf"))
+
+    if stages['plot_sensitivity_bayesian']:
+        # full pooling
+        # group
+        bayesian_samples_full_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
+                    )
+        beta_group = bayesian_samples_full_pooling["beta"]
+        fig, ax = plt.subplots(1, 1)
+        ax = plot_single_kde([beta_group[:,:,0].flatten(),beta_group[:,:,1].flatten()], ax)
+        fig.savefig(fig_dir,'10_sensitivity_full_pooling_group_bayesian.png')
+
+        # partial pooling
+        # group
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                )
+        beta_group = bayesian_samples_partial_pooling["beta_g"]
+        fig, ax = plt.subplots(1, 1)
+        ax = plot_single_kde([beta_group[:,:,0].flatten(),beta_group[:,:,1].flatten()], ax)
+        fig.savefig(fig_dir,'11_sensitivity_partial_pooling_group_bayesian.png')
+
+        #individual
+        beta_i = bayesian_samples_partial_pooling["beta"]
+        beta_i_part_t = beta_i.transpose((2, 0, 1, 3))
+        beta_i_part_t_r = np.reshape(beta_i_part_t, (11 * 5000 * 4, 2))
+        h1 = plot_individual_heatmaps(beta_i_part_t_r, colors)
+        h1.savefig(os.path.join(fig_dir, f"12_sensitivity_partial_pooling_individual_bayesian.pdf"))
+
+        # no pooling
+        # individual
+        bayesian_samples_no_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
+                )
+        beta_i = bayesian_samples_no_pooling["beta"]
+        beta_i_t = beta_i.transpose((2, 0, 1, 3))
+        beta_i_t_r = np.reshape(beta_i_t, (11 * 5000 * 4, 2))
+        h1 = plot_individual_heatmaps(beta_i_t_r, colors)
+        h1.savefig(os.path.join(fig_dir, f"9_sensitivity_no_pooling_individual_bayesian.pdf"))
