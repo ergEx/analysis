@@ -20,6 +20,12 @@ def main():
     print(f"Data: {data_type} \nVariant: {data_variant}")
 
     readingdata.main(config_file)
+    if config['bayesian method']['run']:
+        response = input(f'\nThe Bayesian models are run from "runBayesian.sh". \nTo run these you must therefore quit this pipeline and run it seperately. \nDo you want to continue without running the Bayesian models? ([y]/n): ').lower()
+        if response == 'n' or response == 'no':
+            sys.exit()
+        else:
+            print('Continuing without re-running the Bayesian models')
     bracketing_method.main(config_file)
     create_plots.main(config_file)
 
