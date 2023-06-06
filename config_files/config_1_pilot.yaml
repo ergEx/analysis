@@ -11,9 +11,16 @@ figure directoty: "figs/1_pilot"
 data_type: "real_data"
 data_variant: "1_pilot"
 n_agents: 11
+n_samples: 5000
+n_chains: 4
+n_conditions: 2
 
 # This section provides control over whether data needs to be re-read
 readingdata:
+  run: True
+
+# This section provides control over whether user wants to re-run the Bayesian models
+bayesian method:
   run: True
 
 # This section provides control over whether plot data needs to be re-calculated
