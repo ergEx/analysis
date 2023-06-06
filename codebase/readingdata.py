@@ -28,9 +28,9 @@ def reading_participant_passive_data(
             ),
             sep="\t",
         )
-        df = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
+        df_passive = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
         no_brainers = df.query('event_type == "SideSelection" and part == 1').reset_index(drop=True)
-        passive_phase_data = pd.concat([passive_phase_data, df])
+        passive_phase_data = pd.concat([passive_phase_data, df_passive])
         no_brainer_data = pd.concat([no_brainer_data, no_brainers])
     return passive_phase_data, no_brainer_data
 
