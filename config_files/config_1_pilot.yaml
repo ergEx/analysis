@@ -10,17 +10,23 @@ figure directoty: "figs/1_pilot"
 # This section specifies data variables
 data_type: "real_data"
 data_variant: "1_pilot"
+n_agents: 11
 
 # This section provides control over whether data needs to be re-read
 readingdata:
-  run: False
+  run: True
 
 # This section provides control over whether plot data needs to be re-calculated
 bracketing method:
-  run: False
+  run: True
   calculate_indif_eta: True
   log_reg: True
 
 # This section provides control over the various steps in the plotting pipeline
 plots:
   run: True
+  plot_passive: True
+  plot_no_brainers: True
+  plot_active: True
+  plot_riskaversion_bracketing: True
+  plot_riskaversion_bayesian: True

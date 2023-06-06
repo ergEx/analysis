@@ -2,8 +2,7 @@ import sys
 import time
 
 import yaml
-
-from codebase import base, bracketing_method, create_plots2, readingdata
+from codebase import base, bracketing_method, create_plots, readingdata
 
 
 def main():
@@ -22,7 +21,7 @@ def main():
 
     readingdata.main(config_file)
     bracketing_method.main(config_file)
-    create_plots2.main(config_file)
+    create_plots.main(config_file)
 
     print(f"\n--- Code ran in {(time.time() - start_time):.2f} seconds ---")
 
