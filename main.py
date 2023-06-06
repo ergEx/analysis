@@ -8,7 +8,7 @@ from codebase import base, bracketing_method, create_plots, readingdata
 def main():
     config_file = base.get_config_filename(sys.argv)
 
-    with open(f"config_files/{config_file}", "r") as f:
+    with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     data_type = config["data_type"]

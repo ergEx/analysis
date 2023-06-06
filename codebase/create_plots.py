@@ -12,7 +12,7 @@ from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_outp
 
 
 def main(config_file):
-    with open(f"config_files/{config_file}", "r") as f:
+    with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     if not config["plots"]["run"]:

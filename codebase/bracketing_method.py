@@ -6,8 +6,7 @@ import pandas as pd
 import yaml
 
 from .base import get_config_filename
-from .utils import (calculate_min_v_max, indiference_eta, logistic_regression,
-                    wealth_change)
+from .utils import calculate_min_v_max, indiference_eta, logistic_regression, wealth_change
 
 
 def add_indif_eta(df):
@@ -44,7 +43,7 @@ def add_indif_eta(df):
 
 
 def main(config_file):
-    with open(f"config_files/{config_file}", "r") as f:
+    with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     data_dir = config["data directoty"]
@@ -146,7 +145,7 @@ def main(config_file):
 if __name__ == "__main__":
     config_file = get_config_filename(sys.argv)
 
-    with open(f"config_files/{config_file}", "r") as f:
+    with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     main(config_file)
