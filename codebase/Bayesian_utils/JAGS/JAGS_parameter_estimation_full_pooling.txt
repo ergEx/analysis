@@ -44,9 +44,9 @@ log_beta_g[c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])  # log beta_lin sampled 
 beta_g[c]      = exp(log_beta_g[c])                      # transforms from logspace, now lognormally distributed prior
 
 for (i in 1:nSubjects){
-    log_beta_i[i,c]  ~ dnorm(1,0) # not used
+    log_beta_i[i,c]  ~ dnorm(0,1) # not used
     beta_i[i,c]      = exp(1)     # not used
-    eta_i[i,c]       ~ dnorm(1,0) # not used
+    eta_i[i,c]       ~ dnorm(0,1) # not used
 }#end of subjects
 }#end of conditions
 

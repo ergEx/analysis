@@ -20,7 +20,7 @@ function setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,w
 % doParallel    - whether to run chains in parallel
 
 %% Specifies qualities to be selected from
-numRuns      = length(whichQuals);     %how many separate instances of an MCMC to run
+numRuns      = length(dataPooling);     %how many separate instances of an MCMC to run
 nBurnin      = [1e2,1e3,1e4,2e4,4e4];  %from 100 to 40k
 nSamples     = [5e1,5e2,5e3,1e4,2e4];  %from 50 to 20k
 nChains      = [4,4,4,4,4];            %Keep this to 4
@@ -45,5 +45,5 @@ end %dataSource
 
 %% Runs HLMs sequentially
 for i=1:numRuns
-    computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin(whichQuals(i)),nSamples(whichQuals(i)),nThin,nChains(whichQuals(i)),subjList,whichJAGS,doParallel,startDir,nTrials,folder,type)
+    computeBayesian(dataSource,i,inferenceMode,nBurnin(whichQuals),nSamples(whichQuals),nThin,nChains(whichQuals),subjList,whichJAGS,doParallel,startDir,nTrials,folder,type)
 end
