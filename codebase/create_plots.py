@@ -1,7 +1,6 @@
 #%% # -*- coding: utf-8 -*-
 import os
 
-import mat73
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

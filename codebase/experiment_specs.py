@@ -1,6 +1,3 @@
-import itertools
-
-
 def sub_specs(data_type: str, data_variant: str):
     """
     Returns a dictionary of data specification for the given data variant.

@@ -1,4 +1,3 @@
-import itertools
 import os
 import sys
 
@@ -7,9 +6,8 @@ import pandas as pd
 import scipy.io
 import yaml
 
-from .base import get_config_filename
 from .experiment_specs import condition_specs, sub_specs
-from .utils import wealth_change
+from .utils import get_config_filename, wealth_change
 
 
 def reading_participant_passive_data(

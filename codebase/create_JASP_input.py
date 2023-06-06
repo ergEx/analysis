@@ -6,9 +6,8 @@ import pandas as pd
 import statsmodels.api as sm
 import yaml
 
-from .base import get_config_filename
 from .experiment_specs import condition_specs, sub_specs
-from .utils import read_Bayesian_output
+from .utils import get_config_filename, read_Bayesian_output
 
 
 def extract(subjects, condition_specs, bayesian_samples):

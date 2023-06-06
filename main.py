@@ -2,7 +2,7 @@ import sys
 import time
 
 import yaml
-from codebase import base, bracketing_method, create_JASP_input, create_plots, readingdata
+from codebase import bracketing_method, create_JASP_input, create_plots, readingdata, utils
 
 
 def bayesian_method(config):
@@ -15,7 +15,7 @@ def bayesian_method(config):
 
 
 def main():
-    config_file = base.get_config_filename(sys.argv)
+    config_file = utils.get_config_filename(sys.argv)
     #config_file = 'config_1_pilot.yaml'
 
     with open(f"{config_file}", "r") as f:

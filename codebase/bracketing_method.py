@@ -5,8 +5,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from .base import get_config_filename
-from .utils import calculate_min_v_max, indiference_eta, logistic_regression, wealth_change
+from .utils import calculate_min_v_max, get_config_filename, indiference_eta, logistic_regression, wealth_change
 
 
 def add_indif_eta(df):
