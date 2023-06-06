@@ -10,11 +10,6 @@ from .experiment_specs import condition_specs, sub_specs
 from .utils import get_config_filename, read_Bayesian_output
 
 
-def extract(subjects, condition_specs, bayesian_samples):
-
-    return pd.DataFrame.from_dict(data)
-
-
 def main(config_file):
 
     if not config["create JASP file"]["run"]:
