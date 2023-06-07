@@ -127,13 +127,13 @@ def main(config_file):
 
         #No pooling
         df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
-        etas = np.empty([n_agents,5000*4,2])
+        etas = np.empty([n_agents,n_samples*n_chains,n_conditions])
         for i, participant in enumerate(list(set(df_tmp.participant))):
             for c, con in enumerate(list(set(df_tmp.dynamic))):
                 tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
-                etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, 5000*4)
+                etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
         etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), 4 * 5000))
+        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_conditions))
         h1.savefig(os.path.join(fig_dir, '05_riskaversion_no_pooling_individual_bracketing'))
 
     if stages['plot_riskaversion_bayesian']:
@@ -142,7 +142,7 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta"]
+        eta_group = bayesian_samples_full_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
         fig.savefig(fig_dir,'06_riskaversion_full_pooling_group_bayesian.png')
@@ -155,13 +155,13 @@ def main(config_file):
         eta_group = bayesian_samples_partial_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
-        fig.savefig(fig_dir,'07_riskaversion_partial_pooling_group_bayesian.png')
+        fig.savefig(os.path.join(fig_dir,'07_riskaversion_partial_pooling_group_bayesian.png'))
 
         #individual
-        eta_i = bayesian_samples_partial_pooling["eta"]
+        eta_i = bayesian_samples_partial_pooling["eta_i"]
         eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors)
+        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_conditions))
         h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.pdf"))
 
         # no pooling
@@ -169,10 +169,10 @@ def main(config_file):
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
-        eta_i = bayesian_samples_no_pooling["eta"]
+        eta_i = bayesian_samples_no_pooling["eta_i"]
         eta_i_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_t_r, colors)
+        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_conditions))
         h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.pdf"))
 
     if stages['plot_sensitivity_bayesian']:
@@ -181,10 +181,10 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        beta_group = bayesian_samples_full_pooling["beta"]
+        beta_group = bayesian_samples_full_pooling["beta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([beta_group[:,:,0].flatten(),beta_group[:,:,1].flatten()], ax)
-        fig.savefig(fig_dir,'10_sensitivity_full_pooling_group_bayesian.png')
+        fig.savefig(os.path.join(fig_dir,'10_sensitivity_full_pooling_group_bayesian.png'))
 
         # partial pooling
         # group
@@ -194,10 +194,10 @@ def main(config_file):
         beta_group = bayesian_samples_partial_pooling["beta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([beta_group[:,:,0].flatten(),beta_group[:,:,1].flatten()], ax)
-        fig.savefig(fig_dir,'11_sensitivity_partial_pooling_group_bayesian.png')
+        fig.savefig(os.path.join(fig_dir,'11_sensitivity_partial_pooling_group_bayesian.png'))
 
         #individual
-        beta_i = bayesian_samples_partial_pooling["beta"]
+        beta_i = bayesian_samples_partial_pooling["beta_i"]
         beta_i_part_t = beta_i.transpose((2, 0, 1, 3))
         beta_i_part_t_r = np.reshape(beta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(beta_i_part_t_r, colors)
@@ -208,7 +208,7 @@ def main(config_file):
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
-        beta_i = bayesian_samples_no_pooling["beta"]
+        beta_i = bayesian_samples_no_pooling["beta_i"]
         beta_i_t = beta_i.transpose((2, 0, 1, 3))
         beta_i_t_r = np.reshape(beta_i_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(beta_i_t_r, colors)
@@ -221,12 +221,12 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta"]
+        eta_group = bayesian_samples_full_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
-        for condition in range(n_conditions):
+        for c in range(n_conditions):
             for chain in range(n_chains):
-                plt.plot(range(len(eta_group[chain,:,condition].flatten()), eta_group[chain,:,condition].flatten()), label = f'Chain: {chain}, condition: {condition}')
-        fig.savefig(fig_dir,'14_riskaversion_modelchecks_full_pooling_group_bayesian.png')
+                plt.plot(range(len(eta_group[chain,:,c].flatten()), eta_group[chain,:,c].flatten()), label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
+        fig.savefig(os.path.join(fig_dir,'14_riskaversion_modelchecks_full_pooling_group_bayesian.png'))
 
         # partial pooling
         # group
@@ -235,19 +235,21 @@ def main(config_file):
                 )
         eta_group = bayesian_samples_partial_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
-        for condition in range(n_conditions):
+        for c in range(n_conditions):
             for chain in range(n_chains):
-                plt.plot(range(len(eta_group[chain,:,condition].flatten()), eta_group[chain,:,condition].flatten()), label = f'Chain: {chain}, condition: {condition}')
-        fig.savefig(fig_dir,'15_riskaversion_modelchecks_partial_pooling_group_bayesian.png')
+                ax.plot(range(len(eta_group[chain,:,c])), eta_group[chain,:,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
+        fig.legend()
+        fig.savefig(os.path.join(fig_dir,'15_riskaversion_modelchecks_partial_pooling_group_bayesian.png'))
 
         #individual
-        eta_i = bayesian_samples_partial_pooling["eta"]
-        for agent in range(n_agents):
+        eta_i = bayesian_samples_partial_pooling["eta_i"]
+        for i in range(n_agents):
             fig, ax = plt.subplots(1,1)
-            for condition in range(n_conditions):
+            for c in range(n_conditions):
                 for chain in range(n_chains):
-                    plt.plot(range(len(eta_i[chain,:,agent,condition].flatten()), eta_i[chain,:,agent,condition].flatten()), label = f'Chain: {chain}, condition: {condition}')
-            fig.savefig(os.path.join(fig_dir, f"16_{agent}_riskaversion_modelchecks_partial_pooling_individual_bayesian.pdf"))
+                    ax.plot(range(len(eta_i[chain,:,i,c])), eta_i[chain,:,i,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
+            fig.legend()
+            fig.savefig(os.path.join(fig_dir, f"16_{i}_riskaversion_modelchecks_partial_pooling_individual_bayesian.pdf"))
 
         # no pooling
         # individual
@@ -255,9 +257,10 @@ def main(config_file):
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
         eta_i = bayesian_samples_no_pooling["eta"]
-        for agent in range(n_agents):
+        for i in range(n_agents):
             fig, ax = plt.subplots(1,1)
-            for condition in range(n_conditions):
+            for c in range(n_conditions):
                 for chain in range(n_chains):
-                    plt.plot(range(len(eta_i[chain,:,agent,condition].flatten()), eta_i[chain,:,agent,condition].flatten()), label = f'Chain: {chain}, condition: {condition}')
-            fig.savefig(os.path.join(fig_dir, f"17_{agent}_riskaversion_modelchecks_no_pooling_individual_bayesian.pdf"))
+                    ax.plot(range(len(eta_i[chain,:,i,c])), eta_i[chain,:,i,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
+            fig.legend()
+            fig.savefig(os.path.join(fig_dir, f"17_{i}_riskaversion_modelchecks_no_pooling_individual_bayesian.pdf"))

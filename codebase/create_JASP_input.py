@@ -12,13 +12,13 @@ from .utils import get_config_filename, read_Bayesian_output
 
 def main(config_file):
 
-    if not config["create JASP file"]["run"]:
+    with open(config_file, "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
+    if not config["JASP input"]["run"]:
         return
 
     print(f"\nCREATING JASP FILE")
-
-    with open(config_file, "r") as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
 
     data_dir = config["data directoty"]
 

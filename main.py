@@ -15,8 +15,8 @@ def bayesian_method(config):
 
 
 def main():
-    config_file = utils.get_config_filename(sys.argv)
-    #config_file = 'config_1_pilot.yaml'
+    #config_file = utils.get_config_filename(sys.argv)
+    config_file = 'config_files/config_1_pilot.yaml'
 
     with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
