@@ -45,5 +45,5 @@ end %dataSource
 
 %% Runs HLMs sequentially
 for i=1:numRuns
-    computeBayesian(dataSource,i,inferenceMode,nBurnin(whichQuals),nSamples(whichQuals),nThin,nChains(whichQuals),subjList,whichJAGS,doParallel,startDir,nTrials,folder,type)
+    computeBayesian(dataSource,i,inferenceMode,nBurnin(whichQuals),nSamples(whichQuals),nThin,nChains(whichQuals),subjList,whichJAGS,doParallel,startDir,nTrials,folder)
 end
