@@ -82,7 +82,6 @@ def main(config_file):
                     palette=colors,
                     data=df_prop,
                     s=20,
-                    marker="x",
                     ax=ax[c],
                 )
                 ax[c].set(
@@ -133,7 +132,7 @@ def main(config_file):
                 tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
                 etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
         etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_conditions))
+        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
         h1.savefig(os.path.join(fig_dir, '05_riskaversion_no_pooling_individual_bracketing'))
 
     if stages['plot_riskaversion_bayesian']:
@@ -145,7 +144,7 @@ def main(config_file):
         eta_group = bayesian_samples_full_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
-        fig.savefig(fig_dir,'06_riskaversion_full_pooling_group_bayesian.png')
+        fig.savefig(os.path.join(fig_dir,'06_riskaversion_full_pooling_group_bayesian.png'))
 
         # partial pooling
         # group
@@ -161,7 +160,7 @@ def main(config_file):
         eta_i = bayesian_samples_partial_pooling["eta_i"]
         eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_conditions))
+        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
         h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.pdf"))
 
         # no pooling
@@ -172,7 +171,7 @@ def main(config_file):
         eta_i = bayesian_samples_no_pooling["eta_i"]
         eta_i_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_conditions))
+        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
         h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.pdf"))
 
     if stages['plot_sensitivity_bayesian']:
