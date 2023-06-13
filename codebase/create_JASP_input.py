@@ -22,7 +22,7 @@ def main(config_file):
 
     data_dir = config["data directoty"]
 
-    SUBJECT_SPECS = sub_specs(config["data_variant"])
+    SUBJECT_SPECS = sub_specs(config["data_type"], config["data_variant"])
     subjects = SUBJECT_SPECS["id"]
     CONDITION_SPECS = condition_specs()
 
