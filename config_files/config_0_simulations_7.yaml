@@ -1,16 +1,16 @@
---- # Ergex config file for simulation 1
+--- # Ergex config file for pilot data
 
 # This file allows control over the data processing pipeline without any need
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/0_simulation/grid/eta_05"
-figure directoty: "figs/0_simulation/grid/eta_05"
+data directoty: "data/0_simulation/varying_variance"
+figure directoty: "figs/0_simulation/varying_variance"
 
 # This section specifies data variables
 data_type: "0_simulation"
-data_variant: "grid"
-n_agents: 10
+data_variant: "varying_variance"
+n_agents: 20
 n_samples: 5000
 n_chains: 4
 n_conditions: 2

@@ -3,12 +3,29 @@ import os
 import mat73
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import statsmodels.api
 from scipy import misc
 from scipy.optimize import fsolve
 from scipy.special import expit, logit
+from scipy.stats import gaussian_kde
 from statsmodels.tools import add_constant
 
+
+def get_config_filename(argv):
+    # Determine the name of the config file to be used
+    filename = "config_1_pilot.yaml"
+    if len(argv) == 1:
+        print("No config file specified. Assuming config_1_pilot.yaml")
+    else:
+        filename = argv[1]
+        print("Using config file ", filename)
+
+    # Check that the config file exists and is readable
+    if not os.access(filename, os.R_OK):
+        ValueError(f"Config file {filename} does not exist or is not readable. Exiting.")
+
+    return filename
 
 def isoelastic_utility(x: np.ndarray, eta: float) -> np.ndarray:
     """Isoelastic utility for a given wealth.
@@ -213,6 +230,51 @@ def logistic_regression(df: pd.DataFrame):
     )
 
 
+def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative']):
+    maxi = np.empty([2,2])
+    for i in range(2):
+        sns.kdeplot(data[i], color=colors[i], label=labels[i], fill=True, ax=ax)
+
+        kde = gaussian_kde(data[i])
+
+        maxi[i,0] = data[i][np.argmax(kde.pdf(data[i]))]
+        maxi[i,1] = kde.pdf(maxi[i,0])
+
+    ax.axvline(maxi[0,0], ymax=maxi[0,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
+    ax.axvline(maxi[1,0], ymax=maxi[1,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
+    ax.plot([], ls="--", color="black", label="Estimates")
+    ax.legend(loc="upper left")
+    ax.set(
+        title="",
+        xlabel="Riskaversion parameter",
+        ylabel="",
+        xlim=limits,
+        yticks=[],
+        xticks=np.linspace(limits[0], limits[1], limits[1]-limits[0]+1)
+    )
+    return ax
+
+def plot_individual_heatmaps(data, colors, hue, limits = [-3,4]):
+    h1 = sns.jointplot(
+        data=data,
+        x=data[:,0],
+        y=data[:,1],
+        hue=hue,
+        kind="kde",
+        alpha=0.7,
+        fill=True,
+        palette = sns.color_palette(colors),
+        xlim = limits,
+        ylim = limits,
+        legend = False
+        )
+
+    h1.set_axis_labels("Additive condition", "Multiplicative condition")
+    h1.ax_joint.set_xticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
+    h1.ax_joint.set_yticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
+    sns.lineplot(x=limits, y=limits, color='black', linestyle='--', ax=h1.ax_joint)
+    return h1
+
 def read_Bayesian_output(file_path: str) -> dict:
     """Read HLM output file.
 
@@ -225,4 +287,3 @@ def read_Bayesian_output(file_path: str) -> dict:
     """
     mat = mat73.loadmat(file_path)
     return mat["samples"]
-

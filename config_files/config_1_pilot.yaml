@@ -10,17 +10,34 @@ figure directoty: "figs/1_pilot"
 # This section specifies data variables
 data_type: "real_data"
 data_variant: "1_pilot"
+n_agents: 11
+n_samples: 5000
+n_chains: 4
+n_conditions: 2
 
 # This section provides control over whether data needs to be re-read
 readingdata:
-  run: False
+  run: True
+
+# This section provides control over whether user wants to re-run the Bayesian models
+bayesian method:
+  run: True
 
 # This section provides control over whether plot data needs to be re-calculated
 bracketing method:
-  run: False
+  run: True
   calculate_indif_eta: True
   log_reg: True
+
+# This section provides control over whether user wants to re-compute the JASP input
+JASP input: True
+  run: True
 
 # This section provides control over the various steps in the plotting pipeline
 plots:
   run: True
+  plot_passive: True
+  plot_no_brainers: True
+  plot_active: True
+  plot_riskaversion_bracketing: True
+  plot_riskaversion_bayesian: True

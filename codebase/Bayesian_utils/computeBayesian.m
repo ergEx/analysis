@@ -1,4 +1,4 @@
-function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder)
+function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -7,7 +7,16 @@ function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% inferenceMode - set whether to do patameter estimation (1) or model selection (2)
+% DataSource  - set which data source is used; Simualtion (0)
+%                                              Pilot (1)
+%                                              Full experiment (2)
+% dataPooling - set whether to do No pooling (1)
+%                                 Partial pooling (individual estimates from group level distributions) (2)
+%                                 Full pooling (super individual) (3)
+% inferenceMode - set whether to do parameter estimation (1)
+%                                   Bayesian model comparison of hypotheses (2)
+%                                   Bayesian model comparison of data pooling (2)
+% whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % nBurnin       - specifies how many burn in samples to run
 % nSamples      - specifies the number of samples to run
 % nThin         - specifies the thinnning number
@@ -16,7 +25,6 @@ function computeBayesian(inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,w
 % whichJAGS     - sets which copy of matjags to run
 % doParallel    - sets whether to run chains in parallel
 % startDir      - root directory for the repo
-% dataVersion   - whether to run model on simulated data (1), pilot data (2) or full data (3)
 % nTrials       - number of trials in experiment
 % folder        - folder within the datafolder the relevant data is stored
 
@@ -34,9 +42,20 @@ load(fullfile(dataDir, 'all_active_phase_data.mat'))
 
 %% Choose JAGS file
 switch inferenceMode
-    case {1}, modelName = 'JAGS_parameter_estimation'; mode = 'parameter_estimation';
-    case {2}, modelName = 'JAGS_model_selection'; mode = 'model_selection'; pz=repmat(1/8,1,4);%sets flat prior over models [NoDyn, Dyn]
-end %switch inferencemode
+    case {1}
+    switch dataPooling
+        case {1}, modelName = 'JAGS_parameter_estimation_no_pooling';
+        case {2}, modelName = 'JAGS_parameter_estimation_partial_pooling';
+        case {3}, modelName = 'JAGS_parameter_estimation_full_pooling';
+    end %switch dataPooling
+    case {2}
+    switch dataPooling
+        case {1}, modelName = 'JAGS_model_selection_no_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+        case {2}, modelName = 'JAGS_model_selection_partial_pooling';
+        case {3}, modelName = 'JAGS_model_selection_full_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+    end %switch dataPooling
+    case {3}, modelName = 'JAGS_model_selection_data_pooling'
+end %switch inferenceMode
 
 %% Set key variables
 nConditions=2;%number of dynamics
@@ -49,19 +68,25 @@ nSubjects=length(subjList);%number of subjects
 
 %beta - prior on log since cannot be less than 0; note same bounds used for independent priors on all utility models
 muLogBetaL=-2.3;muLogBetaU=3.4; %bounds on mean of distribution log beta
-sigmaLogBetaL=0.01;sigmaLogBetaU=sqrt(((muLogBetaU-muLogBetaL)^2)/12);%bounds on the std of distribution of log beta
+sigmaLogBetaL=0.01;sigmaLogBetaU=1.6;%bounds on the std of distribution of log beta
 
 %eta
-muMuEta=0.5; sigmaMuEta=0.5; %parameters for the mean of the eta parameter (normal distributed)
-muSigmaEta=-2.2251; sigmaSigmaEta=1.48348; %parameter for the standard diviation on the eta parameter (log normal distributed)
+muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly distributed)
+sigmaEtaL=0.01; sigmaEtaU=1.6; %parameter for the standard diviation on the eta parameter (uniformly distributed)
 
-%delta_eta
-muDeltaEtaL=0.0;muDeltaEtaU=2.5;%bounds on mean of distribution of eta
-sigmaDeltaEtaL=0.01;sigmaDeltaEtaU=sqrt(((muDeltaEtaU-muDeltaEtaL)^2)/12);%bounds on std of eta
+%% set bounds for hyperpriors connected to the mechanistic model
+%eta for h1
+eta_h1_add = 0; eta_h1_mul = 0.9999; %parameters for the eta parameter (note point estimates)
+
+%eta for h2
+muLogEtaL_h2=-2.3;muLogEtaU_h2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
+
+%Model indicator
+pz=repmat(1/12,1,12);%sets flat prior over models [h0 = no change, h1 = time optimal, h2 = increase from add to mul]
 
 %% Print information for user
 disp('**************');
-disp(['Mode: ', mode])
+disp(['Mode: ', modelName])
 disp(['dataSource: ', folder])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
@@ -81,8 +106,6 @@ w=dim;%initialise wealth
 %We allow all agents to have different session length. Therefore we add random gambles to pad out to maxTrials. This
 %allows jags to work since doesn't work for partial observation. This does not affect
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
-
-%shift wealth data
 
 trialInds = 1:nTrials;
 for c = 1:nConditions
@@ -115,39 +138,54 @@ disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 
 %% Configure data structure for graphical model & parameters to monitor
 %everything you want jags to use
+
 switch inferenceMode
-    case {1} %estimate parameters
-        dataStruct = struct(...
-                    'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                    'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
-                    'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-                    'muMuEta',muMuEta,'muSigmaEta',muSigmaEta,'sigmaMuEta',sigmaMuEta,'sigmaSigmaEta',sigmaSigmaEta);
+    case {1}
+    dataStruct = struct(...
+                'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+                'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
+                'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU);
 
         for i = 1:nChains
             monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
                                  'mu_log_beta','tau_log_beta','sigma_log_beta',...
-                                 'log_beta','beta','eta'};
+                                 'beta_i', 'beta_g','eta_i', 'eta_g'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
-    case {2} %model selection
+    case {2}
         dataStruct = struct(...
-                    'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                    'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,'pz',pz,...
-                    'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-                    'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
-                    'muDeltaEtaL',muDeltaEtaL,'muDeltaEtaU',muDeltaEtaU,'sigmaDeltaEtaL',sigmaDeltaEtaL,'sigmaDeltaEtaU',sigmaDeltaEtaU);
+                'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+                'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
+                'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
+                'eta_h1_add',eta_h1_add,'eta_h1_mul',eta_h1_mul,...
+                'muLogEtaL_h2',muLogEtaL_h2,'muLogEtaU_h2',muLogEtaU_h2,...
+                'pz',pz);
 
         for i = 1:nChains
-
-
-            monitorParameters = {'etaNoDyn','etaDyn',...%utility params
-                                'betaNoDyn','betaDyn',...%betas
-                                'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
+            monitorParameters = {'beta_i_h0', 'beta_g_h0','eta_i_h0', 'eta_g_h0',...
+                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
+                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
+                                 'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
+    case {3}
+    dataStruct = struct(...
+                'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+                'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
+                'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
+                'pz',pz);
 
-end %switch inferenceMode
-
+        for i = 1:nChains
+            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',...
+                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',...
+                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',...
+                                 'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
+            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
+        end %i
+end %switch
 %% Run JAGS sampling via matJAGS
 tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
 
@@ -166,13 +204,13 @@ tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
     'savejagsoutput' , 1 , ...                % Save command line output produced by JAGS?
     'verbosity' , 1 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
     'cleanup' , 0 ,...                        % clean up of temporary files?
-    'rndseed',1);                             % Randomise seed; 0=no; 1=yes
+    'rndseed',seedChoice);                    % Randomise seed; 1=no; 2=yes
 
 toc % end clock
 
 %% Save stats and samples
 disp('saving samples...')
-save(fullfile(dataDir, append('Bayesian','_',mode)),'stats','samples','-v7.3')
+save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
 
 %% Print readouts
 disp('stats:'),disp(stats)%print out structure of stats output

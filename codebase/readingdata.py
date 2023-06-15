@@ -1,4 +1,3 @@
-import itertools
 import os
 import sys
 
@@ -7,9 +6,8 @@ import pandas as pd
 import scipy.io
 import yaml
 
-from .base import get_config_filename
 from .experiment_specs import condition_specs, sub_specs
-from .utils import wealth_change
+from .utils import get_config_filename, wealth_change
 
 
 def reading_participant_passive_data(
@@ -28,9 +26,9 @@ def reading_participant_passive_data(
             ),
             sep="\t",
         )
-        df = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
+        df_passive = df.query('event_type == "WealthUpdate" and part == 0').reset_index(drop=True)
         no_brainers = df.query('event_type == "SideSelection" and part == 1').reset_index(drop=True)
-        passive_phase_data = pd.concat([passive_phase_data, df])
+        passive_phase_data = pd.concat([passive_phase_data, df_passive])
         no_brainer_data = pd.concat([no_brainer_data, no_brainers])
     return passive_phase_data, no_brainer_data
 
@@ -199,7 +197,7 @@ def reading_data(
 
 
 def main(config_file):
-    with open(f"config_files/{config_file}", "r") as f:
+    with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     if not config["readingdata"]["run"]:
@@ -217,7 +215,7 @@ def main(config_file):
 if __name__ == "__main__":
     config_file = get_config_filename(sys.argv)
 
-    with open(f"config_files/{config_file}", "r") as f:
+    with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     main(config_file)
