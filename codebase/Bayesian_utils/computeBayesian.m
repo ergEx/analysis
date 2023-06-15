@@ -1,4 +1,4 @@
-function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder)
+function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -204,7 +204,7 @@ tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
     'savejagsoutput' , 1 , ...                % Save command line output produced by JAGS?
     'verbosity' , 1 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
     'cleanup' , 0 ,...                        % clean up of temporary files?
-    'rndseed',1);                             % Randomise seed; 0=no; 1=yes
+    'rndseed',seedChoice);                    % Randomise seed; 1=no; 2=yes
 
 toc % end clock
 
