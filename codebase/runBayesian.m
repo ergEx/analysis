@@ -16,6 +16,7 @@
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % whichQuals    - sets the order of qualities to run
 % doParallel    - whether to run chains in parallel
+% seedChoice    - set whether to do manual seed choice (1), or random seed (2)
 
 % The idea is that this is written into by the user, then called by a
 % cluster job via the terminal:
@@ -33,6 +34,7 @@ inferenceMode = 1;
 whichJAGS = 1;
 whichQuals = 1;
 doParallel = 0;
+seedChoice = 1;
 
 %% Call setHLM
-setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,whichQuals,doParallel,startDir)
+setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,whichQuals,doParallel,startDir,seedChoice)
