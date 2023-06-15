@@ -130,7 +130,8 @@ end
     'verbosity' , 0,...
     'cleanup' , 0, ...
     'showwarnings' , 0 , ...
-    'dotranspose' , 0 );
+    'dotranspose' , 0 , ...
+    'rndseed' , 1);
 
 if length( initStructs ) ~= nChains
     error( 'Number of structures with initial values should match number of chains' );
@@ -170,6 +171,13 @@ if nmonitor == 0
     error( 'Please specify at least one node name to monitor' );
 end
 
+%% List of seed values
+if varargin{22} == 1
+    seed = [10,20,30,40];
+elseif varargin{22} == 2
+    seed = randi([1,5000],1,4);
+end
+%%
 % Develop a separate JAGS script for each chain
 for whchain=1:nChains
     jagsScript   = sprintf( 'jagscript%d.cmd' , whchain );
@@ -217,7 +225,7 @@ for whchain=1:nChains
 
     % Create the init file
     addlines = { '".RNG.name" <- "base::Mersenne-Twister"' , ...
-        sprintf( '".RNG.seed" <- %d' , whchain ) };
+        sprintf( '".RNG.seed" <- %d', seed(whchain) ) };
     dataGenjags( initStructs( whchain ), InitData , addlines, dotranspose );
 end
 
