@@ -1,33 +1,43 @@
-#q1: do risk preferences change
-sim.H0 <- BFDA.sim(expected.ES=0, type="t.paired", design="sequential", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=20, n.max=300, alternative="two.sided", boundary=Inf, B=1000, verbose=TRUE, cores=8, stepsize = 10)
-sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", design="sequential", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=20, n.max=300, alternative="two.sided", boundary=Inf, B=1000, verbose=TRUE, cores=8, stepsize = 10)
-BFDA.analyze(sim.H0, design="fixed", n=100, boundary=5)
-BFDA.analyze(sim.H1, design="fixed", n=100, boundary=10)
-BFDA.analyze(sim.H0, design="sequential", n.min=20, n.max=100, boundary=5)
-BFDA.analyze(sim.H1, design="sequential", n.min=20, n.max=100, boundary=10)
-evDens(BFDA.H1=sim.H1, BFDA.H0=sim.H0, n=100, boundary=c(1/5, 10), xlim=c(1/11, 31))
-plot(sim.H0, n.min=20, boundary=c(1/5, 10), n.trajectories = 100)
-plot(sim.H1, n.min=20, boundary=c(1/5, 10), n.trajectories = 100)
-plot(sim.H0, n.min=20, n.max=100, boundary=c(1/5, 10), forH1 = FALSE)
-plot(sim.H1, n.min=20, n.max=100, boundary=c(1/5, 10))
-SSD(sim.H0, alpha=.05, boundary=c(1/5, 10))
-SSD(sim.H1, power=.90, boundary=c(1/5, 10))
-plot(sim.H0)
-plot(sim.H1)
+# load necessary packages
+library(BFDA)
+library(ggplot2)
+library(devtools)
+library(rngtools)
+library(doParallel)
 
-#q2: does risk aversion increase for multiplicative condition
-sim.H0 <- BFDA.sim(expected.ES=-0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=20, n.max=300, alternative="less", boundary=Inf, B=1000, verbose=TRUE, cores=8, stepsize = 10)
-sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=20, n.max=300, alternative="greater", boundary=Inf, B=1000, verbose=TRUE, cores=8, stepsize = 10)
-BFDA.analyze(sim.H0, design="fixed", n=100, boundary=10)
-BFDA.analyze(sim.H1, design="fixed", n=100, boundary=10)
-BFDA.analyze(sim.H0, design="sequential", n.min=20, n.max=100, boundary=10)
-BFDA.analyze(sim.H1, design="sequential", n.min=20, n.max=100, boundary=10)
-evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=100, boundary=c(10), xlim=c(1/11, 31))
-plot(sim.H0, n.min=20, boundary=c(10), n.trajectories = 100)
-plot(sim.H1, n.min=20, boundary=c(10), n.trajectories = 100)
-plot(sim.H0, n.min=20, n.max=100, boundary=c(10), forH1 = FALSE)
-plot(sim.H1, n.min=20, n.max=100, boundary=c(10))
+# Set up parallel processing
+cores <- detectCores()
+cl <- makeCluster(cores - 1)
+registerDoParallel(cl)
+
+# Clear console and plot windows
+cat("\014")
+dev.off()
+
+#Initialise variables
+nmin <- 20
+nmax <- 150
+nstep <- 1
+bfbound <- 10
+nsims <- 400
+ntraj <- 100
+
+#H0: eta_mul isnot> eta_add
+sim.H0 <- BFDA.sim(expected.ES=0.0, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep)
+BFDA.analyze(sim.H0, design="sequential", n.min=nmin, n.max=nmax, boundary=bfbound)
+plot(sim.H0, n.min=50, n.max=nmax, boundary=bfbound, n.trajectories = ntraj)
+
+#H1: eta_mul is > eta_add, (using 95% lower bound of effect size from pilot)
+sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep)
+BFDA.analyze(sim.H1, design="sequential", n.min=nmin, n.max=nmax, boundary=bfbound)
+plot(sim.H1, n.min=50, n.max=nmax, boundary=bfbound, n.trajectories = ntraj)
+
+#analyse threshold hitting events 
+evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=nsims, boundary=bfbound)
+
+#sample size determination
 SSD(sim.H0, alpha=.05, boundary=c(10))
 SSD(sim.H1, power=.90, boundary=c(10))
-plot(sim.H0)
-plot(sim.H1)
+
+# Stop parallel processing
+stopCluster(cl)
