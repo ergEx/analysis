@@ -30,7 +30,7 @@ bracketing method:
   log_reg: True
 
 # This section provides control over whether user wants to re-compute the JASP input
-JASP input: True
+JASP input:
   run: True
 
 # This section provides control over the various steps in the plotting pipeline
