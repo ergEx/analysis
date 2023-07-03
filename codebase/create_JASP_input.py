@@ -42,7 +42,7 @@ def main(config_file):
         for j, subject1 in enumerate(subjects):
             for c, condition in enumerate(CONDITION_SPECS["lambd"]):
                 try:
-                    eta_dist = bayesian_samples["eta"][:, :, j, c].flatten()
+                    eta_dist = bayesian_samples["eta_i"][:, :, j, c].flatten()
                     kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
                     data[f"{c}.0_{pool}"][j] = kde.support[np.argmax(kde.density)]
                 except Exception as e:
