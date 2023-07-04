@@ -42,13 +42,30 @@ def main(config_file):
         for j, subject1 in enumerate(subjects):
             for c, condition in enumerate(CONDITION_SPECS["lambd"]):
                 try:
-                    eta_dist = bayesian_samples["eta"][:, :, j, c].flatten()
+                    eta_dist = bayesian_samples["eta_i"][:, :, j, c].flatten()
                     kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
                     data[f"{c}.0_{pool}"][j] = kde.support[np.argmax(kde.density)]
                 except Exception as e:
                     pass
 
     df = pd.DataFrame.from_dict(data)
+
+    #calculate distance measures
+
+    d_h1 = np.sqrt((df['0.0_partial_pooling'] - 0) ** 2 + (df['1.0_partial_pooling'] - 1) ** 2)
+    d_h0 = np.abs(df['0.0_partial_pooling'] - df['1.0_partial_pooling'])/2
+    df.insert(2, 'd_h1_partial_pooling', d_h1)
+    df.insert(3, 'd_h0_partial_pooling', d_h0)
+
+    d_h1 = np.sqrt((df['0.0_no_pooling'] - 0) ** 2 + (df['1.0_no_pooling'] - 1) ** 2)
+    d_h0 = np.abs(df['0.0_no_pooling'] - df['1.0_no_pooling'])/2
+    df.insert(6, 'd_h1_no_pooling', d_h1)
+    df.insert(7, 'd_h0_no_pooling', d_h0)
+
+    d_h1 = np.sqrt((df['0.0_bracketing'] - 0) ** 2 + (df['1.0_bracketing'] - 1) ** 2)
+    d_h0 = np.abs(df['0.0_bracketing'] - df['1.0_bracketing'])/2
+    df.insert(10, 'd_h1_bracketing', d_h1)
+    df.insert(11, 'd_h0_bracketing', d_h0)
 
     df.to_csv(os.path.join(data_dir, "jasp_input.csv"), sep="\t")
 

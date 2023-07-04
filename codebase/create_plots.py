@@ -7,7 +7,8 @@ import pandas as pd
 import seaborn as sns
 import yaml
 
-from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_output
+from .utils import (plot_individual_heatmaps, plot_single_kde,
+                    read_Bayesian_output)
 
 
 def main(config_file):
@@ -130,6 +131,8 @@ def main(config_file):
         for i, participant in enumerate(list(set(df_tmp.participant))):
             for c, con in enumerate(list(set(df_tmp.dynamic))):
                 tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
+                if float(tmp_df.log_reg_std_dev) <= 0:
+                    continue
                 etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
         etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
@@ -161,7 +164,7 @@ def main(config_file):
         eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
-        h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.pdf"))
+        h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.png"))
 
         # no pooling
         # individual
@@ -172,7 +175,7 @@ def main(config_file):
         eta_i_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
-        h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.pdf"))
+        h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.png"))
 
     if stages['plot_sensitivity_bayesian']:
         # full pooling
@@ -200,7 +203,7 @@ def main(config_file):
         beta_i_part_t = beta_i.transpose((2, 0, 1, 3))
         beta_i_part_t_r = np.reshape(beta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(beta_i_part_t_r, colors)
-        h1.savefig(os.path.join(fig_dir, f"12_sensitivity_partial_pooling_individual_bayesian.pdf"))
+        h1.savefig(os.path.join(fig_dir, f"12_sensitivity_partial_pooling_individual_bayesian.png"))
 
         # no pooling
         # individual
@@ -211,7 +214,7 @@ def main(config_file):
         beta_i_t = beta_i.transpose((2, 0, 1, 3))
         beta_i_t_r = np.reshape(beta_i_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(beta_i_t_r, colors)
-        h1.savefig(os.path.join(fig_dir, f"13_sensitivity_no_pooling_individual_bayesian.pdf"))
+        h1.savefig(os.path.join(fig_dir, f"13_sensitivity_no_pooling_individual_bayesian.png"))
 
     if stages['plot_model_checks']:
         ## eta
@@ -248,7 +251,7 @@ def main(config_file):
                 for chain in range(n_chains):
                     ax.plot(range(len(eta_i[chain,:,i,c])), eta_i[chain,:,i,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
             fig.legend()
-            fig.savefig(os.path.join(fig_dir, f"16_{i}_riskaversion_modelchecks_partial_pooling_individual_bayesian.pdf"))
+            fig.savefig(os.path.join(fig_dir, f"16_{i}_riskaversion_modelchecks_partial_pooling_individual_bayesian.png"))
 
         # no pooling
         # individual
@@ -262,4 +265,4 @@ def main(config_file):
                 for chain in range(n_chains):
                     ax.plot(range(len(eta_i[chain,:,i,c])), eta_i[chain,:,i,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
             fig.legend()
-            fig.savefig(os.path.join(fig_dir, f"17_{i}_riskaversion_modelchecks_no_pooling_individual_bayesian.pdf"))
+            fig.savefig(os.path.join(fig_dir, f"17_{i}_riskaversion_modelchecks_no_pooling_individual_bayesian.png"))
