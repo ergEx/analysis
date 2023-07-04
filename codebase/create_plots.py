@@ -131,7 +131,7 @@ def main(config_file):
         for i, participant in enumerate(list(set(df_tmp.participant))):
             for c, con in enumerate(list(set(df_tmp.dynamic))):
                 tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
-                if tmp_df.log_reg_std_dev <= 0:
+                if float(tmp_df.log_reg_std_dev) <= 0:
                     continue
                 etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
         etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
