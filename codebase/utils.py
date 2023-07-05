@@ -230,7 +230,7 @@ def logistic_regression(df: pd.DataFrame):
     )
 
 
-def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative']):
+def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative'], x_fiducials=[]):
     maxi = np.empty([2,2])
     for i in range(2):
         sns.kdeplot(data[i], color=colors[i], label=labels[i], fill=True, ax=ax)
@@ -252,9 +252,21 @@ def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels 
         yticks=[],
         xticks=np.linspace(limits[0], limits[1], limits[1]-limits[0]+1)
     )
+
+    for xl in x_fiducials:
+        # This is a bit convoluted, but just in case we want to use different colors for the fiducials.
+        if xl == 0:
+            fid_color = colors[xl]
+        elif xl == 1:
+            fid_color = colors[xl]
+
+        ax.axvline(xl, color=fid_color, linestyle='--', alpha=0.5)
+
+
     return ax
 
-def plot_individual_heatmaps(data, colors, hue, limits = [-3,4]):
+def plot_individual_heatmaps(data, colors, hue, limits = [-3,4],
+                             x_fiducial=[], y_fiducial=[]):
     h1 = sns.jointplot(
         data=data,
         x=data[:,0],
@@ -273,6 +285,15 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,4]):
     h1.ax_joint.set_xticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
     h1.ax_joint.set_yticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
     sns.lineplot(x=limits, y=limits, color='black', linestyle='--', ax=h1.ax_joint)
+
+    for xl in x_fiducial:
+        fid_color = 'blue'
+        h1.ax_joint.axvline(xl, color=fid_color, alpha=0.5, linestyle='--')
+
+    for yl in y_fiducial:
+        fid_color = 'red'
+        h1.ax_joint.axhline(yl, color=fid_color, alpha=0.5, linestyle='--')
+
     return h1
 
 def read_Bayesian_output(file_path: str) -> dict:
