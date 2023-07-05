@@ -177,7 +177,7 @@ def main(config_file):
                 )
         eta_group = bayesian_samples_partial_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
+        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1], limits=[-1, 2])
         fig.savefig(os.path.join(fig_dir,'05a_riskaversion_partial_pooling_group_bayesian.pdf'))
 
         #individual
@@ -185,7 +185,7 @@ def main(config_file):
         eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1])
+                                      x_fiducial=[0], y_fiducial=[1], limits=[-1, 2])
         h1.savefig(os.path.join(fig_dir, f"05b_riskaversion_partial_pooling_individual_bayesian.pdf"))
 
         # no pooling
@@ -217,10 +217,10 @@ def main(config_file):
         dist_ylim = np.array([dist_ylim.min(), dist_ylim.max()]) + y_offset
 
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=risk_ylim, colors=colors)
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=[-1, 2], colors=colors)
         fig.savefig(os.path.join(fig_dir, f"05c_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
 
-        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=dist_ylim,
+        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=[0, 1],
                                       palette=dist_colors, colors=colors)
         ax[0].set(ylabel='Distance', xticklabels=['Distance\ndiagonal', 'Distance\ntime optimal'])
         fig.savefig(os.path.join(fig_dir, f"05f_raincloud_distance_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
@@ -243,7 +243,7 @@ def main(config_file):
 
 
         fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=risk_ylim, colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
