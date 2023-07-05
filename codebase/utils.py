@@ -248,7 +248,7 @@ def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels 
     ax.legend(loc="upper left")
     ax.set(
         title="",
-        xlabel="Riskaversion parameter",
+        xlabel="Risk aversion parameter",
         ylabel="",
         xlim=limits,
         yticks=[],
