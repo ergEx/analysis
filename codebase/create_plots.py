@@ -8,7 +8,7 @@ import pandas as pd
 import seaborn as sns
 import yaml
 
-from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_output
+from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_output, jasp_like_correlation, jasp_like_raincloud
 
 
 def main(config_file):
@@ -42,6 +42,7 @@ def main(config_file):
     cmap = plt.get_cmap("tab20")
     colors = [cmap(i) for i in np.linspace(0, 1, n_agents)]
     # Set slightly larger fontscale throughout, but keeping matplotlib settings
+    cm = 1/2.54  # centimeters in inches (for plot size conversion)
     sns.set(font_scale=1.2, rc=rcParamsDefault)
     # params = {"font.family" : "serif", If the need occurs to set fonts
     #          "font.serif" : ["Computer Modern Serif"]}
@@ -52,7 +53,8 @@ def main(config_file):
             print('There is no passive trajectories for simulated data')
         else:
             df_passive = pd.read_csv(os.path.join(data_dir, "all_passive_phase_data.csv"), sep="\t")
-            fig, ax = plt.subplots(2,1)
+            fig, ax = plt.subplots(1,2, figsize=(23 * cm, 4.75 * cm))
+            ax = ax.flatten()
             for c, con in enumerate(set(df_passive.eta)):
                 tmp_df = df_passive.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
@@ -68,14 +70,15 @@ def main(config_file):
                 ax[c].legend(loc="upper left")
 
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.png'))
+            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_no_brainers']:
         if data_type != "real_data":
             print('There is no no-brainer data for simulated data')
         else:
             df_no_brainer = pd.read_csv(os.path.join(data_dir, "all_no_brainer_data.csv"), sep="\t")
-            fig, ax = plt.subplots(1,2)
+            fig, ax = plt.subplots(1,2, figsize=(12 * cm, 7 * cm))
+            ax = ax.flatten()
             for c, con in enumerate(set(df_no_brainer.eta)):
                 df_rankings_copy = df_no_brainer.copy()
                 df_rankings_copy["trial_bins"] = pd.cut(
@@ -93,23 +96,27 @@ def main(config_file):
                     palette=colors,
                     data=df_prop,
                     ax=ax[c],
-                    s=10
+                    s=7
                 )
                 ax[c].set(
                     ylim=(0, 1), ylabel="No-brainers: Proportion correct", xlabel="", title=title_dict[c]
                 )
+                if c == 1:
+                    ax[c].set(ylabel='')
+
                 #ax[c].collections[0].set_sizes([75])
                 ax[c].legend().remove()
                 ax[c].axhline(y=0.8, color="black", linestyle="--")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '02_no_brainers.png'), dpi=600)
+            fig.savefig(os.path.join(fig_dir, '02_no_brainers.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_active']:
         if data_type != 'real_data':
             print('There is no passive trajectories for simulated data')
         else:
             df_active = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
-            fig, ax = plt.subplots(2,1)
+            fig, ax = plt.subplots(1,2, figsize=(23 * cm, 4.75 * cm))
+            ax = ax.flatten()
             for c, con in enumerate(set(df_active.eta)):
                 tmp_df = df_active.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
@@ -123,7 +130,7 @@ def main(config_file):
                 ax[c].axhline(soft_limits[c][0], linestyle="--", color="grey", label='lower limit')
                 #ax[c].legend(loc="upper left")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '03_active_trajectories.png'), dpi=600)
+            fig.savefig(os.path.join(fig_dir, '03_active_trajectories.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bracketing']:
         #Full pooling
@@ -190,6 +197,25 @@ def main(config_file):
         h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
                                       x_fiducial=[0], y_fiducial=[1])
         h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.pdf"))
+
+    if stages['plot_jasp_like']:
+
+        jasp_data = pd.read_csv(os.path.join(data_dir, "jasp_input.csv"), sep = '\t')
+        # Plotting partial_pooling
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling')
+        fig.savefig(os.path.join(fig_dir, f"10_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling' )
+        fig.savefig(os.path.join(fig_dir, f"11_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+        # Plotting no_pooling
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
+        fig.savefig(os.path.join(fig_dir, f"12_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
+        fig.savefig(os.path.join(fig_dir, f"13_correlation_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        # Plotting bracketing
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing')
+        fig.savefig(os.path.join(fig_dir, f"14_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing')
+        fig.savefig(os.path.join(fig_dir, f"15_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
     return
 
