@@ -312,7 +312,8 @@ def read_Bayesian_output(file_path: str) -> dict:
     return mat["samples"]
 
 
-def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'], ylimits=[-0.1, 1.2]):
+def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
+                        ylimits=[-0.1, 1.2], alpha=0.5):
     """Recreates raincloud plots, similarly to the ones in JASP
 
     Args:
@@ -349,7 +350,8 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'], yli
                 ylabel='Risk aversion parameter')
     axes[0].spines[['right', 'top']].set_visible(False)
 
-    pt.RainCloud(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1], palette=palette)
+    pt.RainCloud(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1],
+                 palette=palette, alpha=alpha)
 
     axes[1].get_legend().remove()
     axes[1].set(ylim=ylimits, ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
