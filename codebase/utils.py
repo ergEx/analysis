@@ -10,6 +10,8 @@ from scipy.optimize import fsolve
 from scipy.special import expit, logit
 from scipy.stats import gaussian_kde
 from statsmodels.tools import add_constant
+import matplotlib.pyplot as plt
+import ptitprince as pt
 
 
 def get_config_filename(argv):
@@ -308,3 +310,50 @@ def read_Bayesian_output(file_path: str) -> dict:
     """
     mat = mat73.loadmat(file_path)
     return mat["samples"]
+
+
+def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'], ylimits=[-0.1, 1.2]):
+    """Recreates raincloud plots, similarly to the ones in JASP
+
+    Args:
+        data (_type_): Jasp input file
+        col_name1 (str): Column name 1, assumed to be additive condition.
+        col_name2 (str): Column name 2, assumed to be multiplicative condition.
+        palette (list, optional): Color palette for plots. Defaults to ['blue', 'red'].
+        ylimits (list, optional): Limits of the yaxis. Defaults to [-0.1, 1.2].
+
+    Returns:
+        fig, axes: figure and axes of the raincloud plots
+    """
+    fig, axes = plt.subplots(1, 2, sharey=False)
+    axes = axes.flatten()
+
+    sub_data = data[[col_name1, col_name2]].copy()
+    sub_data = sub_data.melt(value_vars=[col_name1, col_name2], var_name='Condition', value_name='Estimate')
+    sub_data['x'] = 1
+
+    d1 = data[[col_name1]].values
+    d2 = data[[col_name2]].values
+
+    x_jitter = np.random.rand(*d1.shape) * 0.1
+    xj_mean = x_jitter.mean()
+
+    for n, (i, j) in enumerate(zip(d1, d2)):
+        axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25])
+
+    axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
+    axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
+
+    axes[0].set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
+                xticklabels=['Additive\nCondition', 'Multiplicative\nCondition'],
+                ylabel='Risk aversion parameter')
+    axes[0].spines[['right', 'top']].set_visible(False)
+
+    pt.RainCloud(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1], palette=palette)
+
+    axes[1].get_legend().remove()
+    axes[1].set(ylim=ylimits, ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
+    axes[1].invert_xaxis()
+    axes[1].spines[['right', 'top', 'left', 'bottom']].set_visible(False)
+
+    return fig, axes
