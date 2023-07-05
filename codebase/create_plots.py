@@ -202,33 +202,53 @@ def main(config_file):
 
     if stages['plot_jasp_like']:
         y_offset = np.array([-0.1, 0.1])
+        dist_colors = [np.array([187, 216, 84]) / 255, np.array([255, 217, 47]) / 255]
         jasp_data = pd.read_csv(os.path.join(data_dir, "jasp_input.csv"), sep = '\t')
         # Plotting partial_pooling
         # Estimate ylims:
+        risk_ylim = jasp_data[['0.0_partial_pooling', '1.0_partial_pooling',
+                               '0.0_no_pooling', '1.0_no_pooling',
+                               '0.0_bracketing', '1.0_bracketing']].values.ravel()
+        risk_ylim = np.array([risk_ylim.min(), risk_ylim.max()]) + y_offset
 
-        tmp_data = jasp_data[['0.0_partial_pooling', '1.0_partial_pooling']].values.ravel()
-        tmp_ylim = np.array([tmp_data.min(), tmp_data.max()]) + y_offset
+        dist_ylim = jasp_data[['d_h0_partial_pooling', 'd_h1_partial_pooling',
+                               'd_h0_no_pooling', 'd_h1_no_pooling',
+                               'd_h0_bracketing', 'd_h1_bracketing']].values.ravel()
+        dist_ylim = np.array([dist_ylim.min(), dist_ylim.max()]) + y_offset
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=tmp_ylim)
+
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=risk_ylim, colors=colors)
         fig.savefig(os.path.join(fig_dir, f"05c_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+
+        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=dist_ylim,
+                                      palette=dist_colors, colors=colors)
+        ax[0].set(ylabel='Distance', xticklabels=['Distance\ndiagonal', 'Distance\ntime optimal'])
+        fig.savefig(os.path.join(fig_dir, f"05f_raincloud_distance_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling' )
         fig.savefig(os.path.join(fig_dir, f"05d_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting no_pooling
-        tmp_data = jasp_data[[ '0.0_no_pooling', '1.0_no_pooling']].values.ravel()
-        tmp_ylim = np.array([tmp_data.min(), tmp_data.max()]) + y_offset
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling', ylimits=tmp_ylim)
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling', ylimits=risk_ylim, colors=colors)
         fig.savefig(os.path.join(fig_dir, f"06c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+
+        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_no_pooling', 'd_h1_no_pooling', ylimits=dist_ylim,
+                                      palette=dist_colors, colors=colors)
+        ax[0].set(ylabel='Distance', xticklabels=['Distance\ndiagonal', 'Distance\ntime optimal'])
+        fig.savefig(os.path.join(fig_dir, f"06f_raincloud_distance_no_pooling.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
         fig.savefig(os.path.join(fig_dir, f"06d_correlation_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting bracketing
-        tmp_data = jasp_data[['0.0_bracketing', '1.0_bracketing']].values.ravel()
-        tmp_ylim = np.array([tmp_data.min(), tmp_data.max()]) + y_offset
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=tmp_ylim)
+
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=risk_ylim, colors=colors)
         fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+
+        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
+                                      palette=dist_colors, colors=colors)
+        ax[0].set(ylabel='Distance', xticklabels=['Distance\ndiagonal', 'Distance\ntime optimal'])
+        fig.savefig(os.path.join(fig_dir, f"03f_raincloud_distance_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing')
         fig.savefig(os.path.join(fig_dir, f"03d_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')

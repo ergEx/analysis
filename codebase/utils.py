@@ -361,7 +361,7 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
     axes[0].spines[['right', 'top']].set_visible(False)
 
     pt.RainCloud(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1],
-                 palette=palette, alpha=alpha, box_alpha=alpha)
+                 palette=palette, alpha=alpha)
 
     axes[1].get_legend().remove()
     axes[1].set(ylim=ylimits, ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
