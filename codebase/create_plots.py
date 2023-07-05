@@ -132,6 +132,8 @@ def main(config_file):
             fig.tight_layout()
             fig.savefig(os.path.join(fig_dir, '01c_active_trajectories.png'), dpi=600, bbox_inches='tight')
 
+    sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
+
     if stages['plot_riskaversion_bracketing']:
         #Full pooling
         bracketing_overview = pd.read_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep = '\t')
@@ -199,21 +201,35 @@ def main(config_file):
         h1.savefig(os.path.join(fig_dir, f"06b_riskaversion_no_pooling_individual_bayesian.pdf"))
 
     if stages['plot_jasp_like']:
-
+        y_offset = np.array([-0.1, 0.1])
         jasp_data = pd.read_csv(os.path.join(data_dir, "jasp_input.csv"), sep = '\t')
         # Plotting partial_pooling
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling')
+        # Estimate ylims:
+
+        tmp_data = jasp_data[['0.0_partial_pooling', '1.0_partial_pooling']].values.ravel()
+        tmp_ylim = np.array([tmp_data.min(), tmp_data.max()]) + y_offset
+
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=tmp_ylim)
         fig.savefig(os.path.join(fig_dir, f"05c_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+
         fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling' )
         fig.savefig(os.path.join(fig_dir, f"05d_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting no_pooling
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
+        tmp_data = jasp_data[[ '0.0_no_pooling', '1.0_no_pooling']].values.ravel()
+        tmp_ylim = np.array([tmp_data.min(), tmp_data.max()]) + y_offset
+
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling', ylimits=tmp_ylim)
         fig.savefig(os.path.join(fig_dir, f"06c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+
         fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
         fig.savefig(os.path.join(fig_dir, f"06d_correlation_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting bracketing
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing')
+        tmp_data = jasp_data[['0.0_bracketing', '1.0_bracketing']].values.ravel()
+        tmp_ylim = np.array([tmp_data.min(), tmp_data.max()]) + y_offset
+
+        fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=tmp_ylim)
         fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing')
         fig.savefig(os.path.join(fig_dir, f"03d_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
