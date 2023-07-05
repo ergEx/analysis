@@ -269,7 +269,7 @@ def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels 
 
     return ax
 
-def plot_individual_heatmaps(data, colors, hue, limits = [-3,4],
+def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
                              x_fiducial=[], y_fiducial=[]):
     h1 = sns.jointplot(
         data=data,
