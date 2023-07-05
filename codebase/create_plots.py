@@ -70,7 +70,7 @@ def main(config_file):
                 ax[c].legend(loc="upper left")
 
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '01a_passive_trajectories.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_no_brainers']:
         if data_type != "real_data":
@@ -108,7 +108,7 @@ def main(config_file):
                 ax[c].legend().remove()
                 ax[c].axhline(y=0.8, color="black", linestyle="--")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '02_no_brainers.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '01b_no_brainers.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_active']:
         if data_type != 'real_data':
@@ -130,7 +130,7 @@ def main(config_file):
                 ax[c].axhline(soft_limits[c][0], linestyle="--", color="grey", label='lower limit')
                 #ax[c].legend(loc="upper left")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '03_active_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '01c_active_trajectories.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bracketing']:
         #Full pooling
@@ -141,7 +141,7 @@ def main(config_file):
         mul = np.random.normal(df_tmp[df_tmp.dynamic == 1.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 1.0].log_reg_std_dev, n_samples * n_chains)
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([add,mul], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir, '04_riskaversion_full_pooling_group_bracketing.pdf'))
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_full_pooling_group_bracketing.pdf'))
 
         #No pooling
         df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
@@ -155,7 +155,7 @@ def main(config_file):
         etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
                                       x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, '05_riskaversion_no_pooling_individual_bracketing.pdf'))
+        h1.savefig(os.path.join(fig_dir, '03b_riskaversion_no_pooling_individual_bracketing.pdf'))
 
     if stages['plot_riskaversion_bayesian']:
         # full pooling
@@ -166,7 +166,7 @@ def main(config_file):
         eta_group = bayesian_samples_full_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir,'06_riskaversion_full_pooling_group_bayesian.pdf'))
+        fig.savefig(os.path.join(fig_dir,'04a_riskaversion_full_pooling_group_bayesian.pdf'))
 
         # partial pooling
         # group
@@ -176,7 +176,7 @@ def main(config_file):
         eta_group = bayesian_samples_partial_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir,'07_riskaversion_partial_pooling_group_bayesian.pdf'))
+        fig.savefig(os.path.join(fig_dir,'05a_riskaversion_partial_pooling_group_bayesian.pdf'))
 
         #individual
         eta_i = bayesian_samples_partial_pooling["eta_i"]
@@ -184,7 +184,7 @@ def main(config_file):
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
                                       x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.pdf"))
+        h1.savefig(os.path.join(fig_dir, f"05b_riskaversion_partial_pooling_individual_bayesian.pdf"))
 
         # no pooling
         # individual
@@ -196,26 +196,26 @@ def main(config_file):
         eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
                                       x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.pdf"))
+        h1.savefig(os.path.join(fig_dir, f"06b_riskaversion_no_pooling_individual_bayesian.pdf"))
 
     if stages['plot_jasp_like']:
 
         jasp_data = pd.read_csv(os.path.join(data_dir, "jasp_input.csv"), sep = '\t')
         # Plotting partial_pooling
         fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling')
-        fig.savefig(os.path.join(fig_dir, f"10_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"05c_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
         fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling' )
-        fig.savefig(os.path.join(fig_dir, f"11_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"05d_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting no_pooling
         fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
-        fig.savefig(os.path.join(fig_dir, f"12_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"06c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
         fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling')
-        fig.savefig(os.path.join(fig_dir, f"13_correlation_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"06d_correlation_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting bracketing
         fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing')
-        fig.savefig(os.path.join(fig_dir, f"14_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing')
-        fig.savefig(os.path.join(fig_dir, f"15_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f"03d_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
     return
 
