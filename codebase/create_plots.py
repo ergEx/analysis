@@ -2,13 +2,13 @@
 import os
 
 import matplotlib.pyplot as plt
+from matplotlib import rcParamsDefault
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import yaml
 
-from .utils import (plot_individual_heatmaps, plot_single_kde,
-                    read_Bayesian_output)
+from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_output
 
 
 def main(config_file):
@@ -22,6 +22,11 @@ def main(config_file):
 
     data_dir = config["data directoty"]
     fig_dir = config["figure directoty"]
+
+    # If folders do not exist - create them:
+    if not os.path.isdir(fig_dir):
+        os.makedirs(fig_dir)
+
     data_type = config["data_type"]
 
     n_agents = config["n_agents"]
@@ -36,6 +41,11 @@ def main(config_file):
 
     cmap = plt.get_cmap("tab20")
     colors = [cmap(i) for i in np.linspace(0, 1, n_agents)]
+    # Set slightly larger fontscale throughout, but keeping matplotlib settings
+    sns.set(font_scale=1.2, rc=rcParamsDefault)
+    # params = {"font.family" : "serif", If the need occurs to set fonts
+    #          "font.serif" : ["Computer Modern Serif"]}
+    # plt.rcParams.update(params)
 
     if stages['plot_passive']:
         if data_type != 'real_data':
@@ -50,7 +60,7 @@ def main(config_file):
                     ax[c].plot(pivoted_df.index, pivoted_df[participant],  color = colors[i])
                 ax[c].set(title = title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
-                    ax[c].set(yscale="log", ylabel="log Wealth (log)")
+                    ax[c].set(yscale="log", ylabel="Wealth")
 
                 for i in [45, 45 * 2]:
                     ax[c].axvline(x=i, linestyle="--", color="grey")
@@ -76,22 +86,23 @@ def main(config_file):
                     .mean()["response_correct"]
                     .reset_index()
                 )
-                sns.scatterplot(
+                sns.stripplot(
                     x="trial_bins",
                     y="response_correct",
                     hue="participant_id",
                     palette=colors,
                     data=df_prop,
-                    s=20,
                     ax=ax[c],
+                    s=10
                 )
                 ax[c].set(
-                    ylim=(0, 1), ylabel="Proportion of correct rankings", xlabel="", title=title_dict[c]
+                    ylim=(0, 1), ylabel="No-brainers: Proportion correct", xlabel="", title=title_dict[c]
                 )
+                #ax[c].collections[0].set_sizes([75])
                 ax[c].legend().remove()
                 ax[c].axhline(y=0.8, color="black", linestyle="--")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '02_no_brainers.png'))
+            fig.savefig(os.path.join(fig_dir, '02_no_brainers.png'), dpi=600)
 
     if stages['plot_active']:
         if data_type != 'real_data':
@@ -106,13 +117,13 @@ def main(config_file):
                     ax[c].plot(pivoted_df.index, pivoted_df[participant], color = colors[i])
                 ax[c].set(title=title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
-                    ax[c].set(yscale="log", ylabel="log Wealth (log)")
+                    ax[c].set(yscale="log", ylabel="Wealth")
 
                 ax[c].axhline(soft_limits[c][1], linestyle="--", color="grey", label='upper limit')
                 ax[c].axhline(soft_limits[c][0], linestyle="--", color="grey", label='lower limit')
                 #ax[c].legend(loc="upper left")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '03_active_trajectories.png'))
+            fig.savefig(os.path.join(fig_dir, '03_active_trajectories.png'), dpi=600)
 
     if stages['plot_riskaversion_bracketing']:
         #Full pooling
@@ -122,8 +133,8 @@ def main(config_file):
         add = np.random.normal(df_tmp[df_tmp.dynamic == 0.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 0.0].log_reg_std_dev, n_samples * n_conditions)
         mul = np.random.normal(df_tmp[df_tmp.dynamic == 1.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 1.0].log_reg_std_dev, n_samples * n_chains)
         fig, ax = plt.subplots(1, 1)
-        ax = plot_single_kde([add,mul], ax)
-        fig.savefig(os.path.join(fig_dir, '04_riskaversion_full_pooling_group_bracketing'))
+        ax = plot_single_kde([add,mul], ax, x_fiducials=[0, 1])
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_full_pooling_group_bracketing.pdf'))
 
         #No pooling
         df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
@@ -135,8 +146,9 @@ def main(config_file):
                     continue
                 etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
         etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
-        h1.savefig(os.path.join(fig_dir, '05_riskaversion_no_pooling_individual_bracketing'))
+        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
+                                      x_fiducial=[0], y_fiducial=[1])
+        h1.savefig(os.path.join(fig_dir, '05_riskaversion_no_pooling_individual_bracketing.pdf'))
 
     if stages['plot_riskaversion_bayesian']:
         # full pooling
@@ -146,8 +158,8 @@ def main(config_file):
                     )
         eta_group = bayesian_samples_full_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
-        fig.savefig(os.path.join(fig_dir,'06_riskaversion_full_pooling_group_bayesian.png'))
+        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
+        fig.savefig(os.path.join(fig_dir,'06_riskaversion_full_pooling_group_bayesian.pdf'))
 
         # partial pooling
         # group
@@ -156,15 +168,16 @@ def main(config_file):
                 )
         eta_group = bayesian_samples_partial_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax)
-        fig.savefig(os.path.join(fig_dir,'07_riskaversion_partial_pooling_group_bayesian.png'))
+        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
+        fig.savefig(os.path.join(fig_dir,'07_riskaversion_partial_pooling_group_bayesian.pdf'))
 
         #individual
         eta_i = bayesian_samples_partial_pooling["eta_i"]
         eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
-        h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.png"))
+        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
+                                      x_fiducial=[0], y_fiducial=[1])
+        h1.savefig(os.path.join(fig_dir, f"08_riskaversion_partial_pooling_individual_bayesian.pdf"))
 
         # no pooling
         # individual
@@ -174,8 +187,11 @@ def main(config_file):
         eta_i = bayesian_samples_no_pooling["eta_i"]
         eta_i_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples))
-        h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.png"))
+        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
+                                      x_fiducial=[0], y_fiducial=[1])
+        h1.savefig(os.path.join(fig_dir, f"09_riskaversion_no_pooling_individual_bayesian.pdf"))
+
+    return
 
     if stages['plot_sensitivity_bayesian']:
         # full pooling
