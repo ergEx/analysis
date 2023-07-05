@@ -316,7 +316,7 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'], yli
     """Recreates raincloud plots, similarly to the ones in JASP
 
     Args:
-        data (_type_): Jasp input file
+        data (pd.DataFrame): Jasp input file
         col_name1 (str): Column name 1, assumed to be additive condition.
         col_name2 (str): Column name 2, assumed to be multiplicative condition.
         palette (list, optional): Color palette for plots. Defaults to ['blue', 'red'].
@@ -357,3 +357,29 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'], yli
     axes[1].spines[['right', 'top', 'left', 'bottom']].set_visible(False)
 
     return fig, axes
+
+
+def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01):
+    """Correlation plot.
+
+    Args:
+        data (pd.DataFrame): Jasp input file
+        col_name1 (str): Column name 1, assumed to be additive condition (x-axis).
+        col_name2 (str): Column name 2, assumed to be multiplicative condition (y-axis).
+        lim_offset (float, optional): Additional space to y and x-axis. Defaults to 0.01.
+
+    Returns:
+        fig, ax: Figure and axes objects.
+    """
+
+    fig, ax = plt.subplots(1, 1)
+    sns.regplot(x=col_name1, y=col_name2, data=data, ax=ax)
+    ax.set(ylabel='Multiplicative Condition', xlabel='Additive Condition')
+
+    xlim = np.array(ax.get_xlim())
+    ylim = np.array(ax.get_ylim())
+    lim_offset = np.array([lim_offset * -1, lim_offset])
+
+    ax.set(xlim = xlim + lim_offset, ylim=ylim + lim_offset)
+
+    return fig, ax
