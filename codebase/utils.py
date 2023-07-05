@@ -12,7 +12,9 @@ from scipy.stats import gaussian_kde
 from statsmodels.tools import add_constant
 import matplotlib.pyplot as plt
 import ptitprince as pt
+from matplotlib import rcParamsDefault
 
+sns.set(font_scale=1.2, rc=rcParamsDefault)
 
 def get_config_filename(argv):
     # Determine the name of the config file to be used
@@ -313,7 +315,7 @@ def read_Bayesian_output(file_path: str) -> dict:
 
 
 def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
-                        ylimits=[-0.1, 1.2], alpha=0.5):
+                        ylimits=[-0.1, 1.2], alpha=0.5, colors=None):
     """Recreates raincloud plots, similarly to the ones in JASP
 
     Args:
@@ -326,6 +328,7 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
     Returns:
         fig, axes: figure and axes of the raincloud plots
     """
+
     fig, axes = plt.subplots(1, 2, sharey=False)
     axes = axes.flatten()
 
@@ -340,10 +343,17 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
     xj_mean = x_jitter.mean()
 
     for n, (i, j) in enumerate(zip(d1, d2)):
-        axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25])
+        if colors is not None:
+            axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=colors[n])
+        else:
+            axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25])
 
-    axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
-    axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
+    if colors is not None:
+        axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=colors)
+        axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=colors)
+    else:
+        axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
+        axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
 
     axes[0].set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
                 xticklabels=['Additive\nCondition', 'Multiplicative\nCondition'],
@@ -351,12 +361,15 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
     axes[0].spines[['right', 'top']].set_visible(False)
 
     pt.RainCloud(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1],
-                 palette=palette, alpha=alpha)
+                 palette=palette, alpha=alpha, box_alpha=alpha)
 
     axes[1].get_legend().remove()
     axes[1].set(ylim=ylimits, ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
     axes[1].invert_xaxis()
     axes[1].spines[['right', 'top', 'left', 'bottom']].set_visible(False)
+
+    for artist in axes[1].patches:
+            artist.set_alpha(alpha)
 
     return fig, axes
 
