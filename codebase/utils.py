@@ -234,7 +234,7 @@ def logistic_regression(df: pd.DataFrame):
     )
 
 
-def plot_single_kde(data, ax, limits = [-3,4], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative'], x_fiducials=[]):
+def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative'], x_fiducials=[]):
     maxi = np.empty([2,2])
     for i in range(2):
         sns.kdeplot(data[i], color=colors[i], label=labels[i], fill=True, ax=ax)
