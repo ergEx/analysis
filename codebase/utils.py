@@ -15,9 +15,9 @@ import ptitprince as pt
 from matplotlib import rcParamsDefault
 from matplotlib.ticker import FormatStrFormatter
 
-sns.set(font_scale=1.2, rc=rcParamsDefault)
+sns.set(font_scale=1.1, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
-fig_size = (7.5 * cm , 7.5 * cm)
+fig_size = (7.5 * cm , 6 * cm)
 
 
 def get_config_filename(argv):
@@ -270,11 +270,14 @@ def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels
 
         ax.axvline(xl, color=fid_color, linestyle='--', alpha=0.5)
 
+    ax.spines[['right', 'top']].set_visible(False)
+
 
     return ax
 
 def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
                              x_fiducial=[], y_fiducial=[]):
+
     h1 = sns.jointplot(
         data=data,
         x=data[:,0],
@@ -411,5 +414,6 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
     ax.set(xlim = xlim + lim_offset, ylim=ylim + lim_offset)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.spines[['right', 'top']].set_visible(False)
 
     return fig, ax
