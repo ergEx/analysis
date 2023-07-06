@@ -17,7 +17,7 @@ from matplotlib.ticker import FormatStrFormatter
 
 sns.set(font_scale=1.1, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
-fig_size = (7.5 * cm , 6 * cm)
+fig_size = (6.5 * cm , 5.75 * cm)
 
 
 def get_config_filename(argv):
@@ -251,7 +251,7 @@ def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels
     ax.axvline(maxi[0,0], ymax=maxi[0,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
     ax.axvline(maxi[1,0], ymax=maxi[1,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
     ax.plot([], ls="--", color="black", label="Estimates")
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper left", fontsize=6)
     ax.set(
         title="",
         xlabel="Risk aversion parameter",
@@ -305,7 +305,7 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
         fid_color = 'red'
         h1.ax_joint.axhline(yl, color=fid_color, alpha=0.5, linestyle='--')
 
-    h1.fig.set_size_inches(fig_size)
+    h1.fig.set_size_inches(fig_size[1], fig_size[1])
     return h1
 
 def read_Bayesian_output(file_path: str) -> dict:

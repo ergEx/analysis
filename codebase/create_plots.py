@@ -9,7 +9,7 @@ import seaborn as sns
 import yaml
 
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
-fig_size = (7.5 * cm , 6 * cm)
+fig_size = (6.5 * cm , 5.75 * cm)
 
 from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_output, jasp_like_correlation, jasp_like_raincloud
 
