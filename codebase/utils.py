@@ -16,6 +16,9 @@ from matplotlib import rcParamsDefault
 from matplotlib.ticker import FormatStrFormatter
 
 sns.set(font_scale=1.2, rc=rcParamsDefault)
+cm = 1/2.54  # centimeters in inches (for plot size conversion)
+fig_size = (7.5 * cm , 7.5 * cm)
+
 
 def get_config_filename(argv):
     # Determine the name of the config file to be used
@@ -299,6 +302,7 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
         fid_color = 'red'
         h1.ax_joint.axhline(yl, color=fid_color, alpha=0.5, linestyle='--')
 
+    h1.fig.set_size_inches(fig_size)
     return h1
 
 def read_Bayesian_output(file_path: str) -> dict:
@@ -330,7 +334,7 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
         fig, axes: figure and axes of the raincloud plots
     """
 
-    fig, axes = plt.subplots(1, 2, sharey=False)
+    fig, axes = plt.subplots(1, 2, sharey=False, figsize=fig_size)
     axes = axes.flatten()
 
     sub_data = data[[col_name1, col_name2]].copy()
@@ -388,7 +392,7 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
         fig, ax: Figure and axes objects.
     """
 
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
     if colors is not None:
         ax.scatter(x=data[col_name1], y=data[col_name2], c=colors)
