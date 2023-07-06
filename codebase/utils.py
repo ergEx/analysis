@@ -13,6 +13,7 @@ from statsmodels.tools import add_constant
 import matplotlib.pyplot as plt
 import ptitprince as pt
 from matplotlib import rcParamsDefault
+from matplotlib.ticker import FormatStrFormatter
 
 sns.set(font_scale=1.2, rc=rcParamsDefault)
 
@@ -356,7 +357,7 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
         axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
 
     axes[0].set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
-                xticklabels=['Additive\nCondition', 'Multiplicative\nCondition'],
+                xticklabels=['Additive\ncondition', 'Multiplicative\ncondition'],
                 ylabel='Risk aversion parameter')
     axes[0].spines[['right', 'top']].set_visible(False)
 
@@ -374,7 +375,7 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
     return fig, axes
 
 
-def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01):
+def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=None):
     """Correlation plot.
 
     Args:
@@ -388,13 +389,23 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01):
     """
 
     fig, ax = plt.subplots(1, 1)
-    sns.regplot(x=col_name1, y=col_name2, data=data, ax=ax)
-    ax.set(ylabel='Multiplicative Condition', xlabel='Additive Condition')
+
+    if colors is not None:
+        ax.scatter(x=data[col_name1], y=data[col_name2], c=colors)
+        plot_dots = False
+    else:
+        plot_dots = True
+
+    sns.regplot(x=col_name1, y=col_name2, data=data, ax=ax, scatter=plot_dots)
+
+    ax.set(ylabel='Multiplicative condition', xlabel='Additive condition')
 
     xlim = np.array(ax.get_xlim())
     ylim = np.array(ax.get_ylim())
     lim_offset = np.array([lim_offset * -1, lim_offset])
 
     ax.set(xlim = xlim + lim_offset, ylim=ylim + lim_offset)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
     return fig, ax
