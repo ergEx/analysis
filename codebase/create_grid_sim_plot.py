@@ -26,7 +26,7 @@ for i, version in enumerate(types):
     for j, participant in enumerate(list(set(df_tmp.participant))):
         for c, con in enumerate(list(set(df_tmp.dynamic))):
             tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
-            if tmp_df.log_reg_std_dev <= 0:
+            if tmp_df.log_reg_std_dev.values <= 0:
                 etas[j,:,c] if j > 0 else np.ones([5000*4])
                 continue
             etas[j,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, 5000*4)
@@ -35,8 +35,8 @@ for i, version in enumerate(types):
     all_data_mul[i,:] = etas_log_r[:,1]
 
 all_data = np.array([all_data_add.flatten(), all_data_mul.flatten()])
-h1 = plot_individual_heatmaps(all_data, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10)).transpose(1,0)
-h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_bracketing.png"))
+h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10), limits=[-1.5, 2.0])
+h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
 #Bayesian
 for pooling in ['no_pooling', 'partial_pooling']:
@@ -55,6 +55,6 @@ for pooling in ['no_pooling', 'partial_pooling']:
 
     all_data = np.array([all_data_add.flatten(), all_data_mul.flatten()])
 
-    h1 = plot_individual_heatmaps(all_data, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10)).transpose(1,0)
+    h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10), limits=[-1.5, 2.0])
 
-    h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_{pooling}.png"))
+    h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_{pooling}.pdf"), dpi=600, bbox_inches='tight')

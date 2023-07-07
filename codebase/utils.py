@@ -15,7 +15,7 @@ import ptitprince as pt
 from matplotlib import rcParamsDefault
 from matplotlib.ticker import FormatStrFormatter
 
-sns.set(font_scale=1.1, rc=rcParamsDefault)
+sns.set_context('paper', font_scale=1.2) #, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
 
@@ -252,14 +252,15 @@ def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels
     ax.axvline(maxi[1,0], ymax=maxi[1,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
     ax.plot([], ls="--", color="black", label="Estimates")
     ax.legend(loc="upper left", fontsize=6)
+    ticks = np.arange(limits[0], limits[1], 0.5)
     ax.set(
         title="",
         xlabel="Risk aversion parameter",
         ylabel="",
         xlim=limits,
         yticks=[],
-        xticks=np.linspace(limits[0], limits[1], limits[1]-limits[0]+1)
-    )
+        xticks=ticks)
+
 
     for xl in x_fiducials:
         # This is a bit convoluted, but just in case we want to use different colors for the fiducials.
@@ -293,9 +294,11 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
         )
 
     h1.set_axis_labels("Additive condition", "Multiplicative condition")
-    h1.ax_joint.set_xticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
-    h1.ax_joint.set_yticks(np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
-    sns.lineplot(x=limits, y=limits, color='black', linestyle='--', ax=h1.ax_joint)
+    ticks = np.arange(limits[0], limits[1], 0.5)
+    h1.ax_joint.set_xticks(ticks)
+    h1.ax_joint.set_yticks(ticks)
+
+    h2 = sns.lineplot(x=limits, y=limits, color=[0.25, 0.25, 0.25, 0.25], linestyle='--', ax=h1.ax_joint)
 
     for xl in x_fiducial:
         fid_color = 'blue'
