@@ -7,23 +7,27 @@ import seaborn as sns
 
 def plot_hypotheses(data):
     cm = 1/2.54
-    fig_size = (7.5 * cm , 6 * cm)
+    fig_size = (6.5 * cm , 5.75 * cm)
+    plt.rcParams.update({"text.usetex": True})
+    sns.set_context('paper', font_scale=1.1)
+
     fiducials = [0,1]
-    limits = [-1, 2]
+    limits = [-0.5, 1.5]
 
     fig, ax = plt.subplots()
 
     sns.kdeplot(data[:, 0], data[:, 1], cmap="YlOrBr", shade=True, ax=ax)
+    ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
 
-    ax.set(xlim=limits, ylim=limits, xlabel='Additive condition', ylabel='Multiplicative condition',
-           xticks=np.linspace(limits[0], limits[1], limits[1]-limits[0]+1),
-           yticks=np.linspace(limits[0], limits[1], limits[1]-limits[0]+1))
+    ax.set(xlim=limits, ylim=limits, xlabel="$\eta^{\mathrm{add}}$", ylabel='$\eta^{\mathrm{mul}}$',
+           xticks=ticks,
+           yticks=ticks)
     sns.lineplot(x=limits, y=limits, color='black', alpha=0.5, linestyle='--', ax=ax)
 
     ax.axvline(fiducials[0], color='blue', alpha=0.5, linestyle='--')
     ax.axhline(fiducials[1], color='red', alpha=0.5, linestyle='--')
 
-    fig.set_size_inches(fig_size)
+    fig.set_size_inches(fig_size[1], fig_size[1])
 
     return fig, ax
 
