@@ -11,7 +11,8 @@ import yaml
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
 
-from .utils import plot_individual_heatmaps, plot_single_kde, read_Bayesian_output, jasp_like_correlation, jasp_like_raincloud
+from .utils import (plot_individual_heatmaps, plot_single_kde, read_Bayesian_output,
+                    jasp_like_correlation, jasp_like_raincloud, paired_swarm_plot)
 
 
 def main(config_file):
@@ -227,10 +228,10 @@ def main(config_file):
         dist_ylim = np.array([dist_ylim.min(), dist_ylim.max()]) + y_offset
 
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=[0, 1.1], colors=colors)
+        fig, ax = paired_swarm_plot(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=[0, 1.1], colors=colors)
         fig.savefig(os.path.join(fig_dir, f"05c_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
 
-        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=[0, 0.6],
+        fig, ax = paired_swarm_plot(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=[0, 0.6],
                                       palette=dist_colors, colors=colors)
         ax[0].set(ylabel='Distance', xticklabels=['Distance\nEUT', 'Distance\nEE'])
         fig.savefig(os.path.join(fig_dir, f"05f_raincloud_distance_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
@@ -239,10 +240,10 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, f"05d_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
         # Plotting no_pooling
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_no_pooling', '1.0_no_pooling', ylimits=risk_ylim, colors=colors)
+        fig, ax = paired_swarm_plot(jasp_data, '0.0_no_pooling', '1.0_no_pooling', ylimits=risk_ylim, colors=colors)
         fig.savefig(os.path.join(fig_dir, f"06c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
 
-        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_no_pooling', 'd_h1_no_pooling', ylimits=dist_ylim,
+        fig, ax = paired_swarm_plot(jasp_data, 'd_h0_no_pooling', 'd_h1_no_pooling', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
         ax[0].set(ylabel='Distance', xticklabels=['Distance\nEUT', 'Distance\nEE'])
         fig.savefig(os.path.join(fig_dir, f"06f_raincloud_distance_no_pooling.pdf"), dpi=600, bbox_inches='tight')
@@ -252,10 +253,10 @@ def main(config_file):
         # Plotting bracketing
 
 
-        fig, ax = jasp_like_raincloud(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=risk_ylim, colors=colors)
+        fig, ax = paired_swarm_plot(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=risk_ylim, colors=colors)
         fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
-        fig, ax = jasp_like_raincloud(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
+        fig, ax = paired_swarm_plot(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
         ax[0].set(ylabel='Distance', xticklabels=['Distance\nEUT', 'Distance\nEE'])
         fig.savefig(os.path.join(fig_dir, f"03f_raincloud_distance_bracketing.pdf"), dpi=600, bbox_inches='tight')

@@ -438,7 +438,6 @@ def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
     """
 
     fig, axes = plt.subplots(1, 1, sharey=False, figsize=fig_size)
-    axes = axes.flatten()
 
     sub_data = data[[col_name1, col_name2]].copy()
     sub_data = sub_data.melt(value_vars=[col_name1, col_name2], var_name='Condition', value_name='Estimate')
@@ -454,18 +453,18 @@ def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
         #if colors is not None:
         #    axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=colors[n])
         #else:
-        axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25], linewidth=0.5)
+        axes.plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25], linewidth=0.5)
 
     if colors is not None:
-        axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=colors)
-        axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=colors)
+        axes.scatter(np.ones(d1.shape) + x_jitter, d1, color=colors)
+        axes.scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=colors)
     else:
-        axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
-        axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
+        axes.scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
+        axes.scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
 
-    axes[0].set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
+    axes.set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
                 xticklabels=['Additive\ncondition', 'Multiplicative\ncondition'],
                 ylabel='Risk aversion parameter')
-    axes[0].spines[['right', 'top']].set_visible(False)
+    axes.spines[['right', 'top']].set_visible(False)
 
     return fig, axes
