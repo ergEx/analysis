@@ -118,7 +118,7 @@ def main(config_file):
                 ax[c].axhline(y=0.8, color="black", linestyle="--")
             fig.tight_layout()
             fig.savefig(os.path.join(fig_dir, '01b_no_brainers.png'), dpi=600, bbox_inches='tight')
-            sns.context('paper', font_scale=1.2)
+            sns.set_context('paper', font_scale=1.2)
     if stages['plot_active']:
         if data_type != 'real_data':
             print('There is no passive trajectories for simulated data')
@@ -188,7 +188,8 @@ def main(config_file):
         eta_group = bayesian_samples_partial_pooling["eta_g"]
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1], limits=[-0.5, 1.5])
-        ax.set(xticks=np.arange(-0.5, 1.5, 0.5), xticklabels=np.arange(-0.5, 1.5, 0.5))
+        ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
+        ax.set(xticks=ticks, xticklabels=ticks)
         fig.savefig(os.path.join(fig_dir,'05a_riskaversion_partial_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
 
         #individual
@@ -197,8 +198,9 @@ def main(config_file):
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
                                       x_fiducial=[0], y_fiducial=[1], limits=[-0.5, 1.5])
-        h1.ax_joint.set(xticks=np.arange(-0.5, 1.5, 0.5), xticklabels=np.arange(-0.5, 1.5, 0.5))
-        h1.ax_joint.set(yticks=np.arange(-0.5, 1.5, 0.5), yticklabels=np.arange(-0.5, 1.5, 0.5))
+        ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
+        h1.ax_joint.set(xticks=ticks, xticklabels=ticks)
+        h1.ax_joint.set(yticks=ticks, yticklabels=ticks)
 
         h1.savefig(os.path.join(fig_dir, f"05b_riskaversion_partial_pooling_individual_bayesian.pdf"), dpi=600, bbox_inches='tight')
 

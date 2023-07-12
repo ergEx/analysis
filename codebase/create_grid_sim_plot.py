@@ -39,7 +39,8 @@ for i, version in enumerate(types):
     all_data_mul[i,:] = etas_log_r[:,1]
 
 all_data = np.array([all_data_add.flatten(), all_data_mul.flatten()])
-h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10), limits=[-1.5, 2.0])
+h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10),
+                              limits=[-1.5, 2.0], x_fiducial=[0], y_fiducial=[1])
 h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
 #Bayesian
@@ -59,6 +60,7 @@ for pooling in ['no_pooling', 'partial_pooling']:
 
     all_data = np.array([all_data_add.flatten(), all_data_mul.flatten()])
 
-    h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10), limits=[-1.5, 2.0])
+    h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10),
+                                  limits=[-1.5, 2.0],  x_fiducial=[0], y_fiducial=[1])
 
     h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_{pooling}.pdf"), dpi=600, bbox_inches='tight')

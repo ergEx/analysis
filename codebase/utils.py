@@ -255,13 +255,20 @@ def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels
     ax.plot([], ls="--", color="black", label="Estimates")
     ax.legend(loc="upper left", fontsize=6)
     ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
+
+    if len(ticks) > 5:
+        ticklabels = [f'{ii}' if ii == np.round(ii) else '' for ii in ticks ]
+    else:
+        ticklabels = ticks
+
     ax.set(
         title="",
         xlabel="Risk aversion parameter",
         ylabel="",
         xlim=limits,
         yticks=[],
-        xticks=ticks)
+        xticks=ticks,
+        xticklabels=ticklabels)
 
 
     for xl in x_fiducials:
@@ -295,10 +302,17 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
         legend = False
         )
 
-    h1.set_axis_labels("$\eta^{\mathrm{add}}$", "$\eta^{\mathrm{add}$")
+    h1.set_axis_labels("$\eta^{\mathrm{add}}$", "$\eta^{\mathrm{mul}}$")
     ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
     h1.ax_joint.set_xticks(ticks)
     h1.ax_joint.set_yticks(ticks)
+
+    if len(ticks) > 5:
+        ticklabels = [f'{ii}' if ii == np.round(ii) else '' for ii in ticks ]
+    else:
+        ticklabels = ticks
+
+    h1.ax_joint.set(xticklabels=ticklabels, yticklabels=ticklabels)
 
     h2 = sns.lineplot(x=limits, y=limits, color=[0.25, 0.25, 0.25, 0.25], linestyle='--', ax=h1.ax_joint)
 
@@ -417,8 +431,8 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
     lim_offset = np.array([lim_offset * -1, lim_offset])
 
     ax.set(xlim = xlim + lim_offset, ylim=ylim + lim_offset)
-    ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax.spines[['right', 'top']].set_visible(False)
 
     return fig, ax
@@ -439,7 +453,7 @@ def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
         fig, axes: figure and axes of the raincloud plots
     """
 
-    fig, axes = plt.subplots(1, 1, sharey=False, figsize=fig_size)
+    fig, axes = plt.subplots(1, 1, sharey=False, figsize=(fig_size[1], fig_size[1]))
 
     sub_data = data[[col_name1, col_name2]].copy()
     sub_data = sub_data.melt(value_vars=[col_name1, col_name2], var_name='Condition', value_name='Estimate')
