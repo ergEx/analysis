@@ -252,7 +252,7 @@ def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels
     ax.axvline(maxi[1,0], ymax=maxi[1,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
     ax.plot([], ls="--", color="black", label="Estimates")
     ax.legend(loc="upper left", fontsize=6)
-    ticks = np.arange(limits[0], limits[1], 0.5)
+    ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
     ax.set(
         title="",
         xlabel="Risk aversion parameter",
@@ -294,7 +294,7 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
         )
 
     h1.set_axis_labels("Additive condition", "Multiplicative condition")
-    ticks = np.arange(limits[0], limits[1], 0.5)
+    ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
     h1.ax_joint.set_xticks(ticks)
     h1.ax_joint.set_yticks(ticks)
 
@@ -415,8 +415,57 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
     lim_offset = np.array([lim_offset * -1, lim_offset])
 
     ax.set(xlim = xlim + lim_offset, ylim=ylim + lim_offset)
-    ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
     ax.spines[['right', 'top']].set_visible(False)
 
     return fig, ax
+
+
+def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
+                        ylimits=[-0.1, 1.2], alpha=0.5, colors=None):
+    """Recreates raincloud plots, similarly to the ones in JASP
+
+    Args:
+        data (pd.DataFrame): Jasp input file
+        col_name1 (str): Column name 1, assumed to be additive condition.
+        col_name2 (str): Column name 2, assumed to be multiplicative condition.
+        palette (list, optional): Color palette for plots. Defaults to ['blue', 'red'].
+        ylimits (list, optional): Limits of the yaxis. Defaults to [-0.1, 1.2].
+
+    Returns:
+        fig, axes: figure and axes of the raincloud plots
+    """
+
+    fig, axes = plt.subplots(1, 1, sharey=False, figsize=fig_size)
+    axes = axes.flatten()
+
+    sub_data = data[[col_name1, col_name2]].copy()
+    sub_data = sub_data.melt(value_vars=[col_name1, col_name2], var_name='Condition', value_name='Estimate')
+    sub_data['x'] = 1
+
+    d1 = data[[col_name1]].values
+    d2 = data[[col_name2]].values
+
+    x_jitter = np.random.rand(*d1.shape) * 0.1
+    xj_mean = x_jitter.mean()
+
+    for n, (i, j) in enumerate(zip(d1, d2)):
+        #if colors is not None:
+        #    axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=colors[n])
+        #else:
+        axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25], linewidth=0.5)
+
+    if colors is not None:
+        axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=colors)
+        axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=colors)
+    else:
+        axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
+        axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
+
+    axes[0].set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
+                xticklabels=['Additive\ncondition', 'Multiplicative\ncondition'],
+                ylabel='Risk aversion parameter')
+    axes[0].spines[['right', 'top']].set_visible(False)
+
+    return fig, axes
