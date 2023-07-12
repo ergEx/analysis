@@ -15,10 +15,12 @@ import ptitprince as pt
 from matplotlib import rcParamsDefault
 from matplotlib.ticker import FormatStrFormatter
 
-sns.set_context('paper', font_scale=1.2) #, rc=rcParamsDefault)
+sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
 
+plt.rcParams.update({
+    "text.usetex": True})
 
 def get_config_filename(argv):
     # Determine the name of the config file to be used
@@ -293,7 +295,7 @@ def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
         legend = False
         )
 
-    h1.set_axis_labels("Additive condition", "Multiplicative condition")
+    h1.set_axis_labels("$\eta^{\mathrm{add}}$", "$\eta^{\mathrm{add}$")
     ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
     h1.ax_joint.set_xticks(ticks)
     h1.ax_joint.set_yticks(ticks)
@@ -408,7 +410,7 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
 
     sns.regplot(x=col_name1, y=col_name2, data=data, ax=ax, scatter=plot_dots)
 
-    ax.set(ylabel='Multiplicative condition', xlabel='Additive condition')
+    ax.set(ylabel='$\hat{\eta}^{\mathrm{mul}}$', xlabel='$\hat{\eta}^{\mathrm{add}}$')
 
     xlim = np.array(ax.get_xlim())
     ylim = np.array(ax.get_ylim())
@@ -463,7 +465,7 @@ def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
         axes.scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
 
     axes.set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
-                xticklabels=['Additive\ncondition', 'Multiplicative\ncondition'],
+                xticklabels=['$\eta^{\mathrm{add}}$', '$\eta^{\mathrm{mul}}$'],
                 ylabel='Risk aversion parameter')
     axes.spines[['right', 'top']].set_visible(False)
 

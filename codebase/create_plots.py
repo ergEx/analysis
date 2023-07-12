@@ -8,6 +8,9 @@ import pandas as pd
 import seaborn as sns
 import yaml
 
+plt.rcParams.update({
+    "text.usetex": True})
+
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
 
@@ -115,8 +118,7 @@ def main(config_file):
                 ax[c].axhline(y=0.8, color="black", linestyle="--")
             fig.tight_layout()
             fig.savefig(os.path.join(fig_dir, '01b_no_brainers.png'), dpi=600, bbox_inches='tight')
-            sns.set(font_scale=1.2, rc=rcParamsDefault) # Reset
-
+            sns.context('paper', font_scale=1.2)
     if stages['plot_active']:
         if data_type != 'real_data':
             print('There is no passive trajectories for simulated data')
@@ -139,7 +141,8 @@ def main(config_file):
             fig.tight_layout()
             fig.savefig(os.path.join(fig_dir, '01c_active_trajectories.png'), dpi=600, bbox_inches='tight')
 
-    sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
+    #sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
+    sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 
     if stages['plot_riskaversion_bracketing']:
         #Full pooling
@@ -233,7 +236,7 @@ def main(config_file):
 
         fig, ax = paired_swarm_plot(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=[0, 0.6],
                                       palette=dist_colors, colors=colors)
-        ax[0].set(ylabel='Distance', xticklabels=['Distance\nEUT', 'Distance\nEE'])
+        ax.set(ylabel='Distance', xticklabels=['Distance EUT', 'Distance EE'])
         fig.savefig(os.path.join(fig_dir, f"05f_raincloud_distance_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', colors=colors)
@@ -245,7 +248,7 @@ def main(config_file):
 
         fig, ax = paired_swarm_plot(jasp_data, 'd_h0_no_pooling', 'd_h1_no_pooling', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
-        ax[0].set(ylabel='Distance', xticklabels=['Distance\nEUT', 'Distance\nEE'])
+        ax.set(ylabel='Distance', xticklabels=['Distance EUT', 'Distance EE'])
         fig.savefig(os.path.join(fig_dir, f"06f_raincloud_distance_no_pooling.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling', colors=colors)
@@ -258,7 +261,7 @@ def main(config_file):
 
         fig, ax = paired_swarm_plot(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
-        ax[0].set(ylabel='Distance', xticklabels=['Distance\nEUT', 'Distance\nEE'])
+        ax.set(ylabel='Distance', xticklabels=['Distance EUT', 'Distance EE'])
         fig.savefig(os.path.join(fig_dir, f"03f_raincloud_distance_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing', colors=colors)

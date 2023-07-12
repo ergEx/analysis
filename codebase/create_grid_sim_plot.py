@@ -9,6 +9,10 @@ from utils import plot_individual_heatmaps, read_Bayesian_output
 cmap = plt.get_cmap("tab20")
 
 
+plt.rcParams.update({
+    "text.usetex": True})
+sns.set_context('paper', font_scale=1.1)
+
 data_dir = "data/0_simulation/grid/"
 fig_dir = "figs/0_simulation/grid/"
 types = ['eta_n05', 'eta_00', 'eta_05', 'eta_10', 'eta_15', 'time_optimal']
