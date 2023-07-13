@@ -41,3 +41,4 @@ plots:
   plot_active: True
   plot_riskaversion_bracketing: True
   plot_riskaversion_bayesian: True
+  plot_jasp_like: True
