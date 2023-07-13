@@ -10,29 +10,13 @@ from .utils import get_config_filename
 
 
 def plot_sequential_bf(data, scale='medium', part=11):
+    import matplotlib.ticker as tck
 
     sub_data = data.query(f'scale == @scale and nsubs == @part').copy()
 
     sns.set_context('paper', font_scale=1.0)
 
     fig, ax = plt.subplots(figsize=(5.5,5.5))
-
-    ax = plt.subplot2grid((8, 8), (2, 0), rowspan=6, colspan=8)
-
-    sns.scatterplot(data=data, x='nsubs', y='bf10', hue='scale', style='scale', ax=ax, s=100)
-
-    ax.axhline(1, linewidth=1, linestyle='--', color='gray')
-    ax.axhline(10, linewidth=1, linestyle='--', color='blue', alpha=0.5)
-
-    min_lims = np.min(data[['bf10']].values.ravel())
-    max_lims = np.max(data[['bf10']].values.ravel())
-
-    min_lims = np.min([min_lims, 10 ** -1])
-    max_lims = 10 ** (np.floor(np.log10(max_lims)) + 1)
-    ax.set(ylim=[min_lims, max_lims], ylabel='$\mathrm{BF}_{10}$', xlabel='n')
-    ax.set_yscale('log')
-
-    ax.legend(title='Prior width', loc='upper left')
 
     ax2 = plt.subplot2grid((8, 8), (0, 0), colspan=2, rowspan=2)
     ax2.pie(sub_data[['bf10', 'bf01']].values.ravel(), explode=[0.1, 0], labels=['$\mathrm{data}|\mathrm{H}_{1}$',
@@ -46,6 +30,34 @@ def plot_sequential_bf(data, scale='medium', part=11):
     ax3.text(0, 0.75, '$\mathrm{BF}_{10} =$' + BF10_text, fontdict={'size':14})
     ax3.text(0, 0.25, '$\mathrm{BF}_{01} =$' + BF01_text, fontdict={'size':14})
     ax3.axis('off')
+
+    ax = plt.subplot2grid((8, 8), (2, 0), rowspan=6, colspan=8)
+
+
+    sns.scatterplot(data=data, x='nsubs', y='bf10', hue='scale', style='scale', ax=ax, s=100)
+
+    min_lims = np.min(data[['bf10']].values.ravel())
+    max_lims = np.max(data[['bf10']].values.ravel())
+
+    min_lims = np.min([10 ** np.floor(np.log10(min_lims)), 10 ** -1])
+    max_lims = 10 ** (np.floor(np.log10(max_lims)) + 1)
+
+    ax.set(ylabel='$\mathrm{BF}_{10}$', xlabel='n', yscale='log', ylim=[min_lims, max_lims])
+
+    yticks = ax.get_yticks()
+
+    ax.axhline(1, linewidth=1, linestyle='--', color='gray')
+    ax.axhline(10, linewidth=1, linestyle='--', color='blue', alpha=0.5)
+
+    yticks = 10 ** np.arange(np.log10(min_lims), np.log10(max_lims) + 1)
+    yticklabels = [f'{int(i)}' for i in np.round(np.log10(yticks))]
+    yticklabels = ['$10^{' + i + '}$' for i in yticklabels ]
+    ax.set(yticks=yticks, yticklabels=yticklabels)
+
+    locmin = tck.LogLocator(base=10.0,subs=np.arange(0, 1 + 0.1, 0.1),numticks=13)
+    ax.yaxis.set_minor_locator(locmin)
+
+    ax.legend(title='Prior width', loc='upper left')
 
     return fig, ax
 
