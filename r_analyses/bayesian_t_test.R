@@ -2,6 +2,9 @@
 library("optparse")
 library(BayesFactor)
 
+# Supressing warnings
+options(warn=-1)
+
 sequential_bayes_x_larger_y <- function(x_data, y_data, hypo){
   #' Performs a sequential BayesFactor analysis for the ergEx project.
   #' We perform a paired Bayesian one sided t-test on the effect size of
@@ -32,7 +35,7 @@ sequential_bayes_x_larger_y <- function(x_data, y_data, hypo){
       {
         # Our test here is: is the effect size in the range (0 < d < Inf). Against the null hypothesis d=0
         # See:
-        bf <- ttestBF(x=x_data[1 : x], y=y_data[1 : x], paired=TRUE, nullInterval = c(0, Inf), scale=sc)
+        bf <- ttestBF(x=x_data[1 : x], y=y_data[1 : x], paired=TRUE, nullInterval = c(0, Inf), rscale=sc)
 
         if (hypo=='Q1'){
           dir_bf1 <- bf[1] / bf[2]
@@ -87,7 +90,7 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
                     "mu_bci_975", "delta_median", "delta_bci_025", "delta_bci_975")
 
   diff <- x - y # Calculating mean difference
-  test <- ttestBF(x=x, y=y, paired=TRUE, nullInterval = c(0, Inf), scale='medium')
+  test <- ttestBF(x=x, y=y, paired=TRUE, nullInterval = c(0, Inf), rscale='medium')
 
   if (hypo == 'Q1'){
     test <- test[1] / test[2] # In Q1 we test if (Inf > d > 0) > !(Inf > d > 0)
@@ -131,7 +134,7 @@ reporting_correlation_r_greater_0 <- function(x, y, estim, hypo, iterations=1000
   #'
 
   colnames(out) <- c('hypo', 'estimation', 'BF10', 'r_median', 'r_bci_025', 'r_bci_975' )
-  test <- correlationBF(x, y, nullInterval = c(0, 1), scale='medium')
+  test <- correlationBF(x, y, nullInterval = c(0, 1), rscale='medium')
   post <- posterior(test, 1, iterations = iterations)
   out[1, 1] <- hypo
   out[1, 2] <- estim
@@ -166,7 +169,7 @@ d_h1 <- jasp_data[, paste('d_h1_', mode, sep='')]
 q1_ttest <- reporting_ttest_x_larger_y(d_h0, d_h1, mode, 'Q1')
 q1_sequential <- sequential_bayes_x_larger_y(d_h0, d_h1, 'Q1')
 
-write.table(q1_sequential, paste(path, 'q1_sequential_', mode, '.csv', sep=''), sep='/t')
+write.table(q1_sequential, paste(path, 'q1_sequential_', mode, '.csv', sep=''), sep='\t', row.names = FALSE)
 # ================================ Hypothesis 2 ================================
 # Our test for hypothesis 2 is if x_10 > x_00. More specifically in BayesFactor package terms:
 # it is 0 < d(x_10 - x_00) < Inf vs d = 0.
@@ -177,7 +180,7 @@ x_10 <- jasp_data[, paste('X1.0_', mode, sep='')]
 q2_ttest <- reporting_ttest_x_larger_y(x_10, x_00, mode, 'Q2')
 q2_sequential <- sequential_bayes_x_larger_y(x_10, x_00, 'Q2')
 
-write.table(q2_sequential, paste(path, 'q2_sequential_', mode, '.csv', sep=''), sep='/t')
+write.table(q2_sequential, paste(path, 'q2_sequential_', mode, '.csv', sep=''), sep='\t', row.names = FALSE)
 # ================================ Hypothesis 3 ================================
 # Our test for hypothesis 3 is if r(x_10, x_00) is larger > 0. More specifically in BayesFactor package terms:
 # it is 0 < r(x_10, x_00) < Inf vs r = 0.
