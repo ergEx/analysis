@@ -110,7 +110,7 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
 }
 
 
-reporting_correlation_r_greater_0 <- function(x, y, estim, hypo, iterations=10000){
+reporting_correlation_r_greater_0 <- function(x, y, estim, hypo, iterations=100000){
   out <- as.data.frame(matrix(data=NA, nrow=1, ncol=6))
   #' Performs a BayesFactor correlation test for the ergEx project. 
   #' We perform a one sided correlation of x and y. 
@@ -142,7 +142,7 @@ reporting_correlation_r_greater_0 <- function(x, y, estim, hypo, iterations=1000
 
 
 option_list = list(
-  make_option(c('-p', '--path'), type='character', default='../data/1_pilot/', help='Folder for jasp_input and for write out.', metavar='character'),
+  make_option(c('-p', '--path'), type='character', default='data/1_pilot/', help='Folder for jasp_input and for write out.', metavar='character'),
   make_option(c('-m', '--mode'), type='character', default='partial_pooling', help='The estimation method to run the tests on.', metavar = 'character')
 )
 
@@ -151,6 +151,8 @@ opt = parse_args(opt_parser);
 
 path <- opt$path
 mode <- opt$mode
+
+print(getwd())
 
 jasp_data <- read.delim2(paste(path, 'jasp_input.csv', sep=''), sep='\t', header=TRUE, dec='.')
 
