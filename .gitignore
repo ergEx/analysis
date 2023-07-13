@@ -4,3 +4,4 @@ __pycache__/
 playground_notebook.ipynb
 *.asv
 ergex_env/
+.Rproj.user
