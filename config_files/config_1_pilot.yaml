@@ -4,8 +4,8 @@
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/1_pilot"
-figure directoty: "figs/1_pilot"
+data directory: "data/1_pilot"
+figure directory: "figs/1_pilot"
 
 # This section specifies data variables
 data_type: "real_data"
@@ -17,28 +17,32 @@ n_conditions: 2
 
 # This section provides control over whether data needs to be re-read
 readingdata:
-  run: True
+  run: False
 
 # This section provides control over whether user wants to re-run the Bayesian models
 bayesian method:
-  run: True
+  run: False
 
 # This section provides control over whether plot data needs to be re-calculated
 bracketing method:
-  run: True
-  calculate_indif_eta: True
-  log_reg: True
+  run: False
+  calculate_indif_eta: False
+  log_reg: False
 
 # This section provides control over whether user wants to re-compute the JASP input
 JASP input:
   run: True
 
+bayesfactor_analysis:
+  run: True
+
 # This section provides control over the various steps in the plotting pipeline
 plots:
   run: True
-  plot_passive: True
-  plot_no_brainers: True
-  plot_active: True
-  plot_riskaversion_bracketing: True
-  plot_riskaversion_bayesian: True
-  plot_jasp_like: True
+  plot_passive: False
+  plot_no_brainers: False
+  plot_active: False
+  plot_riskaversion_bracketing: False
+  plot_riskaversion_bayesian: False
+  plot_jasp_like: False
+  plot_bayes: True

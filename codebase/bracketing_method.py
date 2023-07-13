@@ -45,7 +45,7 @@ def main(config_file):
     with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    data_dir = config["data directoty"]
+    data_dir = config["data directory"]
 
     if not config["bracketing method"]["run"]:
         return

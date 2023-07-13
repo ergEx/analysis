@@ -27,8 +27,8 @@ def main(config_file):
 
     print(f"\nPLOTTING")
 
-    data_dir = config["data directoty"]
-    fig_dir = config["figure directoty"]
+    data_dir = config["data directory"]
+    fig_dir = config["figure directory"]
 
     # If folders do not exist - create them:
     if not os.path.isdir(fig_dir):

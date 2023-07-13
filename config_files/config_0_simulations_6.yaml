@@ -4,8 +4,8 @@
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/0_simulation/grid/time_optimal"
-figure directoty: "figs/0_simulation/grid/time_optimal"
+data directory: "data/0_simulation/grid/time_optimal"
+figure directory: "figs/0_simulation/grid/time_optimal"
 
 # This section specifies data variables
 data_type: "0_simulation"
