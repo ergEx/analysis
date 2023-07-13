@@ -238,7 +238,7 @@ def main(config_file):
 
         fig, ax = paired_swarm_plot(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=[0, 0.6],
                                       palette=dist_colors, colors=colors)
-        ax.set(ylabel='Distance', xticklabels=['Distance EUT', 'Distance EE'])
+        ax.set(ylabel='Distance', xticklabels=['EUT', 'EE'])
         fig.savefig(os.path.join(fig_dir, f"05f_raincloud_distance_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', colors=colors)
@@ -250,7 +250,7 @@ def main(config_file):
 
         fig, ax = paired_swarm_plot(jasp_data, 'd_h0_no_pooling', 'd_h1_no_pooling', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
-        ax.set(ylabel='Distance', xticklabels=['Distance EUT', 'Distance EE'])
+        ax.set(ylabel='Distance', xticklabels=['EUT', 'EE'])
         fig.savefig(os.path.join(fig_dir, f"06f_raincloud_distance_no_pooling.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling', colors=colors)
@@ -263,7 +263,7 @@ def main(config_file):
 
         fig, ax = paired_swarm_plot(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
                                       palette=dist_colors, colors=colors)
-        ax.set(ylabel='Distance', xticklabels=['Distance EUT', 'Distance EE'])
+        ax.set(ylabel='Distance', xticklabels=['EUT', 'EE'])
         fig.savefig(os.path.join(fig_dir, f"03f_raincloud_distance_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing', colors=colors)
