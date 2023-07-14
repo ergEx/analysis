@@ -6,8 +6,17 @@ This repository contains all code (Python v3.9, Matlab R2021b, JAGS v4.03) used 
 
 # Prerequisites
 
-This code currently requires python=3.9 to run. A requirements.txt file is provided containing all other required modules.
+This code currently requires python=3.9 to run. A requirements.txt file is provided containing all other required modules. To do the analysis in R, we advise to use conda and to create a new environment using the environment.yml file.
+This will create an environment including both R and Python in the required versions. Note: running the Bayes Factor Design Analysis will require installing the package from GitHub, so it is done inside the script.
 
+Install and check if environment already exists:
+`conda env create -f environment.yml || conda env update -f environment.yml`.
+
+# Running BFDA:
+
+To run the Bayes Factor Design Analysis after installing the environment use in the main folder:
+`rscript r_analyses/ergEx_rr_nhb_bfda.R`. When run the first time the BFDA package will be installed. 
+The figures referred to in the paper will be created inside the `r_analyses` folder. 
 # Data
 
 Input data for the analysis is stored HERE and must be copied into the 'data' folder. The data is the output files from the experiment that record all the necessary information such as wealth trajectories, gambles, and choices.
