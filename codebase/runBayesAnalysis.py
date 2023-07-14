@@ -9,7 +9,7 @@ import numpy as np
 from .utils import get_config_filename
 
 
-def plot_sequential_bf(data, scale='medium', part=11):
+def plot_sequential_bf(data, scale='medium', part=11, target='bf10'):
     import matplotlib.ticker as tck
 
     sub_data = data.query(f'scale == @scale and nsubs == @part').copy()
@@ -33,14 +33,18 @@ def plot_sequential_bf(data, scale='medium', part=11):
 
     ax = plt.subplot2grid((8, 8), (2, 0), rowspan=6, colspan=8)
 
+    scatter_order = ['ultrawide', 'wide', 'abc', 'medium']
 
-    sns.scatterplot(data=data, x='nsubs', y='bf10', hue='scale', style='scale', ax=ax, s=100)
+    data = data.sort_values('scale', key=np.vectorize(scatter_order.index))
 
-    min_lims = np.min(data[['bf10']].values.ravel())
-    max_lims = np.max(data[['bf10']].values.ravel())
+    sns.scatterplot(data=data, x='nsubs', y=target, hue='scale', style='scale', ax=ax, s=100,
+                   hue_order=['medium', 'wide', 'ultrawide'])
+
+    min_lims = np.min(data[[target]].values.ravel())
+    max_lims = np.max(data[[target]].values.ravel())
 
     min_lims = np.min([10 ** np.floor(np.log10(min_lims)), 10 ** -1])
-    max_lims = 10 ** (np.floor(np.log10(max_lims)) + 1)
+    max_lims = np.max([10, 10 ** (np.floor(np.log10(max_lims)) + 1)])
 
     ax.set(ylabel='$\mathrm{BF}_{10}$', xlabel='n', yscale='log', ylim=[min_lims, max_lims])
 
@@ -51,16 +55,20 @@ def plot_sequential_bf(data, scale='medium', part=11):
 
     yticks = 10 ** np.arange(np.log10(min_lims), np.log10(max_lims) + 1)
     yticklabels = [f'{int(i)}' for i in np.round(np.log10(yticks))]
-    yticklabels = ['$10^{' + i + '}$' for i in yticklabels ]
+    yticklabels = ['$10^{' + i + '}$' for i in yticklabels]
+
+    yticklabels = [i if ((np.mod(n, 2) == 0) or (j in [0, 1])) else ''
+                   for n, (i, j) in enumerate(zip(yticklabels,
+                                                  np.log10(yticks).astype(int)))]
+
     ax.set(yticks=yticks, yticklabels=yticklabels)
 
-    locmin = tck.LogLocator(base=10.0,subs=np.arange(0, 1 + 0.1, 0.1),numticks=13)
-    ax.yaxis.set_minor_locator(locmin)
+    ax.set(xticks=np.arange(1, sub_data['nsubs'].values + 1, 2))
+    ax.scatter(1 ,1, s=50, color='black')
 
     ax.legend(title='Prior width', loc='upper left')
 
     return fig, ax
-
 
 def main(config_file):
 
@@ -84,6 +92,7 @@ def main(config_file):
         q1_sequential = pd.read_csv(os.path.join(data_dir, 'q1_sequential_' + target + '.csv'), sep='\t')
         q1_sequential = q1_sequential.query('scale == "medium"').copy()
         fig, ax = plot_sequential_bf(q1_sequential)
+        ax.get_legend().remove()
         fig.savefig(os.path.join(fig_dir, 'q1_sequential_' + target + '.pdf'),
                     bbox_inches='tight', dpi=600)
 
