@@ -1,0 +1,14 @@
+name: ergex
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - r-base=4.3.1
+  - r-bayesfactor=0.9.12
+  - r-optparse=1.7.3
+  - r-lsr=0.5.2
+  - r-ggplot2=3.4.2
+  - r-devtools=2.4.5
+  - pip
+  - pip:
+    - -r requirements.txt
