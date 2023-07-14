@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 library("optparse")
-library(BayesFactor)
+library("BayesFactor")
+library("lsr")
 
 # Supressing warnings
 options(warn=-1)
@@ -24,8 +25,8 @@ sequential_bayes_x_larger_y <- function(x_data, y_data, hypo){
   #'
 
   nsubs <- length(x_data)
-  out <- as.data.frame(matrix(data=NA, nrow = nsubs-1, ncol = 4))
-  colnames(out)<- c("bf10","bf01","nsubs", "scale")
+  out <- as.data.frame(matrix(data=NA, nrow = nsubs-1, ncol = 5))
+  colnames(out)<- c("bf10","bf01","nsubs", "scale", 'cohens_d')
 
   cc <- 1
 
@@ -52,6 +53,7 @@ sequential_bayes_x_larger_y <- function(x_data, y_data, hypo){
         out[cc, 1 : 2] <- tmpbf
         out[cc, 3] <- x
         out[cc, 4] <- sc
+        out[cc, 5] <- cohensD(x=x_data[1 : x], y=y_data[1 : x], method='paired')
         cc <- cc + 1
       }
   }
@@ -85,9 +87,9 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
   #' "delta_bci_975", the 97.5 % percentile of the posterior
   #'
 
-  out <- as.data.frame(matrix(data=NA, nrow = 1, ncol = 11))
+  out <- as.data.frame(matrix(data=NA, nrow = 1, ncol = 12))
   colnames(out)<- c("hypo", "estimation", "BF10", "mean_diff","sd_diff", "mu_median", "mu_bci_025",
-                    "mu_bci_975", "delta_median", "delta_bci_025", "delta_bci_975")
+                    "mu_bci_975", "delta_median", "delta_bci_025", "delta_bci_975", 'cohens_d')
 
   diff <- x - y # Calculating mean difference
   test <- ttestBF(x=x, y=y, paired=TRUE, nullInterval = c(0, Inf), rscale='medium')
@@ -108,6 +110,7 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
   out[1,5] <- sd(diff)
   out[1,6:8] <- quantile(post[, 1], probs=c(0.5, 0.025,  0.975)) # Getting quantiles of posterior samples for mu (mean difference)
   out[1,9:11] <- quantile(post[, 3], probs=c(0.5, 0.025,  0.975)) # Getting quantiles of posterior sampels for delta (effect size)
+  out[1, 12] <- cohensD(x=x, y=y, method='paired')
 
   return(out)
 }
