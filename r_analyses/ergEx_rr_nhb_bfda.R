@@ -12,23 +12,26 @@ cores <- detectCores()
 cl <- makeCluster(cores - 1)
 registerDoParallel(cl)
 
-# Clear console and plot windows
-cat("\014")
-dev.off()
-
 # Initialise variables
 nmin <- 25
 nmax <- 150
 nstep <- 1
 bfbound <- 10
-nsims <- 10000
-ntraj <- 250
+nsims <- 1000
+ntraj <- 25
 filename <- 'bfda_log.txt'
-
+simH0_file <- 'simH0.RData'
+simH1_file <- 'simH1.RData'
+REDO <- TRUE
 
 #H0: d_h1 >= d_h0
-sim.H0 <- BFDA.sim(expected.ES=0.0, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, 
-                   alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep, design = 'sequential')
+if (file.exists(simH0_file) & !REDO){
+  load(simH0_file)
+} else{
+  sim.H0 <- BFDA.sim(expected.ES=0.0, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, 
+                     alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep, design = 'sequential')
+  save(sim.H0, file=simH0_file)
+}
 
 sink(file = filename, type = c("output", "message"), split = FALSE)
 BFDA.analyze(sim.H0, design="sequential", n.min=nmin, n.max=nmax, boundary=bfbound)
@@ -39,10 +42,13 @@ print(plot(sim.H0, n.min=50, n.max=nmax, boundary=bfbound, n.trajectories = ntra
 dev.off()
 
 #H1: d_h1 < d_h0
-
-sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, 
-                   alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep, design = 'sequential')
-
+if (file.exists(simH1_file) & !REDO){
+  load(simH1_file)
+} else{
+  sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, 
+                     alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep, design = 'sequential')
+  save(sim.H1, file=simH1_file)
+}
 sink(file = filename, type = c("output", "message"), split = FALSE, append=TRUE)
 BFDA.analyze(sim.H1, design="sequential", n.min=nmin, n.max=nmax, boundary=bfbound)
 sink()
