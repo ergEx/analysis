@@ -58,7 +58,9 @@ print(plot(sim.H1, n.min=50, n.max=nmax, boundary=bfbound, n.trajectories = ntra
 dev.off()
 
 #analyse threshold hitting events 
-# evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=nsims, boundary=c(1/bfbound, bfbound))
+pdf('plot_bfda_envdens.pdf', width=10, height=10)
+evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=nmax, boundary=c(1/bfbound, bfbound))
+dev.off()
 
 #sample size determination
 sink(file = filename, type = c("output", "message"), split = FALSE, append=TRUE)
