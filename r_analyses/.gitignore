@@ -1,0 +1,4 @@
+sim*.RData
+*.pdf
+.Rhistory
+*.Rproj
