@@ -84,7 +84,7 @@ def main(config_file):
     fig_dir = config["figure directory"]
     target = config['bayesfactor_analysis']['target']
 
-    subprocess.call(f'rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
+    subprocess.call(f'Rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
 
     if config["bayesfactor_analysis"]["plot"]:
 
