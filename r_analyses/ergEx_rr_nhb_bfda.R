@@ -17,12 +17,12 @@ nmin <- 25
 nmax <- 150
 nstep <- 1
 bfbound <- 10
-nsims <- 1000
-ntraj <- 25
+nsims <- 10000
+ntraj <- 250
 filename <- 'bfda_log.txt'
 simH0_file <- 'simH0.RData'
 simH1_file <- 'simH1.RData'
-REDO <- TRUE
+REDO <- FALSE
 
 #H0: d_h1 >= d_h0
 if (file.exists(simH0_file) & !REDO){
@@ -58,7 +58,7 @@ print(plot(sim.H1, n.min=50, n.max=nmax, boundary=bfbound, n.trajectories = ntra
 dev.off()
 
 #analyse threshold hitting events 
-#evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=nsims, boundary=c(1/bfbound, bfbound))
+evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=nsims, boundary=c(1/bfbound, bfbound))
 
 #sample size determination
 sink(file = filename, type = c("output", "message"), split = FALSE, append=TRUE)
