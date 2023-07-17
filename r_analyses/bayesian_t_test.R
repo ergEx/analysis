@@ -117,7 +117,6 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
 
 
 reporting_correlation_r_greater_0 <- function(x, y, estim, hypo, iterations=100000){
-  out <- as.data.frame(matrix(data=NA, nrow=1, ncol=6))
   #' Performs a BayesFactor correlation test for the ergEx project.
   #' We perform a one sided correlation of x and y.
   #'
@@ -135,14 +134,16 @@ reporting_correlation_r_greater_0 <- function(x, y, estim, hypo, iterations=1000
   #' "r_bci_025", the 2.5 % percentile of the posterior
   #' "r_bci_975", the 97.5 % percentile of the posterior
   #'
-
-  colnames(out) <- c('hypo', 'estimation', 'BF10', 'r_median', 'r_bci_025', 'r_bci_975' )
+  out <- as.data.frame(matrix(data=NA, nrow=1, ncol=7))
+  colnames(out) <- c('hypo', 'estimation', 'BF10', 'r_median', 'r_bci_025', 'r_bci_975', 'pearson_r')
   test <- correlationBF(x, y, nullInterval = c(0, 1), rscale='medium')
   post <- posterior(test, 1, iterations = iterations)
   out[1, 1] <- hypo
   out[1, 2] <- estim
   out[1, 3] <- extractBF(test, onlybf=TRUE)[1]
   out[1, 4: 6] <- quantile(post[, 1], probs=c(0.5, 0.025, 0.975))
+  out[1, 7] <- cor.test(x, y)$estimate[1]
+
   return(out)
 }
 
