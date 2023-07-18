@@ -13,11 +13,11 @@ cl <- makeCluster(cores - 1)
 registerDoParallel(cl)
 
 # Initialise variables
-nmin <- 25
+nmin <- 50
 nmax <- 150
 nstep <- 1
 bfbound <- 10
-nsims <- 2500
+nsims <- 5000
 ntraj <- 250
 filename <- 'bfda_log.txt'
 simH0_file <- 'simH0.RData'
