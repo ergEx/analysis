@@ -2,7 +2,7 @@ import sys
 import time
 
 import yaml
-from codebase import bracketing_method, create_JASP_input, create_plots, readingdata, utils
+from codebase import bracketing_method, create_JASP_input, create_plots, readingdata, utils, runBayesAnalysis
 
 
 def bayesian_method(config):
@@ -33,6 +33,7 @@ def main():
     bayesian_method(config)
     bracketing_method.main(config_file)
     create_JASP_input.main(config_file)
+    runBayesAnalysis.main(config_file)
     create_plots.main(config_file)
 
     print(f"\n--- Code ran in {(time.time() - start_time):.2f} seconds ---")

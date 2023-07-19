@@ -4,8 +4,8 @@
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/0_simulation/strong_weak_signal"
-figure directoty: "figs/0_simulation/strong_weak_signal"
+data directory: "data/0_simulation/strong_weak_signal"
+figure directory: "figs/0_simulation/strong_weak_signal"
 
 # This section specifies data variables
 data_type: "0_simulation"

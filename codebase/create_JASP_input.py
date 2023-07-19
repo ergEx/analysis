@@ -20,7 +20,7 @@ def main(config_file):
 
     print(f"\nCREATING JASP FILE")
 
-    data_dir = config["data directoty"]
+    data_dir = config["data directory"]
 
     SUBJECT_SPECS = sub_specs(config["data_type"], config["data_variant"])
     subjects = SUBJECT_SPECS["id"]

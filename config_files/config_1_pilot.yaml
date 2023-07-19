@@ -4,8 +4,8 @@
 # to edit the code.
 
 # This section specifies the folder structure
-data directoty: "data/1_pilot"
-figure directoty: "figs/1_pilot"
+data directory: "data/1_pilot"
+figure directory: "figs/1_pilot"
 
 # This section specifies data variables
 data_type: "real_data"
@@ -33,6 +33,11 @@ bracketing method:
 JASP input:
   run: True
 
+bayesfactor_analysis:
+  run: True
+  target: 'partial_pooling'
+  plot: True
+
 # This section provides control over the various steps in the plotting pipeline
 plots:
   run: True
@@ -42,3 +47,4 @@ plots:
   plot_riskaversion_bracketing: True
   plot_riskaversion_bayesian: True
   plot_jasp_like: True
+  plot_bayes: True

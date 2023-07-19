@@ -203,7 +203,7 @@ def main(config_file):
     if not config["readingdata"]["run"]:
         return
 
-    data_dir = config["data directoty"]
+    data_dir = config["data directory"]
     data_type = config["data_type"]
     data_variant = config["data_variant"]
 
