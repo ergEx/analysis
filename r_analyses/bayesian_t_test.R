@@ -6,6 +6,8 @@ library("lsr")
 # Supressing warnings
 options(warn=-1)
 
+set.seed(2023)
+
 sequential_bayes_x_larger_y <- function(x_data, y_data, hypo){
   #' Performs a sequential BayesFactor analysis for the ergEx project.
   #' We perform a paired Bayesian one sided t-test on the effect size of
