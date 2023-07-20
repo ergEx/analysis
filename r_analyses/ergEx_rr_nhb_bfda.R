@@ -3,7 +3,7 @@
 library(devtools)
 
 # Installing the specific version of BFDA we use in the analysis (BFDA is non on CRAN so cannot be installed using environment.yml)
-if (!require('BFDA')) install_github("nicebread/BFDA@f1886176a8146576bc76da4c073867faa3397bad", subdir="package", 
+if (!require('BFDA')) install_github("nicebread/BFDA@f1886176a8146576bc76da4c073867faa3397bad", subdir="package",
                                      upgrade=FALSE); library('BFDA')
 library(doParallel)
 
@@ -28,7 +28,7 @@ REDO <- FALSE
 if (file.exists(simH0_file) & !REDO){
   load(simH0_file)
 } else{
-  sim.H0 <- BFDA.sim(expected.ES=0.0, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, 
+  sim.H0 <- BFDA.sim(expected.ES=0.0, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax,
                      alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep, design = 'sequential')
   save(sim.H0, file=simH0_file)
 }
@@ -45,7 +45,7 @@ dev.off()
 if (file.exists(simH1_file) & !REDO){
   load(simH1_file)
 } else{
-  sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax, 
+  sim.H1 <- BFDA.sim(expected.ES=0.5, type="t.paired", prior=list("Cauchy", list(prior.location=0, prior.scale=sqrt(2)/2)), n.min=nmin, n.max=nmax,
                      alternative="greater", boundary=Inf, B=nsims, verbose=TRUE, cores=cores-1, stepsize = nstep, design = 'sequential')
   save(sim.H1, file=simH1_file)
 }
@@ -57,7 +57,7 @@ pdf('plot_bfda_h1.pdf', width=10, height=10)
 print(plot(sim.H1, n.min=50, n.max=nmax, boundary=bfbound, n.trajectories = ntraj))
 dev.off()
 
-#analyse threshold hitting events 
+#analyse threshold hitting events
 pdf('plot_bfda_envdens.pdf', width=10, height=10)
 evDens(BFDA.H0=sim.H0, BFDA.H1=sim.H1, n=nmax, boundary=c(1/bfbound, bfbound))
 dev.off()
@@ -68,6 +68,5 @@ SSD(sim.H0, alpha=.05, boundary=c(10))
 SSD(sim.H1, power=.90, boundary=c(10))
 sink()
 
-unlink(filename)
 # Stop parallel processing
 stopCluster(cl)
