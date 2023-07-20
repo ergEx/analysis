@@ -90,9 +90,7 @@ def main(config_file):
 
         # Q1 Sequential:
         q1_sequential = pd.read_csv(os.path.join(data_dir, 'q1_sequential_' + target + '.csv'), sep='\t')
-        q1_sequential = q1_sequential.query('scale == "medium"').copy()
         fig, ax = plot_sequential_bf(q1_sequential)
-        ax.get_legend().remove()
         fig.savefig(os.path.join(fig_dir, 'q1_sequential_' + target + '.pdf'),
                     bbox_inches='tight', dpi=600)
 
