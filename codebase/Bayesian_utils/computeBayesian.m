@@ -14,7 +14,7 @@ function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,n
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
 % inferenceMode - set whether to do parameter estimation (1)
-%                                   Bayesian model comparison of hypotheses (2)
+%                                   Bayesian model comparison of three different models (2)
 %                                   Bayesian model comparison of data pooling (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % nBurnin       - specifies how many burn in samples to run
@@ -75,14 +75,14 @@ muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly di
 sigmaEtaL=0.01; sigmaEtaU=1.6; %parameter for the standard diviation on the eta parameter (uniformly distributed)
 
 %% set bounds for hyperpriors connected to the mechanistic model
-%eta for h1
+%eta for EE model
 eta_h1_add = 0; eta_h1_mul = 0.9999; %parameters for the eta parameter (note point estimates)
 
-%eta for h2
-muLogEtaL_h2=-2.3;muLogEtaU_h2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
+%eta for weak EE model (EE2)
+muLogEtaL_EE2=-2.3;muLogEtaU_EE2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
 
 %Model indicator
-pz=repmat(1/12,1,12);%sets flat prior over models [h0 = no change, h1 = time optimal, h2 = increase from add to mul]
+pz=repmat(1/12,1,12);%sets flat prior over models
 
 %% Print information for user
 disp('**************');
@@ -159,14 +159,14 @@ switch inferenceMode
                 'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
                 'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
                 'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
-                'eta_h1_add',eta_h1_add,'eta_h1_mul',eta_h1_mul,...
-                'muLogEtaL_h2',muLogEtaL_h2,'muLogEtaU_h2',muLogEtaU_h2,...
+                'eta_EE_add',eta_EE_add,'eta_EE_mul',eta_EE_mul,...
+                'muLogEtaL_EE2',muLogEtaL_EE2,'muLogEtaU_EE2',muLogEtaU_EE2,...
                 'pz',pz);
 
         for i = 1:nChains
-            monitorParameters = {'beta_i_h0', 'beta_g_h0','eta_i_h0', 'eta_g_h0',...
-                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
-                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
+            monitorParameters = {'beta_i_EUT', 'beta_g_EUT','eta_i_EUT', 'eta_g_EUT',...
+                                 'beta_i_EE', 'beta_g_EE','eta_i_EE', 'eta_g_EE',...
+                                 'beta_i_EE2', 'beta_g_EE2','eta_i_EE2', 'eta_g_EE2',...
                                  'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
@@ -179,9 +179,9 @@ switch inferenceMode
                 'pz',pz);
 
         for i = 1:nChains
-            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',...
-                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',...
-                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',...
+            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',... %no pooling
+                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling
+                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',... %full pooling
                                  'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
