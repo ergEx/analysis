@@ -44,6 +44,6 @@ switch dataSource
 end %dataSource
 
 %% Runs HLMs sequentially
-for i=1:numRuns
+for i=dataPooling
     computeBayesian(dataSource,i,inferenceMode,nBurnin(whichQuals),nSamples(whichQuals),nThin,nChains(whichQuals),subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 end
