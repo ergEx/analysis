@@ -9,6 +9,7 @@ for (c in 1:nConditions){
 for (i in 1:nSubjects){
 oneminEta_EUT[i,c] = 1 - eta_i_EUT[i]                                                  #1 minus eta term in EUT
 oneminEta_EE[i,c] = 1 - eta_i_EE[i,c]                                                #1 minus eta term in EE
+oneminEta_EE2[i,c] = 1 - eta_i_EE2[i,c] #1 minus eta term in EE2
 for (t in 1:nTrials){
     #CALCULATE WEALTH UPDATES
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]                                           #wealth if outcome Left Upper
@@ -37,9 +38,9 @@ for (t in 1:nTrials){
     sdeu_EUT[i,c,t]   = -1 * beta_i_EUT[i,c] * deu_EUT[i,c,t]                           #scaled by sensitivity parameter
     cp_EUT[i,c,t]     = 1 / (1 + (exp(sdeu_EUT[i,c,t])))                               #choice probability
     theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1
-    theta[i,c,t,3]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1
-    theta[i,c,t,5]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1
-    theta[i,c,t,7]    = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1, accomodates parameter expansion for z
+    theta[i,c,t,4]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1
+    theta[i,c,t,7]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1
+    theta[i,c,t,10]    = max(0.000001,min(0.999999,cp_EUT[i,c,t]))                    # ensure 0 < cp < 1, accomodates parameter expansion for z
 
     #EE
     u_EE[i,c,t]      = (pow(wp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]    #utility of wealth prior to trial
@@ -57,9 +58,29 @@ for (t in 1:nTrials){
     sdeu_EE[i,c,t]   = -1 * beta_i_EE[i,c] * deu_EE[i,c,t]                           #scaled by sensitivity parameter
     cp_EE[i,c,t]     = 1 / (1 + (exp(sdeu_EE[i,c,t])))                               #choice probability
     theta[i,c,t,2]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1
-    theta[i,c,t,4]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1
-    theta[i,c,t,6]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1
-    theta[i,c,t,8]    = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1, accomodates parameter expansion for z
+    theta[i,c,t,5]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1
+    theta[i,c,t,8]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1
+    theta[i,c,t,11]    = max(0.000001,min(0.999999,cp_EE[i,c,t]))                    #ensure 0 < cp < 1, accomodates parameter expansion for z
+
+    #EE2
+    u_EE2[i,c,t]      = (pow(wp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]     #utility of wealth prior to trial
+    uLU_EE2[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]   #transforms wealth into utility
+    uLL_EE2[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]   #transforms wealth into utility
+    uRU_EE2[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]   #transforms wealth into utility
+    uRL_EE2[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]   #transforms wealth into utility
+    duLU_EE2[i,c,t]   = uLU_EE2[i,c,t] - u_EE2[i,c,t]                                    #delta utility of wealth outcome Left Upper
+    duLL_EE2[i,c,t]   = uLL_EE2[i,c,t] - u_EE2[i,c,t]                                    #delta utility of wealth outcome Left Lower
+    duRU_EE2[i,c,t]   = uRU_EE2[i,c,t] - u_EE2[i,c,t]                                    #delta utility of wealth outcome Right Upper
+    duRL_EE2[i,c,t]   = uRL_EE2[i,c,t] - u_EE2[i,c,t]                                    #delta utility of wealth outcome right Lower
+    eduL_EE2[i,c,t]   = (duLU_EE2[i,c,t] + duLL_EE2[i,c,t]) / 2                          #expected change in utility for Left gamble
+    eduR_EE2[i,c,t]   = (duRU_EE2[i,c,t] + duRL_EE2[i,c,t]) / 2                          #expected change in utility for Right gamble
+    deu_EE2[i,c,t]    = eduL_EE2[i,c,t] - eduR_EE2[i,c,t]                                #computes difference in expected change in utility
+    sdeu_EE2[i,c,t]   = -1 * beta_i_EE2[i,c] * deu_EE2[i,c,t]                            #scaled by sensitivity parameter
+    cp_EE2[i,c,t]     = 1 / (1 + (exp(sdeu_EE2[i,c,t])))                                #choice probability
+    theta[i,c,t,3]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))                     #ensure 0 < cp < 1
+    theta[i,c,t,6]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))                     #ensure 0 < cp < 1
+    theta[i,c,t,9]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))                     #ensure 0 < cp < 1
+    theta[i,c,t,12]    = max(0.000001,min(0.999999,cp_EE2[i,c,t]))                     #ensure 0 < cp < 1, accomodates parameter expansion for z
 
     #choice
     y[i,c,t]           ~ dbern(theta[i,c,t,z[i]])
@@ -86,13 +107,17 @@ for (i in 1:nSubjects){
     eta_i_EUT[i]   ~ dnorm(mu_eta_EUT,tau_eta_EUT)
 
 for (c in 1:nConditions){
-    eta_i_EE[i,c] ~ dnorm(mu_eta_EE[c],tau_eta_EE[c])
+    eta_i_EE[i,c] ~ dnorm(mu_eta_EE[c],tau_eta_EE)
+    eta_i_EE2[i,c]  ~ dnorm(mu_eta_EE2[c],tau_eta_EE2)
 
     log_beta_i_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[c], tau_log_beta_EUT[c])
     beta_i_EUT[i,c]      = exp(log_beta_i_EUT[i,c])
 
     log_beta_i_EE[i,c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE[c])
     beta_i_EE[i,c]      = exp(log_beta_i_EE[i,c])
+
+    log_beta_i_EE2[i,c]  ~ dnorm(mu_log_beta_EE2[c], tau_log_beta_EE2[c])
+    beta_i_EE2[i,c]      = exp(log_beta_i_EE2[i,c])
 
 }#end of subjects
 }#end of conditions
@@ -110,6 +135,11 @@ for (c in 1:nConditions){
     sigma_log_beta_EE[c]    ~ dunif(0.01,1.6)
     tau_log_beta_EE[c]      = pow(sigma_log_beta_EE[c],-2)
 
+    #EE2
+    mu_log_beta_EE2[c]       ~ dunif(-2.3,3.4)
+    sigma_log_beta_EE2[c]    ~ dunif(0.01,1.6)
+    tau_log_beta_EE2[c]      = pow(sigma_log_beta_EE2[c],-2)
+
 }#end of conditions
 
 #EUT
@@ -122,5 +152,14 @@ mu_eta_EE[1] = 0.0000
 mu_eta_EE[2] = 0.9999
 sigma_eta_EE         ~ dunif(0.01,1.6)
 tau_eta_EE           = pow(sigma_eta_EE,-2)
+
+#EE2
+mu_eta_EE[0]     ~ dunif(-5,5)
+log_d_mu_eta_EE2 ~ dnorm(0, 0.5)
+d_mu_eta_EE2     = exp(log_d_mu_eta_EE2)
+mu_eta_EE2[1]    = mu_eta_EE[0] + d_mu_eta_EE2
+
+sigma_eta_EE2 ~ dunif(0.01,1.6)
+tau_eta_EUT   = pow(sigma_eta_EE2,-2)
 
 }

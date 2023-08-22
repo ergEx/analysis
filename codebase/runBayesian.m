@@ -31,10 +31,11 @@ dataSource = 1;
 simVersion = 1;
 dataPooling = 2:2;
 inferenceMode = 1;
+model_selection_type = 1;
 whichJAGS = 1;
 whichQuals = 1;
 doParallel = 0;
 seedChoice = 1;
 
 %% Call setHLM
-setBayesian(dataSource,simVersion,dataPooling,inferenceMode,whichJAGS,whichQuals,doParallel,startDir,seedChoice)
+setBayesian(dataSource,simVersion,dataPooling,inferenceMode,model_selection_type,whichJAGS,whichQuals,doParallel,startDir,seedChoice)
