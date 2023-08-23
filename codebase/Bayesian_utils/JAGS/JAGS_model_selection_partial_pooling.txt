@@ -154,10 +154,10 @@ sigma_eta_EE         ~ dunif(0.01,1.6)
 tau_eta_EE           = pow(sigma_eta_EE,-2)
 
 #EE2
-mu_eta_EE[0]     ~ dunif(-5,5)
+mu_eta_EE2[1]     ~ dunif(-5,5)
 log_d_mu_eta_EE2 ~ dnorm(0, 0.5)
 d_mu_eta_EE2     = exp(log_d_mu_eta_EE2)
-mu_eta_EE2[1]    = mu_eta_EE[0] + d_mu_eta_EE2
+mu_eta_EE2[2]    = mu_eta_EE[1] + d_mu_eta_EE2
 
 sigma_eta_EE2 ~ dunif(0.01,1.6)
 tau_eta_EUT   = pow(sigma_eta_EE2,-2)
