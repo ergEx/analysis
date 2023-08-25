@@ -69,12 +69,12 @@ z[i] ~ dcat(c(0.5, 0.5)) # with three models it would be ⅓ ⅓ ⅓ and so on
 }
 
 #submodels
-eta_g_EUT[1:2]   ~ dmnorm(c(mu_eta_EUT, mu_eta_EUT),prec_matrix_eta_EUT)
-    eta_g_EE[1:2] ~ dmnorm(c(mu_eta_EE[1],mu_eta_EE[2]),prec_matrix_eta_EE)
+eta_g_EUT[1:2]   ~ dmnorm.vcov(c(mu_eta_EUT, mu_eta_EUT),cov_matrix_eta_EUT)
+    eta_g_EE[1:2] ~ dmnorm.vcov(c(mu_eta_EE[1],mu_eta_EE[2]),cov_matrix_eta_EE)
 
 for (i in 1:nSubjects){
-eta_i_EUT[i,1:2]   ~ dmnorm(c(mu_eta_EUT, mu_eta_EUT),prec_matrix_eta_EUT)
-eta_i_EE[i,1:2] ~ dmnorm(c(mu_eta_EE[1],mu_eta_EE[2]),prec_matrix_eta_EE)
+eta_i_EUT[i,1:2]   ~ dmnorm.vcov(c(mu_eta_EUT, mu_eta_EUT),cov_matrix_eta_EUT)
+eta_i_EE[i,1:2] ~ dmnormvcov(c(mu_eta_EE[1],mu_eta_EE[2]),cov_matrix_eta_EE)
 
 for (c in 1:nConditions){
     beta_i_EUT[i,c]      = exp(log_beta_i_EUT[i,c])
@@ -107,12 +107,6 @@ cov_matrix_eta_EUT[1,2] <- rho_eta_EUT * sigma_eta_EUT[1] * sigma_eta_EUT[2]
 cov_matrix_eta_EUT[2,1] <- cov_matrix_eta_EUT[1,2]
 cov_matrix_eta_EUT[2,2] <- sigma_eta_EUT[2] * sigma_eta_EUT[2]
 
-det_EUT = (pow(sigma_eta_EUT[1],2) * pow(sigma_eta_EUT[2],2) - pow(rho_eta_EUT * sigma_eta_EUT[1] * sigma_eta_EUT[2],2))
-prec_matrix_eta_EUT[1,1] =  cov_matrix_eta_EUT[1,1] / det_EUT
-prec_matrix_eta_EUT[1,2] = -cov_matrix_eta_EUT[1,2] / det_EUT
-prec_matrix_eta_EUT[2,1] = -cov_matrix_eta_EUT[2,1] / det_EUT
-prec_matrix_eta_EUT[2,2] =  cov_matrix_eta_EUT[2,2] / det_EUT
-
 mu_eta_EUT ~ dnorm(0.5, tau_mu_eta_EUT) #mean
 tau_mu_eta_EUT = pow(sigma_mu_eta_EUT,-2) #convert to precision
 sigma_mu_eta_EUT = 1 #standard deviation for mean
@@ -128,12 +122,6 @@ cov_matrix_eta_EE[1,1] <- sigma_eta_EE[1] * sigma_eta_EE[1]
 cov_matrix_eta_EE[1,2] <- rho_eta_EE * sigma_eta_EE[1] * sigma_eta_EE[2]
 cov_matrix_eta_EE[2,1] <- cov_matrix_eta_EE[1,2]
 cov_matrix_eta_EE[2,2] <- sigma_eta_EE[2] * sigma_eta_EE[2]
-
-det_EE = (pow(sigma_eta_EE[1],2) * pow(sigma_eta_EE[2],2) - pow(rho_eta_EE * sigma_eta_EE[1] * sigma_eta_EE[2],2))
-prec_matrix_eta_EE[1,1] =  cov_matrix_eta_EE[1,1] / det_EE
-prec_matrix_eta_EE[1,2] = -cov_matrix_eta_EE[1,2] / det_EE
-prec_matrix_eta_EE[2,1] = -cov_matrix_eta_EE[2,1] / det_EE
-prec_matrix_eta_EE[2,2] =  cov_matrix_eta_EE[2,2] / det_EE
 
 mu_eta_EE[1] = 0.0000
 mu_eta_EE[2] = 0.9999
