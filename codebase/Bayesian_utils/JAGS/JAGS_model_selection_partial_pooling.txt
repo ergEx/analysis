@@ -9,7 +9,6 @@ for (c in 1:nConditions){
 for (i in 1:nSubjects){
 oneminEta_EUT[i,c] = 1 - eta_i_EUT[i,c]
 oneminEta_EE[i,c] = 1 - eta_i_EE[i,c]
-oneminEta_EE2[i,c] = 1 - eta_i_EE2[i,c] #1 minus eta term in EE2
 for (t in 1:nTrials){
     #CALCULATE WEALTH UPDATES
     wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]
@@ -38,9 +37,6 @@ for (t in 1:nTrials){
     sdeu_EUT[i,c,t]   = -1 * beta_i_EUT[i,c] * deu_EUT[i,c,t]
     cp_EUT[i,c,t]     = 1 / (1 + (exp(sdeu_EUT[i,c,t])))
     theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
-    theta[i,c,t,4]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
-    theta[i,c,t,7]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
-    theta[i,c,t,10]    = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
 
     #EE
     u_EE[i,c,t]      = (pow(wp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
@@ -57,28 +53,6 @@ for (t in 1:nTrials){
     sdeu_EE[i,c,t]   = -1 * beta_i_EE[i,c] * deu_EE[i,c,t]
     cp_EE[i,c,t]     = 1 / (1 + (exp(sdeu_EE[i,c,t])))
     theta[i,c,t,2]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
-    theta[i,c,t,5]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
-    theta[i,c,t,8]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
-    theta[i,c,t,11]    = max(0.000001,min(0.999999,cp_EE[i,c,t]))
-    #EE2
-    u_EE2[i,c,t]      = (pow(wp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uLU_EE2[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uLL_EE2[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uRU_EE2[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uRL_EE2[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    duLU_EE2[i,c,t]   = uLU_EE2[i,c,t] - u_EE2[i,c,t]
-    duLL_EE2[i,c,t]   = uLL_EE2[i,c,t] - u_EE2[i,c,t]
-    duRU_EE2[i,c,t]   = uRU_EE2[i,c,t] - u_EE2[i,c,t]
-    duRL_EE2[i,c,t]   = uRL_EE2[i,c,t] - u_EE2[i,c,t]
-    eduL_EE2[i,c,t]   = (duLU_EE2[i,c,t] + duLL_EE2[i,c,t]) / 2
-    eduR_EE2[i,c,t]   = (duRU_EE2[i,c,t] + duRL_EE2[i,c,t]) / 2
-    deu_EE2[i,c,t]    = eduL_EE2[i,c,t] - eduR_EE2[i,c,t]
-    sdeu_EE2[i,c,t]   = -1 * beta_i_EE2[i,c] * deu_EE2[i,c,t]
-    cp_EE2[i,c,t]     = 1 / (1 + (exp(sdeu_EE2[i,c,t])))
-    theta[i,c,t,3]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
-    theta[i,c,t,6]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
-    theta[i,c,t,9]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
-    theta[i,c,t,12]    = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
 
     #choice
     y[i,c,t]           ~ dbern(theta[i,c,t,z[i]])
@@ -90,35 +64,26 @@ for (t in 1:nTrials){
 
 ## PRIORS
 #model indicator
-#the model indicator variable z can take on any value from 1:n, and is subject to two stochastic processes, to prevent getting stuck
-#the n values map onto just 3 models, and is simply a means of obtaining parameter expansion for the model indication
 for (i in 1:nSubjects){
-    px_z1[i]    ~ dcat(pz[])
-    px_z2[i]    ~ dcat(pz[])
-    delta_z1[i] = px_z2[i]-1
-    sum_z[i]    = px_z1[i]+delta_z1[i]
-    z[i]        = (sum_z[i] - (8 * trunc(sum_z[i]/8))) + 1
+z[i] ~ dcat(c(0.5, 0.5)) # with three models it would be ⅓ ⅓ ⅓ and so on
 }
 
 #submodels
-for (i in 1:nSubjects){
+eta_g_EUT[1:2]   ~ dmnorm(c(mu_eta_EUT, mu_eta_EUT),prec_matrix_eta_EUT)
+    eta_g_EE[1:2] ~ dmnorm(c(mu_eta_EE[1],mu_eta_EE[2]),prec_matrix_eta_EE)
 
-eta_i_EUT[i,1:2]   ~ dmnorm(c(mu_eta_EUT, mu_eta_EUT),cov_matrix_EUT)
-eta_i_EE[i,1:2] ~ dmnorm(c(mu_eta_EE[1],mu_eta_EE[2]),cov_matrix_EE)
+for (i in 1:nSubjects){
+eta_i_EUT[i,1:2]   ~ dmnorm(c(mu_eta_EUT, mu_eta_EUT),prec_matrix_eta_EUT)
+eta_i_EE[i,1:2] ~ dmnorm(c(mu_eta_EE[1],mu_eta_EE[2]),prec_matrix_eta_EE)
 
 for (c in 1:nConditions){
-    eta_i_EE2[i,c]  ~ dnorm(mu_eta_EE2[c],tau_eta_EE2)
-
-    log_beta_i_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[c], tau_log_beta_EUT[c])
     beta_i_EUT[i,c]      = exp(log_beta_i_EUT[i,c])
+    log_beta_i_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[c], tau_log_beta_EUT[c])
 
-    log_beta_i_EE[i,c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE[c])
     beta_i_EE[i,c]      = exp(log_beta_i_EE[i,c])
+    log_beta_i_EE[i,c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE[c])
 
-    log_beta_i_EE2[i,c]  ~ dnorm(mu_log_beta_EE2[c], tau_log_beta_EE2[c])
-    beta_i_EE2[i,c]      = exp(log_beta_i_EE2[i,c])
-
-}#end of subjects
+  }#end of subjects
 }#end of conditions
 
 
@@ -131,59 +96,52 @@ for (c in 1:nConditions){
 
     #EE
     mu_log_beta_EE[c]       ~ dunif(-2.3,3.4)
-    sigma_log_beta_EE[c]    ~ dunif(0.01,1.6)
-    tau_log_beta_EE[c]      = pow(sigma_log_beta_EE[c],-2)
-
-    #EE2
-    mu_log_beta_EE2[c]       ~ dunif(-2.3,3.4)
-    sigma_log_beta_EE2[c]    ~ dunif(0.01,1.6)
-    tau_log_beta_EE2[c]      = pow(sigma_log_beta_EE2[c],-2)
+    sigma_log_beta_EE[c]   ~ dunif(0.01,1.6)
+    tau_log_beta_EE[c]       = pow(sigma_log_beta_EE[c],-2)
 
 }#end of conditions
 
 #EUT
-# Prior for means (mu)
-mu_eta_EUT ~ dnorm(-5, 5)   # Prior for mean of x-axis
+cov_matrix_eta_EUT[1,1] <- sigma_eta_EUT[1] * sigma_eta_EUT[1]
+cov_matrix_eta_EUT[1,2] <- rho_eta_EUT * sigma_eta_EUT[1] * sigma_eta_EUT[2]
+cov_matrix_eta_EUT[2,1] <- cov_matrix_eta_EUT[1,2]
+cov_matrix_eta_EUT[2,2] <- sigma_eta_EUT[2] * sigma_eta_EUT[2]
 
-# Prior for variances (sigma^2)
-sigma_EUT[1] ~ dgamma(1, 1)  # Prior for variance of x-axis
-sigma_EUT[2] ~ dgamma(1, 1)  # Prior for variance of y-axis
+det_EUT = (pow(sigma_eta_EUT[1],2) * pow(sigma_eta_EUT[2],2) - pow(rho_eta_EUT * sigma_eta_EUT[1] * sigma_eta_EUT[2],2))
+prec_matrix_eta_EUT[1,1] =  cov_matrix_eta_EUT[1,1] / det_EUT
+prec_matrix_eta_EUT[1,2] = -cov_matrix_eta_EUT[1,2] / det_EUT
+prec_matrix_eta_EUT[2,1] = -cov_matrix_eta_EUT[2,1] / det_EUT
+prec_matrix_eta_EUT[2,2] =  cov_matrix_eta_EUT[2,2] / det_EUT
 
-# Prior for correlation coefficient (rho)
-rho_EUT ~ dunif(-1, 1)   # Prior for correlation coefficient
+mu_eta_EUT ~ dnorm(0.5, tau_mu_eta_EUT) #mean
+tau_mu_eta_EUT = pow(sigma_mu_eta_EUT,-2) #convert to precision
+sigma_mu_eta_EUT = 1 #standard deviation for mean
 
-# Transform correlation to covariance
-cov_matrix_EUT[1,1] <- sigma_EUT[1]
-cov_matrix_EUT[1,2] <- rho_EUT * sqrt(sigma_EUT[1]) * sqrt(sigma_EUT[2])
-cov_matrix_EUT[2,1] <- cov_matrix_EUT[1,2]
-cov_matrix_EUT[2,2] <- sigma_EUT[2]
+sigma_eta_EUT[1] ~ dgamma(1, 1)  #standard deviation for additive
+sigma_eta_EUT[2] ~ dgamma(1, 1)  #standard deviation for multiplicative
+
+rho_eta_EUT ~ dunif(-1, 1)   #correlation coefficient
 
 
 #EE
-# Prior for means (mu)
+cov_matrix_eta_EE[1,1] <- sigma_eta_EE[1] * sigma_eta_EE[1]
+cov_matrix_eta_EE[1,2] <- rho_eta_EE * sigma_eta_EE[1] * sigma_eta_EE[2]
+cov_matrix_eta_EE[2,1] <- cov_matrix_eta_EE[1,2]
+cov_matrix_eta_EE[2,2] <- sigma_eta_EE[2] * sigma_eta_EE[2]
+
+det_EE = (pow(sigma_eta_EE[1],2) * pow(sigma_eta_EE[2],2) - pow(rho_eta_EE * sigma_eta_EE[1] * sigma_eta_EE[2],2))
+prec_matrix_eta_EE[1,1] =  cov_matrix_eta_EE[1,1] / det_EE
+prec_matrix_eta_EE[1,2] = -cov_matrix_eta_EE[1,2] / det_EE
+prec_matrix_eta_EE[2,1] = -cov_matrix_eta_EE[2,1] / det_EE
+prec_matrix_eta_EE[2,2] =  cov_matrix_eta_EE[2,2] / det_EE
+
 mu_eta_EE[1] = 0.0000
 mu_eta_EE[2] = 0.9999
 
-# Prior for variances (sigma^2)
-sigma_EE[1] ~ dgamma(1, 1)  # Prior for variance of x-axis
-sigma_EE[2] ~ dgamma(1, 1)  # Prior for variance of y-axis
+sigma_eta_EE[1] ~ dgamma(1, 1)  #standard deviation of additive
+sigma_eta_EE[2] ~ dgamma(1, 1)  #standard deviation of eta multiplicative
 
-# Prior for correlation coefficient (rho)
-rho_EE ~ dunif(-1, 1)   # Prior for correlation coefficient
-
-# Transform correlation to covariance
-cov_matrix_EE[1,1] <- sigma_EE[1]
-cov_matrix_EE[1,2] <- rho_EE * sqrt(sigma_EE[1]) * sqrt(sigma_EE[2])
-cov_matrix_EE[2,1] <- cov_matrix_EE[1,2]
-cov_matrix_EE[2,2] <- sigma_EE[2]
-
-#EE2
-mu_eta_EE2[1]     ~ dunif(-5,5)
-log_d_mu_eta_EE2 ~ dnorm(0, 0.5)
-d_mu_eta_EE2     = exp(log_d_mu_eta_EE2)
-mu_eta_EE2[2]    = mu_eta_EE2[1] + d_mu_eta_EE2
-
-sigma_eta_EE2 ~ dunif(0.01,1.6)
-tau_eta_EE2   = pow(sigma_eta_EE2,-2)
+rho_eta_EE ~ dunif(-1, 1)   #correlation coefficient
 
 }
+
