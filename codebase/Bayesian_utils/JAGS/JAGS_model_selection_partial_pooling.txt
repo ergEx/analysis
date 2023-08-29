@@ -7,7 +7,7 @@ model{
 ##LIKELIHOOD
 for (c in 1:nConditions){
 for (i in 1:nSubjects){
-oneminEta_EUT[i,c] = 1 - eta_i_EUT[i,c]
+oneminEta_EUT[i,c] = 1 - eta_i_EUT[i]
 oneminEta_EE[i,c] = 1 - eta_i_EE[i,c]
 for (t in 1:nTrials){
     #CALCULATE WEALTH UPDATES
@@ -69,14 +69,12 @@ z[i] ~ dcat(c(0.5, 0.5)) # with three models it would be ⅓ ⅓ ⅓ and so on
 }
 
 #submodels
-eta_g_EUT[1:2]   ~ dmnorm.vcov(c(mu_eta_EUT, mu_eta_EUT),cov_matrix_eta_EUT)
-    eta_g_EE[1:2] ~ dmnorm.vcov(c(mu_eta_EE[1],mu_eta_EE[2]),cov_matrix_eta_EE)
 
 for (i in 1:nSubjects){
-eta_i_EUT[i,1:2]   ~ dmnorm.vcov(c(mu_eta_EUT, mu_eta_EUT),cov_matrix_eta_EUT)
-eta_i_EE[i,1:2] ~ dmnormvcov(c(mu_eta_EE[1],mu_eta_EE[2]),cov_matrix_eta_EE)
+    eta_i_EUT[i]       ~ dnorm(mu_eta_EUT,tau_eta_EUT)             # eta
 
 for (c in 1:nConditions){
+    eta_i_EE[i,c]       ~ dnorm(mu_eta_EE[c],tau_eta_EE)
     beta_i_EUT[i,c]      = exp(log_beta_i_EUT[i,c])
     log_beta_i_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[c], tau_log_beta_EUT[c])
 
@@ -102,34 +100,16 @@ for (c in 1:nConditions){
 }#end of conditions
 
 #EUT
-cov_matrix_eta_EUT[1,1] <- sigma_eta_EUT[1] * sigma_eta_EUT[1]
-cov_matrix_eta_EUT[1,2] <- rho_eta_EUT * sigma_eta_EUT[1] * sigma_eta_EUT[2]
-cov_matrix_eta_EUT[2,1] <- cov_matrix_eta_EUT[1,2]
-cov_matrix_eta_EUT[2,2] <- sigma_eta_EUT[2] * sigma_eta_EUT[2]
-
-mu_eta_EUT ~ dnorm(0.5, tau_mu_eta_EUT) #mean
-tau_mu_eta_EUT = pow(sigma_mu_eta_EUT,-2) #convert to precision
-sigma_mu_eta_EUT = 1 #standard deviation for mean
-
-sigma_eta_EUT[1] ~ dgamma(1, 1)  #standard deviation for additive
-sigma_eta_EUT[2] ~ dgamma(1, 1)  #standard deviation for multiplicative
-
-rho_eta_EUT ~ dunif(-1, 1)   #correlation coefficient
-
+mu_eta_EUT    ~ dunif(-4,5)
+sigma_eta_EUT ~ dunif(0.01,1.61)
+tau_eta_EUT   = pow(sigma_eta_EUT,-2)
 
 #EE
-cov_matrix_eta_EE[1,1] <- sigma_eta_EE[1] * sigma_eta_EE[1]
-cov_matrix_eta_EE[1,2] <- rho_eta_EE * sigma_eta_EE[1] * sigma_eta_EE[2]
-cov_matrix_eta_EE[2,1] <- cov_matrix_eta_EE[1,2]
-cov_matrix_eta_EE[2,2] <- sigma_eta_EE[2] * sigma_eta_EE[2]
-
 mu_eta_EE[1] = 0.0000
 mu_eta_EE[2] = 0.9999
 
-sigma_eta_EE[1] ~ dgamma(1, 1)  #standard deviation of additive
-sigma_eta_EE[2] ~ dgamma(1, 1)  #standard deviation of eta multiplicative
-
-rho_eta_EE ~ dunif(-1, 1)   #correlation coefficient
+sigma_eta_EE ~ dunif(0.01,1.61)
+tau_eta_EE   = pow(sigma_eta_EE,-2)
 
 }
 
