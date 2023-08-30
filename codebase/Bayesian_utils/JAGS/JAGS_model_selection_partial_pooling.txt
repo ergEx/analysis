@@ -46,9 +46,10 @@ for (t in 1:nTrials){
     uRL_EE[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
     duLU_EE[i,c,t]   = uLU_EE[i,c,t] - u_EE[i,c,t]
     duLL_EE[i,c,t]   = uLL_EE[i,c,t] - u_EE[i,c,t]
+    duRU_EE[i,c,t]   = uRU_EE[i,c,t] - u_EE[i,c,t]
     duRL_EE[i,c,t]   = uRL_EE[i,c,t] - u_EE[i,c,t]
     eduL_EE[i,c,t]   = (duLU_EE[i,c,t] + duLL_EE[i,c,t]) / 2
-    eduR_EE[i,c,t]   = (duRU_EUT[i,c,t] + duRL_EE[i,c,t]) / 2
+    eduR_EE[i,c,t]   = (duRU_EE[i,c,t] + duRL_EE[i,c,t]) / 2
     deu_EE[i,c,t]    = eduL_EE[i,c,t] - eduR_EE[i,c,t]
     sdeu_EE[i,c,t]   = -1 * beta_i_EE[i,c] * deu_EE[i,c,t]
     cp_EE[i,c,t]     = 1 / (1 + (exp(sdeu_EE[i,c,t])))
