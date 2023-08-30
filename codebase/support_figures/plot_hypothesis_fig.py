@@ -31,26 +31,27 @@ def plot_hypotheses(data):
 
     return fig, ax
 
-np.random.seed(0)
-fig_dir = os.path.join('figs')
 
-#h0
-data = np.random.uniform(-3, 4, (10000, 2))
-data[:, 1] = data[:, 0] + np.random.normal(0,0.2,10000)
+def hypothesis_fig(fig_dir):
+    np.random.seed(0)
 
-fig, ax = plot_hypotheses(data)
-fig.savefig(os.path.join(fig_dir, f"h_0.pdf"), dpi=600, bbox_inches='tight')
+    #h0
+    data = np.random.uniform(-3, 4, (10000, 2))
+    data[:, 1] = data[:, 0] + np.random.normal(0,0.2,10000)
 
-#h1
-data = np.random.normal(0, 0.2, (10000, 2))
-data[:,1] = np.random.normal(1, 0.2, (10000))
+    fig, ax = plot_hypotheses(data)
+    fig.savefig(os.path.join(fig_dir, f"h_0.pdf"), dpi=600, bbox_inches='tight')
 
-fig, ax = plot_hypotheses(data)
-fig.savefig(os.path.join(fig_dir, f"h_1.pdf"), dpi=600, bbox_inches='tight')
+    #h1
+    data = np.random.normal(0, 0.2, (10000, 2))
+    data[:,1] = np.random.normal(1, 0.2, (10000))
 
-#h2
-data = np.random.uniform(-3, 4, (10000, 2))
-data[:, 1] = data[:, 0] + np.abs(np.random.uniform(0, 4, (10000)))
+    fig, ax = plot_hypotheses(data)
+    fig.savefig(os.path.join(fig_dir, f"h_1.pdf"), dpi=600, bbox_inches='tight')
 
-fig, ax = plot_hypotheses(data)
-fig.savefig(os.path.join(fig_dir, f"h_2.pdf"), dpi=600, bbox_inches='tight')
+    #h2
+    data = np.random.uniform(-3, 4, (10000, 2))
+    data[:, 1] = data[:, 0] + np.abs(np.random.uniform(0, 4, (10000)))
+
+    fig, ax = plot_hypotheses(data)
+    fig.savefig(os.path.join(fig_dir, f"h_2.pdf"), dpi=600, bbox_inches='tight')

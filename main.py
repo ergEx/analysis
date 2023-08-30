@@ -2,7 +2,7 @@ import sys
 import time
 
 import yaml
-from codebase import bracketing_method, create_JASP_input, create_plots, readingdata, utils, runBayesAnalysis
+from codebase import bracketing_method, create_JASP_input, create_plots, readingdata, utils
 
 
 def bayesian_method(config):
@@ -15,8 +15,7 @@ def bayesian_method(config):
 
 
 def main():
-    #config_file = utils.get_config_filename(sys.argv)
-    config_file = 'config_files/config_1_pilot.yaml'
+    config_file = utils.get_config_filename(sys.argv)
 
     with open(f"{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -33,7 +32,6 @@ def main():
     bayesian_method(config)
     bracketing_method.main(config_file)
     create_JASP_input.main(config_file)
-    runBayesAnalysis.main(config_file)
     create_plots.main(config_file)
 
     print(f"\n--- Code ran in {(time.time() - start_time):.2f} seconds ---")
