@@ -70,7 +70,7 @@ def plot_sequential_bf(data, scale='medium', part=11, target='bf10'):
 
     return fig, ax
 
-def main(config_file):
+def main(config_file, fig_dir=None):
 
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
@@ -81,7 +81,10 @@ def main(config_file):
     print(f"\nRunning BayesFactor analysis")
 
     data_dir = config["data directory"]
-    fig_dir = config["figure directory"]
+
+    if fig_dir is None:
+        fig_dir = config["figure directory"]
+
     target = config['bayesfactor_analysis']['target']
 
     subprocess.call(f'Rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
@@ -99,7 +102,3 @@ def main(config_file):
         fig, ax = plot_sequential_bf(q2_sequential)
         fig.savefig(os.path.join(fig_dir, 'q2_sequential_' + target + '.pdf'),
                     bbox_inches='tight', dpi=600)
-
-if __name__ == "__main__":
-    config_file = get_config_filename(sys.argv)
-    main(config_file)
