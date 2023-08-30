@@ -1,4 +1,7 @@
-def sub_specs(data_type: str, data_variant: str):
+import os
+
+
+def sub_specs(data_type: str, data_variant: str, in_folder: str = None):
     """
     Returns a dictionary of data specification for the given data variant.
 
@@ -9,6 +12,10 @@ def sub_specs(data_type: str, data_variant: str):
 
     Returns a dictionary containing relevant information on the subject structure of the data in the given data variant.
     """
+
+    if in_folder is None:
+        in_folder = os.path.join('data', data_variant)
+
     if data_type == "0_simulation":
         if data_variant == 'grid':
             return {
@@ -29,27 +36,9 @@ def sub_specs(data_type: str, data_variant: str):
             return ValueError("Data variant not supported")
 
     elif data_type == "real_data":
-        if data_variant == "1_pilot":
-            return {
-                "id": [str(i).zfill(3) for i in range(11)],
-                "first_run": [
-                    [1, 2],
-                    [1, 2],
-                    [1, 2],
-                    [1, 2],
-                    [2, 1],
-                    [2, 1],
-                    [2, 1],
-                    [1, 2],
-                    [2, 1],
-                    [2, 1],
-                    [2, 1],
-                ],
-            }
-        elif data_variant == "2_full_data":
-            raise ValueError("Full data doesn't exist yet")
-        else:
-            ValueError("Data variant not supported")
+
+        return create_spec_dict(in_folder)
+
     else:
         ValueError("Data type not supported")
 
@@ -68,3 +57,27 @@ def condition_specs():
         "active_limits": {0.0: [-500, 2_500], 1.0: [64, 15_589]},
     }
 
+
+def create_spec_dict(folder):
+    from glob import glob
+    import re
+
+    subs = sorted([i.split('/')[-1].split('-')[-1] for i in glob(f'{folder}/sub-*')])
+    order = []
+
+    pattern = r"acq-(\w+)_run"
+
+    for ii in subs:
+        file = glob(f'{folder}/sub-{ii}/ses-1/*passive*_run-1*')[0]
+        match = re.search(pattern, file)
+        if match:
+            extracted_part = match.group(1)
+
+            if extracted_part == 'lambd0d0':
+                order.append([1, 2])
+            elif extracted_part == 'lambd1d0':
+                order.append([2 ,1])
+            else:
+                raise ValueError(f"Something went wrong with {ii}")
+
+    return {'id': subs, 'first_run': order}
