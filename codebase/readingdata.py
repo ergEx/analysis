@@ -228,6 +228,9 @@ def main(config_file):
     data_type = config["data_type"]
     data_variant = config["data_variant"]
 
+    if not os.path.isdir(data_dir):
+        os.makedirs(data_dir)
+
     try:
         input_path = config['input_path']
     except:
