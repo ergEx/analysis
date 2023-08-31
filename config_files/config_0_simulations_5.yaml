@@ -10,6 +10,7 @@ figure directory: "figs/0_simulation/grid/eta_15"
 # This section specifies data variables
 data_type: "0_simulation"
 data_variant: "grid"
+sim_version : 5
 n_agents: 10
 n_samples: 5000
 n_chains: 4
