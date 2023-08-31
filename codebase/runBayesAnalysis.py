@@ -9,8 +9,9 @@ import numpy as np
 from .utils import get_config_filename
 
 
-def plot_sequential_bf(data, scale='medium', part=11, target='bf10'):
+def plot_sequential_bf(data, scale='medium', target='bf10'):
     import matplotlib.ticker as tck
+    part = data['nsubs'].max()
 
     sub_data = data.query(f'scale == @scale and nsubs == @part').copy()
 
