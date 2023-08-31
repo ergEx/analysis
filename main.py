@@ -15,23 +15,25 @@ def make_shell(dataSource, inferenceMode, simVersion):
 
     #if not os.path.isdir('shellscripts'):
     #    os.makedirs('shellscripts')
+    print(dataSource)
     if dataSource == '0_simulation':
         dataSource = 0
     elif dataSource == '1_pilot':
-        dataSource == 1
+        dataSource = 1
     elif dataSource == '2_full_data':
-        dataSource == 2
+        dataSource = 2
 
     shellname = f'runBayes_{dataSource}_{inferenceMode}_{simVersion}.sh'
 
-    shellparams = {'date': now, 'dataSource': 1, 'simVersion': 1, 'inferenceMode': 1,
-                'runBayesPath': os.path.abspath(os.path.join(script_path, 'codebase/Bayesian_utils/'))}
+    shellparams = {'date': now, 'dataSource': dataSource, 'simVersion': simVersion, 
+                   'inferenceMode': inferenceMode,
+                'runBayesPath': os.path.abspath(os.path.join(script_path, 'codebase/'))}
 
-    tmp = """
-    #!/bin/bash
+    tmp = """#!/bin/bash
     #SBATCH --partition=HPC
     # Created {date}
-    matlab -nodesktop -nojvm -nosplash -r "addpath('{runBayesPath}'); runBayesian({dataSource}, {simVersion}, {inferenceMode})"
+    module load matlab
+    matlab -nodesktop -nojvm -nosplash -r "addpath('{runBayesPath}'); runBayesian({dataSource}, {simVersion}, {inferenceMode}); exit;"
     """.format(**shellparams)
 
     return tmp, shellname
@@ -57,7 +59,7 @@ def bayesian_method(config, inferenceMode):
                 print("Assuming no simversion")
                 simversion = 0
 
-            shell_script, shell_name = make_shell(config['data_type'], inferenceMode,
+            shell_script, shell_name = make_shell(config['data_variant'], inferenceMode,
                                                   simversion)
 
         script = os.path.join(os.path.abspath('sh_scripts'), shell_name)
@@ -65,7 +67,7 @@ def bayesian_method(config, inferenceMode):
         with open(script,"w+") as f:
             f.writelines(shell_script)
 
-        subprocess.call(f'sbatch {script}', shell=True)
+        subprocess.call(f'source {script}', shell=True)
 
 def main():
     config_file = utils.get_config_filename(sys.argv)

@@ -29,12 +29,13 @@ function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,n
 % folder        - folder within the datafolder the relevant data is stored
 
 %% Set paths
+disp(startDir)
 cd(startDir);%move to starting directory
 matjagsdir=fullfile(startDir,'/Bayesian_utils/matjags');
 addpath(matjagsdir)
 jagsDir=fullfile(startDir,'/Bayesian_utils/JAGS');
 addpath(jagsDir)
-dataDir=fullfile(startDir,'..','/data',folder);
+dataDir=fullfile('..','data',folder);
 
 %% Choose & load data
 mode = 'estimate data';
@@ -90,6 +91,7 @@ disp(['Mode: ', modelName])
 disp(['dataSource: ', folder])
 disp(['started: ',datestr(clock)])
 disp(['MCMC number: ',num2str(whichJAGS)])
+disp(['Subs: ' num2str(nSubjects), ' Conds: ' num2str(nConditions), ' Trials : ' num2str(nTrials)])
 disp('**************');
 
 %% Initialise matrices
