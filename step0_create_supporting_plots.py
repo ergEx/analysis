@@ -24,9 +24,11 @@ if __name__ == "__main__":
     import sys
     from codebase.utils import write_provenance
 
-    command = '\t'.join(sys.argv)    
+    command = '\t'.join(sys.argv)
+    print(sys.argv)
     write_provenance(command)
-
-    main()
-
-    write_provenance('executed successfully')
+    try:
+        main()
+        write_provenance('executed successfully')
+    except:
+        write_provenance('FAILED!!')
