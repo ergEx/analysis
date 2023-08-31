@@ -78,13 +78,22 @@ def main(dryrun):
 
 if __name__ == '__main__':
     import sys
+    from codebase.utils import write_provenance
 
+    command = '\t'.join(sys.argv)
+    print(sys.argv)
+
+    write_provenance(command)
     if len(sys.argv) == 1:
         dr = 0
     else:
         dr = sys.argv[1]
 
-    main(dr)
+    try:
+        main(dr)
+        write_provenance('executed successfully')
+    except:
+        write_provenance('FAILED!!')
 
 
 
