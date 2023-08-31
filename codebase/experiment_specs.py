@@ -80,4 +80,7 @@ def create_spec_dict(folder):
             else:
                 raise ValueError(f"Something went wrong with {ii}")
 
+        else:
+            raise ValueError("No match?!")
+
     return {'id': subs, 'first_run': order}
