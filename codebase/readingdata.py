@@ -242,7 +242,8 @@ def main(config_file):
         extension = 'beh.csv'
 
     print(f"\nREADING DATA")
-    reading_data(data_type, data_variant, data_dir, input_path, extension)
+    reading_data(data_type, data_variant, data_dir, input_path=input_path,
+                 extension=extension)
     print("\nDATA READ SUCCESFULLY\n")
 
 
