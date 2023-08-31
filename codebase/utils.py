@@ -484,3 +484,22 @@ def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
     axes.spines[['right', 'top']].set_visible(False)
 
     return fig, axes
+
+
+def write_provenance(string: str, file: str = 'provenance.txt'):
+    """Helper function to write termination and start to provenance.txt 
+    to help us keep track of what happened.
+
+    Parameters
+    ----------
+    string : str
+        String to print
+    file : str, optional
+        File to save to, by default 'provenance.txt'
+    """
+    import datetime
+    now=datetime.datetime.now().isoformat()
+    out_string = now + '\t' + string + '\n'
+
+    with open(file, 'a+') as f:
+        f.write(out_string)
