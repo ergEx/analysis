@@ -7,3 +7,5 @@ ergex_env/
 .Rproj.user
 paper_figures
 sh_scripts
+slurm-*
+provenance.txt
