@@ -81,6 +81,9 @@ def main():
     data_type = config["data_type"]
     data_variant = config["data_variant"]
 
+    if not os.path.isdir(config['figure directory']):
+        os.makedirs(config['figure directory'])
+
     start_time = time.time()
     print(f"\n--- {time.ctime(start_time)} --- ")
     print(f"\nSTARTING ANALYSIS")
