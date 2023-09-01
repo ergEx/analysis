@@ -1,4 +1,4 @@
-function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
+function computeBayesian(dataSource,dataPooling,inferenceMode,model_selection_type,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -14,7 +14,7 @@ function computeBayesian(dataSource,dataPooling,inferenceMode,nBurnin,nSamples,n
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
 % inferenceMode - set whether to do parameter estimation (1)
-%                                   Bayesian model comparison of hypotheses (2)
+%                                   Bayesian model comparison of three different models (2)
 %                                   Bayesian model comparison of data pooling (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % nBurnin       - specifies how many burn in samples to run
@@ -75,14 +75,14 @@ muEtaL=-5; muEtaU=5; %parameters for the mean of the eta parameter (uniformly di
 sigmaEtaL=0.01; sigmaEtaU=1.6; %parameter for the standard diviation on the eta parameter (uniformly distributed)
 
 %% set bounds for hyperpriors connected to the mechanistic model
-%eta for h1
+%eta for EE model
 eta_h1_add = 0; eta_h1_mul = 0.9999; %parameters for the eta parameter (note point estimates)
 
-%eta for h2
-muLogEtaL_h2=-2.3;muLogEtaU_h2=1.6; %bounds on mean of distribution log eta (potential positive increase from additive to multiplicative)
-
 %Model indicator
-pz=repmat(1/12,1,12);%sets flat prior over models [h0 = no change, h1 = time optimal, h2 = increase from add to mul]
+switch model_selection_type
+    case {1}, pz=repmat([1/2,1/2,0], 1, 4);%sets flat prior over EUT and EE model
+    case {2}, pz=repmat(1/12,1,12);%sets flat prior over three all three submodels
+end
 
 %% Print information for user
 disp('**************');
@@ -156,18 +156,14 @@ switch inferenceMode
     case {2}
         dataStruct = struct(...
                 'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
-                'muLogBetaL',muLogBetaL,'muLogBetaU',muLogBetaU,'sigmaLogBetaL',sigmaLogBetaL,'sigmaLogBetaU',sigmaLogBetaU,...
-                'muEtaL',muEtaL,'muEtaU',muEtaU,'sigmaEtaL',sigmaEtaL,'sigmaEtaU',sigmaEtaU,...
-                'eta_h1_add',eta_h1_add,'eta_h1_mul',eta_h1_mul,...
-                'muLogEtaL_h2',muLogEtaL_h2,'muLogEtaU_h2',muLogEtaU_h2,...
-                'pz',pz);
+                'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,...
+                ,'y',choice);
 
         for i = 1:nChains
-            monitorParameters = {'beta_i_h0', 'beta_g_h0','eta_i_h0', 'eta_g_h0',...
-                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
-                                 'beta_i_h1', 'beta_g_h1','eta_i_h1', 'eta_g_h1',...
-                                 'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
+            monitorParameters = {'rho_EE', 'sigma_EE', 'mu_eta_EE', 'cov_matrix_eta_EE',...
+                                'rho_EUT', 'sigma_EUT', 'mu_eta_EUT', 'cov_matrix_eta_EUT',...
+                                'eta_i_EUT', 'eta_i_EE', 'eta_g_EUT', 'eta_g_EE',...
+                                'z'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
     case {3}
@@ -179,9 +175,9 @@ switch inferenceMode
                 'pz',pz);
 
         for i = 1:nChains
-            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',...
-                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',...
-                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',...
+            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',... %no pooling
+                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling
+                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',... %full pooling
                                  'z','px_z1','px_z2','delta_z1','sum_z'};%model indicator
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
