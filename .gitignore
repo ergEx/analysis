@@ -3,9 +3,10 @@ __pycache__/
 .ipynb_checkpoints
 playground_notebook.ipynb
 *.asv
-ergex_env/
 .Rproj.user
 paper_figures
 sh_scripts
 slurm-*
 provenance.txt
+codebase/VBA_toolbox
+model_comparison_test.ipynb
