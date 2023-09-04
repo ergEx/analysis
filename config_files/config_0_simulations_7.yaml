@@ -10,9 +10,9 @@ figure directory: "figs/0_simulation/varying_variance"
 # This section specifies data variables
 data_type: "0_simulation"
 data_variant: "varying_variance"
+sim_version: 7
 n_agents: 20
-n_samples: 5000
-n_chains: 4
+qual: 3
 n_conditions: 2
 
 # This section provides control over whether data needs to be re-read

@@ -11,8 +11,8 @@ figure directory: "figs/0_simulation/strong_weak_signal"
 data_type: "0_simulation"
 data_variant: "strong_weak_signal"
 n_agents: 20
-n_samples: 5000
-n_chains: 4
+sim_version: 8
+qual: 3
 n_conditions: 2
 
 # This section provides control over whether data needs to be re-read

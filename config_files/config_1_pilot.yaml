@@ -11,8 +11,7 @@ figure directory: "figs/1_pilot"
 data_type: "real_data"
 data_variant: "1_pilot"
 n_agents: 11
-n_samples: 5000
-n_chains: 4
+qual: 3
 n_conditions: 2
 
 # This section provides control over whether data needs to be re-read

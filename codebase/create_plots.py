@@ -35,10 +35,10 @@ def main(config_file):
         os.makedirs(fig_dir)
 
     data_type = config["data_type"]
-
+    quality_dictionary = {'chains': [4,4,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4]}
     n_agents = config["n_agents"]
-    n_samples = config["n_samples"]
-    n_chains = config["n_chains"]
+    n_samples = quality_dictionary['samples'][config['qual'] - 1]
+    n_chains = quality_dictionary['chains'][config['qual'] - 1]
     n_conditions = config["n_conditions"]
 
     stages = config["plots"]
