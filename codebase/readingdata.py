@@ -11,18 +11,23 @@ from .utils import get_config_filename, wealth_change
 
 
 def reading_participant_passive_data(
-    data_folder: str, subject: str, first_run: str, bids_text: str, n_passive_runs: int
+    data_folder: str, subject: str, first_run: str, bids_text: str, n_passive_runs: int,
+    input_path: str = None, extension: str = 'beh.tsv'
 ):
+
+    if input_path is None:
+        input_path = data_folder
+
     """Passive phase data"""
     passive_phase_data = pd.DataFrame()
     no_brainer_data = pd.DataFrame()
     for run in range(1, n_passive_runs + 1):
         df = pd.read_csv(
             os.path.join(
-                data_folder,
+                input_path,
                 f"sub-{subject}",
                 f"ses-{first_run}",
-                f"sub-{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_beh.csv",
+                f"sub-{subject}_ses-{first_run}_task-passive_acq-lambd{bids_text}_run-{run}_{extension}",
             ),
             sep="\t",
         )
@@ -41,8 +46,14 @@ def reading_participant_active_data(
     bids_text: str,
     lambd: float,
     run: int = 1,
+    input_path: str = None,
+    extension: str = 'beh.csv'
 ) -> pd.DataFrame:
     """Active phase data"""
+
+    if input_path is None:
+        input_path=data_folder
+
     if data_type == "0_simulation":
         active_phase_data = pd.read_csv(
             os.path.join(
@@ -53,10 +64,10 @@ def reading_participant_active_data(
     else:
         active_phase_data = pd.read_csv(
             os.path.join(
-                data_folder,
+                input_path,
                 f"sub-{subject}",
                 f"ses-{first_run}",
-                f"sub-{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_beh.csv",
+                f"sub-{subject}_ses-{first_run}_task-active_acq-lambd{bids_text}_run-{run}_{extension}",
             ),
             sep="\t",
         )
@@ -100,6 +111,8 @@ def reading_data(
     data_variant: str,
     data_folder: str,
     n_passive_runs: int = 3,
+    input_path: str = None,
+    extension: str = 'beh.csv'
 ) -> None:
     """
     Reads in passive and active phase data for a given design variant, simulation status, and number of passive runs. It stores a tuple of two dataframes, one for passive phase data and one for active phase data. It also stores .mat and .npz versions of the active phase data in a subdirectory within the data directory.
@@ -113,13 +126,17 @@ def reading_data(
     one. Data is stored in the relevant subdirectories within the data directory.
     """
 
+    if input_path is None:
+        input_path = data_folder
+
     CONDITION_SPECS = condition_specs()
-    SUBJECT_SPECS = sub_specs(data_type, data_variant)
+    SUBJECT_SPECS = sub_specs(data_type, data_variant, input_path)
 
     passive_phase_df = pd.DataFrame()
     no_brainer_df = pd.DataFrame()
     active_phase_df = pd.DataFrame()
     datadict = dict()
+
     for c, condition in enumerate(CONDITION_SPECS["condition"]):
         for i, subject in enumerate(SUBJECT_SPECS["id"]):
             if data_type != "0_simulation":
@@ -129,6 +146,8 @@ def reading_data(
                     first_run=SUBJECT_SPECS["first_run"][i][c],
                     bids_text=CONDITION_SPECS["bids_text"][c],
                     n_passive_runs=n_passive_runs,
+                    input_path=input_path,
+                    extension=extension
                 )
 
                 passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
@@ -141,6 +160,8 @@ def reading_data(
                 first_run=SUBJECT_SPECS["first_run"][i][c],
                 bids_text=CONDITION_SPECS["bids_text"][c],
                 lambd=CONDITION_SPECS["lambd"][c],
+                input_path=input_path,
+                extension=extension
             )
 
             ##CSV
@@ -207,8 +228,22 @@ def main(config_file):
     data_type = config["data_type"]
     data_variant = config["data_variant"]
 
+    if not os.path.isdir(data_dir):
+        os.makedirs(data_dir)
+
+    try:
+        input_path = config['input_path']
+    except:
+        input_path = data_dir
+
+    try:
+        extension = config['extension']
+    except:
+        extension = 'beh.csv'
+
     print(f"\nREADING DATA")
-    reading_data(data_type, data_variant, data_dir)
+    reading_data(data_type, data_variant, data_dir, input_path=input_path,
+                 extension=extension)
     print("\nDATA READ SUCCESFULLY\n")
 
 

@@ -4,5 +4,9 @@ __pycache__/
 playground_notebook.ipynb
 *.asv
 .Rproj.user
+paper_figures
+sh_scripts
+slurm-*
+provenance.txt
 codebase/VBA_toolbox
 model_comparison_test.ipynb

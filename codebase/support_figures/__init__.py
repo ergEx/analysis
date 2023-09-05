@@ -1,0 +1,3 @@
+from .plot_bracketing_fig import bracketing_fig as plot_bracketing_fig
+from .plot_EUT_figure import EUT_figure as plot_EUT_figure
+from .plot_hypothesis_fig import hypothesis_fig as plot_hypothesis_fig

@@ -21,8 +21,12 @@ def main(config_file):
     print(f"\nCREATING JASP FILE")
 
     data_dir = config["data directory"]
+    try:
+        input_path = config['input_path']
+    except:
+        input_path = data_dir
 
-    SUBJECT_SPECS = sub_specs(config["data_type"], config["data_variant"])
+    SUBJECT_SPECS = sub_specs(config["data_type"], config["data_variant"], input_path)
     subjects = SUBJECT_SPECS["id"]
     CONDITION_SPECS = condition_specs()
 

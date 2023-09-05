@@ -16,7 +16,81 @@ Install and check if environment already exists:
 
 To run the Bayes Factor Design Analysis after installing the environment use in the main folder:
 `rscript r_analyses/ergEx_rr_nhb_bfda.R`. When run the first time the BFDA package will be installed. 
-The figures referred to in the paper will be created inside the `r_analyses` folder. 
+The figures referred to in the paper will be created inside the `r_analyses` folder.
+
+# Workflow
+
+## Step 0: Create supporting plots for paper
+
+This step does not require any data. 
+
+`python step0_create_supporting_plots.py`
+
+## Step 1: Read data
+
+`python step1_read_data config_files/config_1_pilot.yaml`
+
+In this step the data is collected from the location specified in
+`configs[input_path]`. If it is not specifed `configs[data_directory]` is used.
+The data will be saved in `configs[data_directory]`, which is relative to the 
+`data\` directory of the repository.
+
+## Step 2: Run jags
+
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 1 1 1`
+
+The arguments in order:
+1. the config file to be used
+2. Sets the `inferenceMode`, it can be `1` or `2` and decides if to perform model inversion for parameter estimation or model selection. 
+3. Sets the `model_selection_type`, it can be `1` for EE vs EUT or `2`, which further includes weak EUT.
+4. This sets the submission method. It can be `1` for simply sourcing the shell script or `2` for commiting the script via SLURM.
+
+
+For a full analysis of the data set, you need thus to run the following three for each dataset:
+
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 1 1 1`
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 2 1 1`
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 2 2 1`
+
+
+This script creates a shell script in `sh_scripts` which will then be run by the program. The following `configs[data_type]`, `configs[data variant]` and `configs[qual]` are important. 
+
+Note further, that not all arguments from the config files are used! For a new data set make sure that you have the correct name pairing and parameters in `set_Bayesian.m` lines 30 ff.
+
+```{matlab}
+switch dataSource
+    case {0}
+        switch simVersion
+            case {1}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_n05';
+            case {2}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_00';
+            case {3}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_05';
+            case {4}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_10';
+            case {5}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_15';
+            case {6}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/time_optimal';
+            case {7}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/varying_variance';
+            case {8}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/strong_weak_signal';
+        end %simVersion
+    case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
+    case {2}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
+end %dataSource
+```
+
+## Step3: Create figures and run further analysis:
+
+Again this requires the configs file and creates most of the other figures that are displayed in the paper (and more) and performs further analyses.
+
+`python step3_main_analysis.py config_files/1_pilot.yaml`
+
+## Step4: Create grid figure
+
+If you have run the simulations using JAGS for configs 1 - 6, you can now create the simulation grid figure, it uses data stored under `data/0_simulation/grid`:
+
+`python step4_plot_grid.py`
+
+## Step5: Renaming figures
+
+This step is mostly for convenience, it moves and renames the figures that are shown in the manuscript.
+
 # Data
 
 Input data for the analysis is stored HERE and must be copied into the 'data' folder. The data is the output files from the experiment that record all the necessary information such as wealth trajectories, gambles, and choices.

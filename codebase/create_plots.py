@@ -15,7 +15,7 @@ cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
 
 from .utils import (plot_individual_heatmaps, plot_single_kde, read_Bayesian_output,
-                    jasp_like_correlation, jasp_like_raincloud, paired_swarm_plot)
+                    jasp_like_correlation, paired_swarm_plot)
 
 
 def main(config_file):
@@ -35,10 +35,10 @@ def main(config_file):
         os.makedirs(fig_dir)
 
     data_type = config["data_type"]
-
+    quality_dictionary = {'chains': [4,4,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4]}
     n_agents = config["n_agents"]
-    n_samples = config["n_samples"]
-    n_chains = config["n_chains"]
+    n_samples = quality_dictionary['samples'][config['qual'] - 1]
+    n_chains = quality_dictionary['chains'][config['qual'] - 1]
     n_conditions = config["n_conditions"]
 
     stages = config["plots"]
@@ -89,9 +89,15 @@ def main(config_file):
             ax = ax.flatten()
             for c, con in enumerate(set(df_no_brainer.eta)):
                 df_rankings_copy = df_no_brainer.copy()
-                df_rankings_copy["trial_bins"] = pd.cut(
-                    df_rankings_copy["trial"], bins=[40, 70, 110, 160], labels=["First", "Second", "Third"]
-                )
+                if config['data_variant'] == '1_pilot':
+                    df_rankings_copy["trial_bins"] = pd.cut(
+                        df_rankings_copy["trial"], bins=[40, 70, 110, 160], labels=["First", "Second", "Third"]
+                    )
+                else:
+                    df_rankings_copy['trial_bins'] = df_rankings_copy['run']
+                    df_rankings_copy['trial_bins'].replace({1: 'First', 2: 'Second',
+                                                            3: 'Third'},
+                                                            inplace=True)
                 df_prop = (
                     df_rankings_copy.groupby(["participant_id", "trial_bins"])
                     .mean()["response_correct"]
