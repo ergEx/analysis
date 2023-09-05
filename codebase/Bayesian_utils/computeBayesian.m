@@ -50,9 +50,9 @@ switch inferenceMode
         end %switch dataPooling
     case {2}
         switch dataPooling
-            case {1}, modelName = 'JAGS_model_selection_no_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+            case {1}, modelName = 'JAGS_model_selection_no_pooling';
             case {2}, modelName = 'JAGS_model_selection_partial_pooling';
-            case {3}, modelName = 'JAGS_model_selection_full_pooling'; %JAGS SCRIPT NOT IMPLEMENTED!
+            case {3}, modelName = 'JAGS_model_selection_full_pooling';
         end %switch dataPooling
     case {3}, modelName = 'JAGS_model_selection_data_pooling'
 end %switch inferenceMode
