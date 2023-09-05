@@ -40,7 +40,7 @@ switch dataSource
             case {8}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/strong_weak_signal';
         end %simVersion
     case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
-    case {2}, subjList = 1:1; nTrials = 1; folder = '2_full_data';%Full experiment data
+    case {2}, subjList = 1:4; nTrials = 165; folder = '2_full_data';%Full experiment data
 end %dataSource
 
 %% Runs HLMs sequentially

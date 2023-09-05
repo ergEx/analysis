@@ -1,4 +1,4 @@
-function runBayesian(dataSource, simVersion, inferenceMode, whichQuals)
+function runBayesian(dataSource, simVersion, inferenceMode, whichQuals, model_selection_type)
 % runHLM provides inputs to setHLM for a given run on the cluster
 
 % It provides the following inputs when calling setHLM:
@@ -30,9 +30,9 @@ addpath(fullfile(startDir,'/Bayesian_utils'));
 %% Specify variables
 % dataSource = 1;
 % simVersion = 1;
-dataPooling = 2:2;
+dataPooling = 1:3;
 % inferenceMode = 1;
-model_selection_type = 1;
+% model_selection_type = 1;
 whichJAGS = 1;
 %whichQuals = 1;
 doParallel = 0;
