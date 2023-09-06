@@ -1,13 +1,16 @@
-data_source = '/1_pilot';
-model_selection_type = 1;
+function modelComparison(data_source, data_dir, model_selection_type)
 
-[startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
-addpath(genpath(fullfile(startDir,'/VBA-toolbox')));
+
+%data_source = '/1_pilot';
+%model_selection_type = 1;
+
+%[startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
+%addpath(genpath(fullfile(startDir,'/VBA-toolbox')));
 
 data_poolings = {'no_pooling','partial_pooling','full_pooling'};
-dataDir=fullfile(startDir,'..','/data',data_source);
+%dataDir=fullfile(startDir,'..','/data',data_source);
 
-for ii = 1:numel(strings)
+for ii = 1:length(data_poolings)
     file = sprintf('Bayesian_JAGS_model_selection_%s_%d.mat', data_poolings{ii} ,model_selection_type);
     
     load(fullfile(dataDir, file))
@@ -37,5 +40,7 @@ for ii = 1:numel(strings)
     % perform group-BMS on data
     [p1, o1] = VBA_groupBMC (log_proportions, options);
     set (o1.options.handles.hf, 'name', 'group BMS: y_1')
-    
+     
+end
+
 end
