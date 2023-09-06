@@ -87,7 +87,7 @@ switch inferenceMode
             case {2}, pz = [1/3, 1/3, 1/3]; %flat prior over all three models
         end
     case {3}
-        z = [1/3, 1/3, 1/3] %flat prior over all three data pooling methods
+        pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
 end
 
 

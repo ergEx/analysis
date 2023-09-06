@@ -55,14 +55,14 @@ for (i in 1:nSubjects){
 for (c in 1:nConditions){
 for (i in 1:nSubjects){
     #beta parameter
-    mu_log_beta[i,c]       ~ dunif(mu_log_beta_l,mu_log_beta_h)
+    mu_log_beta[i,c]       ~ dunif(muLogBetaL,muLogBetaH)
     tau_log_beta[i,c]      = pow(sigma_log_beta[i,c],-2)
-    sigma_log_beta[i,c]    ~ dunif(sigma_l,sigma_h)
+    sigma_log_beta[i,c]    ~ dunif(sigmaL,sigmaH)
 
     #eta parameter
-    mu_eta[i,c]            ~ dunif(mu_eta_l,mu_eta_h)
+    mu_eta[i,c]            ~ dunif(muEtaL,muEtaH)
     tau_eta[i,c]           = pow(sigma_eta[i,c],-2)
-    sigma_eta[i,c]         ~ dunif(sigma_l,sigma_h)
+    sigma_eta[i,c]         ~ dunif(sigmaL,sigmaH)
 }#end of subjects
 }#end of conditions
 

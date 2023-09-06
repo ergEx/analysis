@@ -56,7 +56,7 @@ for (c in 1:nConditions){
     #beta parameter
     mu_log_beta[c]       ~ dunif(muLogBetaL,muLogBetaH)
     tau_log_beta[c]      = pow(sigma_log_beta[c],-2)
-    sigma_log_beta[c]    ~ dunif(sigma_l,sigma_h)
+    sigma_log_beta[c]    ~ dunif(sigmaL,sigmaH)
 
     #eta parameter
     mu_eta[c]            ~ dunif(muEtaL,muEtaH)
