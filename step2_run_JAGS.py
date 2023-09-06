@@ -5,7 +5,7 @@ import yaml
 from codebase import utils
 
 
-def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_type):
+def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_type, whichJags):
     import datetime
     now = datetime.datetime.now().isoformat()
 
@@ -24,7 +24,7 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
 
     shellparams = {'date': now, 'dataSource': dataSource, 'simVersion': simVersion,
                    'inferenceMode': inferenceMode, 'quality': quality,
-                   'model_selection_type': model_selection_type,
+                   'model_selection_type': model_selection_type, 'whichJags':whichJags,
                 'runBayesPath': os.path.abspath(os.path.join(script_path, 'codebase/'))}
 
     tmp = """#!/bin/bash
@@ -33,13 +33,13 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
     module load matlab
     matlab -nodesktop -nojvm -nosplash -r "addpath('{runBayesPath}');\
           runBayesian({dataSource}, {simVersion}, {inferenceMode}\
-            , {quality}, {model_selection_type}); exit;"
+            , {quality}, {model_selection_type}, {whichJags}); exit;"
     """.format(**shellparams)
 
     return tmp, shellname
 
 
-def bayesian_method(config, inferenceMode, quality, model_selection_type, executor='sbatch'):
+def bayesian_method(config, inferenceMode, quality, model_selection_type, whichJags, executor='sbatch'):
     import subprocess
 
     if config['bayesian method']['run']:
@@ -53,6 +53,7 @@ def bayesian_method(config, inferenceMode, quality, model_selection_type, execut
                                               inferenceMode=inferenceMode,
                                                 simVersion=simversion,
                                                 quality=quality,
+                                                whichJags=whichJags,
                                                 model_selection_type=model_selection_type)
 
         script = os.path.join(os.path.abspath('sh_scripts'), shell_name)
@@ -102,6 +103,8 @@ def main():
     else:
         raise ValueError("Executor has to be 1 for source or 2 for sbatch.")
 
+    whichJags = sys.argv[5]
+
     print("Running JAGS model with the following parameters")
     print(f"Config = {config_file}")
     print(f"Inference Method = {inferenceMethod}")
@@ -112,6 +115,7 @@ def main():
                     inferenceMode=inferenceMethod,
                     quality=quality,
                     model_selection_type=model_selection_type,
+                    whichJags=whichJags,
                     executor=executor)
 
     print(f"\n--- Code ran in {(time.time() - start_time):.2f} seconds ---")
