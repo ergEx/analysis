@@ -137,8 +137,8 @@ sigma_eta_EUT[i] ~ dunif(sigmaL, sigmaH)
 tau_eta_EUT[i]   = pow(sigma_eta_EUT[i],-2)
 
 #EE
-mu_eta_EE[1] = muEtaEEAdd
-mu_eta_EE[2] = muEtaEEMul
+mu_eta_EE[i,1] = muEtaEEAdd
+mu_eta_EE[i,2] = muEtaEEMul
 sigma_eta_EE[i] ~ dunif(sigmaL, sigmaH)
 tau_eta_EE[i]   = pow(sigma_eta_EE[i],-2)
 
