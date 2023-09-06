@@ -114,18 +114,18 @@ for (c in 1:nConditions){
 ##HYPERPRIORS
 for (c in 1:nConditions){
     #EUT
-    mu_log_beta_EUT[c]       ~ dunif(mu_log_beta_l, mu_log_beta_h)
-    sigma_log_beta_EUT[c]    ~ dunif(sigma_l,sigma_h)
+    mu_log_beta_EUT[c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT[c]    ~ dunif(sigmaL,sigmaH)
     tau_log_beta_EUT[c]      = pow(sigma_log_beta_EUT[c],-2)
 
     #EE
-    mu_log_beta_EE[c]       ~ dunif(mu_log_beta_l, mu_log_beta_h)
-    sigma_log_beta_EE[c]   ~ dunif(sigma_l,sigma_h)
+    mu_log_beta_EE[c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE[c]   ~ dunif(sigmaL,sigmaH)
     tau_log_beta_EE[c]       = pow(sigma_log_beta_EE[c],-2)
 
     #EE2
-    mu_log_beta_EE2[c]       ~ dunif(mu_log_beta_l, mu_log_beta_h)
-    sigma_log_beta_EE2[c]   ~ dunif(sigma_l,sigma_h)
+    mu_log_beta_EE2[c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2[c]   ~ dunif(sigmaL,sigmaH)
     tau_log_beta_EE2[c]       = pow(sigma_log_beta_EE2[c],-2)
 
 }#end of conditions

@@ -115,18 +115,18 @@ for (c in 1:nConditions){
 for (i in 1:nSubjects){
 for (c in 1:nConditions){
     #EUT
-    mu_log_beta_EUT[i,c]       ~ dunif(mu_log_beta_l, mu_log_beta_h)
-    sigma_log_beta_EUT[i,c]    ~ dunif(sigma_l,sigma_h)
+    mu_log_beta_EUT[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT[i,c]    ~ dunif(sigmaL,sigmaH)
     tau_log_beta_EUT[i,c]      = pow(sigma_log_beta_EUT[i,c],-2)
 
     #EE
-    mu_log_beta_EE[i,c]       ~ dunif(mu_log_beta_l, mu_log_beta_h)
-    sigma_log_beta_EE[i,c]   ~ dunif(sigma_l,sigma_h)
+    mu_log_beta_EE[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE[i,c]   ~ dunif(sigmaL,sigmaH)
     tau_log_beta_EE[i,c]       = pow(sigma_log_beta_EE[i,c],-2)
 
     #EE2
-    mu_log_beta_EE2[i,c]       ~ dunif(mu_log_beta_l, mu_log_beta_h)
-    sigma_log_beta_EE2[i,c]   ~ dunif(sigma_l,sigma_h)
+    mu_log_beta_EE2[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2[i,c]   ~ dunif(sigmaL,sigmaH)
     tau_log_beta_EE2[i,c]       = pow(sigma_log_beta_EE2[i,c],-2)
 
 }#end of conditions
@@ -137,7 +137,7 @@ sigma_eta_EUT[i] ~ dunif(sigmaL, sigmaH)
 tau_eta_EUT[i]   = pow(sigma_eta_EUT[i],-2)
 
 #EE
-mu_eta_EE[1] = muEtaEE_Add
+mu_eta_EE[1] = muEtaEEAdd
 mu_eta_EE[2] = muEtaEEMul
 sigma_eta_EE[i] ~ dunif(sigmaL, sigmaH)
 tau_eta_EE[i]   = pow(sigma_eta_EE[i],-2)
