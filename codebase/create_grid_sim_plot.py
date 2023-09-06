@@ -15,6 +15,10 @@ def create_grid_sim_plot():
 
     data_dir = "data/0_simulation/grid/"
     fig_dir = "figs/0_simulation/grid/"
+
+    if not os.path.isdir(fig_dir):
+        os.makedirs(fig_dir)
+
     types = ['eta_n05', 'eta_00', 'eta_05', 'eta_10', 'eta_15', 'time_optimal']
     colors = [cmap(i) for i in np.linspace(0, 1, len(types))]
     #Bracketing

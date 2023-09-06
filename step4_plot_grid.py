@@ -11,5 +11,6 @@ if __name__ == '__main__':
     try:
         create_grid_sim_plot()
         write_provenance('executed successfully')
-    except:
+    except Exception as e:
+        print(e)
         write_provenance('FAILED!!')
