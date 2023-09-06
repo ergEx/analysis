@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from utils import plot_individual_heatmaps, read_Bayesian_output
+from .utils import plot_individual_heatmaps, read_Bayesian_output
 
 def create_grid_sim_plot():
     cmap = plt.get_cmap("tab20")

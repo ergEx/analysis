@@ -3,7 +3,7 @@ from codebase.create_grid_sim_plot import create_grid_sim_plot
 
 if __name__ == '__main__':
     import sys
-    from codebase.utils import write_provenance
+    from codebase import write_provenance 
 
     command = '\t'.join(sys.argv)
     print(sys.argv)
