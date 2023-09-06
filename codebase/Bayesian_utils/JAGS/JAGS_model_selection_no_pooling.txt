@@ -132,22 +132,22 @@ for (c in 1:nConditions){
 }#end of conditions
 
 #EUT
-mu_eta_EUT[i]    ~ dunif(mu_eta_l , mu_eta_h)
-sigma_eta_EUT[i] ~ dunif(sigma_l, sigma_h)
+mu_eta_EUT[i]    ~ dunif(muEtaL , muEtaH)
+sigma_eta_EUT[i] ~ dunif(sigmaL, sigmaH)
 tau_eta_EUT[i]   = pow(sigma_eta_EUT[i],-2)
 
 #EE
 mu_eta_EE[1] = mu_eta_EE_add
 mu_eta_EE[2] = mu_eta_EE_mul
-sigma_eta_EE[i] ~ dunif(sigma_l, sigma_h)
+sigma_eta_EE[i] ~ dunif(sigmaL, sigmaH)
 tau_eta_EE[i]   = pow(sigma_eta_EE[i],-2)
 
 #EE2
-mu_eta_EE2[i,1]    ~ dunif(mu_eta_l, mu_eta_h)
-d_mu_eta_EE2[i] ~ dgamma(d_mu_alpha, d_mu_beta)
-mu_eta_EE2[i,2] = mu_eta_EUT[i,1]  + d_mu_eta_EE2[i]
+mu_eta_EE2[i,1]    ~ dunif(muEtaL, muEtaH)
+d_mu_eta_EE2[i] ~ dgamma(dMuAlpha, dMuBeta)
+mu_eta_EE2[i,2] = mu_eta_EE2[i,1]  + d_mu_eta_EE2[i]
 
-sigma_eta_EE2[i] ~ dunif(sigma_l,sigma_h)
+sigma_eta_EE2[i] ~ dunif(sigmaL,sigmaH)
 tau_eta_EE2[i]  = pow(sigma_eta_EE2[i],-2)
 }
 }

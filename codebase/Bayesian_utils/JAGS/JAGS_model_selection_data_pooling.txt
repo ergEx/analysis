@@ -120,37 +120,37 @@ for (c in 1:nConditions){
     for (i in 1:nSubjects){
         ##no pooling
         #beta parameter
-        mu_log_beta_1[i,c]       ~ dunif(mu_log_beta_l,mu_log_beta_h)
+        mu_log_beta_1[i,c]       ~ dunif(muLogBetaL,muLogBetaH)
         tau_log_beta_1[i,c]      = pow(sigma_log_beta_1[i,c],-2)
-        sigma_log_beta_1[i,c]    ~ dunif(sigma_l,sigma_h)
+        sigma_log_beta_1[i,c]    ~ dunif(sigmaL,sigmaH)
 
         #eta parameter
-        mu_eta_1[i,c]            ~ dunif(mu_eta_l,mu_eta_h)
+        mu_eta_1[i,c]            ~ dunif(muEtaL,muEtaH)
         tau_eta_1[i,c]           = pow(sigma_eta_1[i,c],-2)
-        sigma_eta_1[i,c]         ~ dunif(sigma_l,sigma_h)
+        sigma_eta_1[i,c]         ~ dunif(sigmaL,sigmaH)
     }
 
     ##partial pooling
     #beta parameter
-    mu_log_beta_2[c]       ~ dunif(mu_log_beta_l,mu_log_beta_h)
+    mu_log_beta_2[c]       ~ dunif(muLogBetaL,muLogBetaH)
     tau_log_beta_2[c]      = pow(sigma_log_beta_2[c],-2)
-    sigma_log_beta_2[c]    ~ dunif(sigma_l,sigma_h)
+    sigma_log_beta_2[c]    ~ dunif(sigmaL,sigmaH)
 
     #eta parameter
-    mu_eta_2[c]            ~ dunif(mu_eta_l,mu_eta_h)
+    mu_eta_2[c]            ~ dunif(muEtaL,muEtaH)
     tau_eta_2[c]           = pow(sigma_eta_2[c],-2)
-    sigma_eta_2[c]         ~ dunif(sigma_l,sigma_h)
+    sigma_eta_2[c]         ~ dunif(sigmaL,sigmaH)
 
     ##Full pooling
     #beta parameter
-    mu_log_beta_3[c]       ~ dunif(mu_log_beta_l,mu_log_beta_h)
+    mu_log_beta_3[c]       ~ dunif(muLogBetaL,muLogBetaH)
     tau_log_beta_3[c]      = pow(sigma_log_beta_3[c],-2)
-    sigma_log_beta_3[c]    ~ dunif(sigma_l,sigma_h)
+    sigma_log_beta_3[c]    ~ dunif(sigmaL,sigmaH)
 
     #eta parameter
-    mu_eta_3[c]            ~ dunif(mu_eta_l,mu_eta_h)
+    mu_eta_3[c]            ~ dunif(muEtaL,muEtaH)
     tau_eta_3[c]           = pow(sigma_eta_3[c],-2)
-    sigma_eta_3[c]         ~ dunif(sigma_l,sigma_h)
+    sigma_eta_3[c]         ~ dunif(sigmaL,sigmaH)
 }#end of conditions
 
 }

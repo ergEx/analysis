@@ -54,14 +54,14 @@ for (i in 1:nSubjects){
 ##HYPERPRIORS
 for (c in 1:nConditions){
     #beta parameter
-    mu_log_beta[c]       ~ dunif(mu_log_beta_l,mu_log_beta_h)
+    mu_log_beta[c]       ~ dunif(muLogBetaL,muLogBetaH)
     tau_log_beta[c]      = pow(sigma_log_beta[c],-2)
     sigma_log_beta[c]    ~ dunif(sigma_l,sigma_h)
 
     #eta parameter
-    mu_eta[c]            ~ dunif(mu_eta_l,mu_eta_h)
+    mu_eta[c]            ~ dunif(muEtaL,muEtaH)
     tau_eta[c]           = pow(sigma_eta[c],-2)
-    sigma_eta[c]         ~ dunif(sigma_l,sigma_h)
+    sigma_eta[c]         ~ dunif(sigmaL,sigmaH)
 }#end of conditions
 
 }
