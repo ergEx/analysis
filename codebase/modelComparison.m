@@ -47,7 +47,7 @@ for ii = 1:length(data_poolings)
     % perform group-BMS on data
     [p1, o1] = VBA_groupBMC (log_proportions, options);
     set (o1.options.handles.hf, 'name', 'group BMS: y_1')
-    saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', ii, model_selection_type)));
+    saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', data_poolings{ii}, model_selection_type)));
 end
 
 end
