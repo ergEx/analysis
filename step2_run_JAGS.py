@@ -83,7 +83,7 @@ def main():
         inferenceMethod = 1
     elif sys.argv[2] == '2':
         inferenceMethod = 2
-    elif sys.argv[3] == '3':
+    elif sys.argv[2] == '3':
         inferenceMethod = 3
     else:
         raise ValueError("Inference method, second argument has to be 1 or 2")
