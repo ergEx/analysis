@@ -176,7 +176,6 @@ switch inferenceMode
         for i = 1:nChains
             monitorParameters = {'beta_i_EUT', 'beta_i_EE','beta_i_EE2',...
                 'eta_i_EUT', 'eta_i_EE', 'eta_i_EE2',...
-                
                 'z'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
