@@ -103,7 +103,7 @@ for (c in 1:nConditions){
     beta_i_EE[c]      = exp(log_beta_i_EE[c])
     log_beta_i_EE[c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE[c])
 
-    beta_i_EE2[c]      = exp(log_beta_i_EE2[i,c])
+    beta_i_EE2[c]      = exp(log_beta_i_EE2[c])
     log_beta_i_EE2[c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE2[c])
 }#end of conditions
 
