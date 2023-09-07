@@ -14,12 +14,14 @@ VBA_setup;
 cd(base)
 
 data_poolings = {'no_pooling','partial_pooling','full_pooling'};
-dataDir=fullfile(startDir,'..','/data',data_source);
-figDir = fullfile(startDir, '..', '/figs', data_source)
+dataDir=fullfile(getParentDir(startDir, 1),'/data',data_source);
+figDir = fullfile(getParentDir(startDir,1), '/figs', data_source);
+
+disp(startDir)
+disp(getParentDir(startDir, 1))
 
 
-
-for ii = 1:length(data_poolings)
+for ii = 1 : length(data_poolings)
     file = sprintf('Bayesian_JAGS_model_selection_%s_%d.mat', data_poolings{ii} ,model_selection_type);
     BFFile = sprintf('model_selection_BF_%s_%d.txt', data_poolings{ii} ,model_selection_type);
     
@@ -78,4 +80,48 @@ for ii = 1:length(data_poolings)
     saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', data_poolings{ii}, model_selection_type)));
 end
 
+end
+
+function newDir = getParentDir(dir,numUpDirs)
+%   Function to get parent dir from either a file or a directory, going up
+%   the number of directories indicated by numUpDirs. 
+%
+%   dir = string (filepath or pwd)
+%   numUpDirs = positive integer
+%   
+%   Written by: Walter Adame Gonzalez
+%   McGill University
+%   walter.adamegonzalez@mail.mcgill.ca
+%   slightly updated by SRSteinkamp
+
+if nargin < 2
+    numUpDirs = 1;
+end
+
+
+pre = '';
+if ispc
+
+    if dir(1) == '\'
+        pre = '\';
+    end
+    parts = strsplit(dir, '\');
+    
+else
+    if dir(1) == '/'
+        pre = '/';
+    end
+    parts = strsplit(dir, '/');
+end
+
+newDir = '';
+if numUpDirs<length(parts)
+    for i=1:(length(parts)-numUpDirs)
+    newDir = fullfile(newDir,string(parts(i)));
+    end
+else
+    disp("numUpDirs indicated is larger than the number of possible parent directories. Returning the unchanged dir")
+    newDir = dir;
+end
+newDir = [char(pre) char(newDir)];
 end
