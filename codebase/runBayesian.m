@@ -30,7 +30,7 @@ addpath(fullfile(startDir,'/Bayesian_utils'));
 %% Specify variables
 % dataSource = 1;
 % simVersion = 1;
-dataPooling = 1:3;
+dataPooling = [2, 1, 3];
 % inferenceMode = 1;
 % model_selection_type = 1;
 %whichJAGS = 1;
