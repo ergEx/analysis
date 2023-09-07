@@ -6,7 +6,7 @@ import shutil
 def copy_file(path_in, file_in, path_out, file_out, dryrun=False):
 
     if not os.path.isfile(os.path.join(path_in, file_in)):
-        raise FileNotFoundError('File does not exist!')
+        raise FileNotFoundError(f'File {file_in} does not exist!')
 
     if not os.path.isdir(path_out):
         raise FileNotFoundError('Out folder does not exist!')
@@ -92,7 +92,8 @@ if __name__ == '__main__':
     try:
         main(dr)
         write_provenance('executed successfully')
-    except:
+    except Exception as e:
+        print(e)
         write_provenance('FAILED!!')
 
 

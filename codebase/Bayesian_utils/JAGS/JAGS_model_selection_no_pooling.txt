@@ -92,62 +92,63 @@ for (i in 1:nSubjects){
 #submodels
 
 for (i in 1:nSubjects){
-    eta_i_EUT[i]       ~ dnorm(mu_eta_EUT,tau_eta_EUT)
+    eta_i_EUT[i]       ~ dnorm(mu_eta_EUT[i],tau_eta_EUT[i])
 
 for (c in 1:nConditions){
-    eta_i_EE[i,c]       ~ dnorm(mu_eta_EE[c],tau_eta_EE)
-    eta_i_EE2[i,c]       ~ dnorm(mu_eta_EE2[c],tau_eta_EE2)
+    eta_i_EE[i,c]       ~ dnorm(mu_eta_EE[i,c],tau_eta_EE[i])
+    eta_i_EE2[i,c]       ~ dnorm(mu_eta_EE2[i,c],tau_eta_EE2[i])
 
     beta_i_EUT[i,c]      = exp(log_beta_i_EUT[i,c])
-    log_beta_i_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[c], tau_log_beta_EUT[c])
+    log_beta_i_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[i,c], tau_log_beta_EUT[i,c])
 
     beta_i_EE[i,c]      = exp(log_beta_i_EE[i,c])
-    log_beta_i_EE[i,c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE[c])
+    log_beta_i_EE[i,c]  ~ dnorm(mu_log_beta_EE[i,c], tau_log_beta_EE[i,c])
 
     beta_i_EE2[i,c]      = exp(log_beta_i_EE2[i,c])
-    log_beta_i_EE2[i,c]  ~ dnorm(mu_log_beta_EE[c], tau_log_beta_EE2[c])
+    log_beta_i_EE2[i,c]  ~ dnorm(mu_log_beta_EE[i,c], tau_log_beta_EE2[i,c])
 
   }#end of subjects
 }#end of conditions
 
 
 ##HYPERPRIORS
+for (i in 1:nSubjects){
 for (c in 1:nConditions){
     #EUT
-    mu_log_beta_EUT[c]       ~ dunif(muLogBetaL, muLogBetaH)
-    sigma_log_beta_EUT[c]    ~ dunif(sigmaL,sigmaH)
-    tau_log_beta_EUT[c]      = pow(sigma_log_beta_EUT[c],-2)
+    mu_log_beta_EUT[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT[i,c]    ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EUT[i,c]      = pow(sigma_log_beta_EUT[i,c],-2)
 
     #EE
-    mu_log_beta_EE[c]       ~ dunif(muLogBetaL, muLogBetaH)
-    sigma_log_beta_EE[c]   ~ dunif(sigmaL,sigmaH)
-    tau_log_beta_EE[c]       = pow(sigma_log_beta_EE[c],-2)
+    mu_log_beta_EE[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE[i,c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE[i,c]       = pow(sigma_log_beta_EE[i,c],-2)
 
     #EE2
-    mu_log_beta_EE2[c]       ~ dunif(muLogBetaL, muLogBetaH)
-    sigma_log_beta_EE2[c]   ~ dunif(sigmaL,sigmaH)
-    tau_log_beta_EE2[c]       = pow(sigma_log_beta_EE2[c],-2)
+    mu_log_beta_EE2[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2[i,c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE2[i,c]       = pow(sigma_log_beta_EE2[i,c],-2)
 
 }#end of conditions
 
 #EUT
-mu_eta_EUT    ~ dunif(muEtaL , muEtaH)
-sigma_eta_EUT ~ dunif(sigmaL, sigmaH)
-tau_eta_EUT   = pow(sigma_eta_EUT,-2)
+mu_eta_EUT[i]    ~ dunif(muEtaL , muEtaH)
+sigma_eta_EUT[i] ~ dunif(sigmaL, sigmaH)
+tau_eta_EUT[i]   = pow(sigma_eta_EUT[i],-2)
 
 #EE
-mu_eta_EE[1] = muEtaEEAdd
-mu_eta_EE[2] = muEtaEEMul
-sigma_eta_EE ~ dunif(sigmaL, sigmaH)
-tau_eta_EE   = pow(sigma_eta_EE,-2)
+mu_eta_EE[i,1] = muEtaEEAdd
+mu_eta_EE[i,2] = muEtaEEMul
+sigma_eta_EE[i] ~ dunif(sigmaL, sigmaH)
+tau_eta_EE[i]   = pow(sigma_eta_EE[i],-2)
 
 #EE2
-mu_eta_EE2[1]    ~ dunif(muEtaL, muEtaH)
-d_mu_eta_EE2 ~ dgamma(dMuAlpha, dMuBeta)
-mu_eta_EE2[2] = mu_eta_EE2[1]  + d_mu_eta_EE2
+mu_eta_EE2[i,1]    ~ dunif(muEtaL, muEtaH)
+d_mu_eta_EE2[i] ~ dgamma(dMuAlpha, dMuBeta)
+mu_eta_EE2[i,2] = mu_eta_EE2[i,1]  + d_mu_eta_EE2[i]
 
-sigma_eta_EE2 ~ dunif(sigmaL,sigmaH)
-tau_eta_EE2  = pow(sigma_eta_EE2,-2)
-
+sigma_eta_EE2[i] ~ dunif(sigmaL,sigmaH)
+tau_eta_EE2[i]  = pow(sigma_eta_EE2[i],-2)
+}
 }
 

@@ -1,34 +1,127 @@
+function modelComparison(data_source, model_selection_type)
 
+
+%data_source = '/1_pilot';
+%model_selection_type = 1;
 
 [startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
-addpath(genpath(fullfile(startDir,'/VBA-toolbox')));
-dataDir=fullfile(startDir,'..','/data','1_pilot');
-load(fullfile(dataDir, 'log_proportions.mat'))
+%addpath(genpath(fullfile(startDir,'/VBA-toolbox')));
 
-% display empirical histogram of log-Bayes factors
-% -------------------------------------------------------------------------
-plotBayesFactor(log_proportions());
+base = pwd;
+[vba_dir, ~ ] = fileparts(which('VBA_setup'));
+cd(vba_dir)
+VBA_setup;
+cd(base)
 
+data_poolings = {'no_pooling','partial_pooling','full_pooling'};
+dataDir=fullfile(getParentDir(startDir, 1),'/data',data_source);
+figDir = fullfile(getParentDir(startDir,1), '/figs', data_source);
 
-% perform model selection with the VBA
-% =========================================================================
-options.verbose = false;
-options.modelNames = ["EUT", "EE"];
-
-% perform group-BMS on data 
-[p1, o1] = VBA_groupBMC (log_proportions, options);
-set (o1.options.handles.hf, 'name', 'group BMS: y_1')
+disp(startDir)
+disp(getParentDir(startDir, 1))
 
 
+for ii = 1 : length(data_poolings)
+    file = sprintf('Bayesian_JAGS_model_selection_%s_%d.mat', data_poolings{ii} ,model_selection_type);
+    BFFile = sprintf('model_selection_BF_%s_%d.txt', data_poolings{ii} ,model_selection_type);
+    
+    jags_dat = load(fullfile(dataDir, file))
+    
+    z = jags_dat.samples.z;
+    [n_chains, n_samples, n_participants] = size(z);
+    z_i = reshape(z, [n_chains * n_samples, n_participants]);
+    
+    n_models = max(z(:));
+    
+    counts = zeros(n_models, n_participants);
+    bin_edges = 1:(n_models+1);
+    
+    % Loop through each column and count occurrences
+    for col = 1:n_participants
+        disp(col)
+        counts(:, col) = histcounts(z_i(:, col), bin_edges);
+    end
+    
+    counts = counts + 1; % Add 1 to all counts to avoid division by zero
+    
+    total_counts = sum(counts, 1);
+    proportions = counts ./ repmat(total_counts, n_models, 1);
+    
+    log_proportions = log10(proportions);
+    
+    BF10 = exp(sum(log_proportions(2, :)) - sum(log_proportions(1, :)));
+    fprintf(num2str(sum(log_proportions(2, :))))
+    fprintf(num2str(sum(log_proportions(1, :))))
+    fprintf(num2str(exp(sum(log_proportions(2, :)))))
+    fprintf(num2str(exp(sum(log_proportions(1, :)))))
+    BF = ['BF10 ', num2str(BF10)];
+    
+    if n_models == 3
+        BF20 = exp(sum(log_proportions(3, :)) - sum(log_proportions(1, :)));
+        BF21 = exp(sum(log_proportions(3, :)) - sum(log_proportions(2, :)));
+        BF = [BF, '\n', 'BF20 ', num2str(BF20), '\n', 'BF21 ', num2str(BF21)];
+    end
+    
+    if exist(fullfile(dataDir, BFFile), 'file')
+        fileID = fopen(fullfile(dataDir, BFFile), 'w');
+        fprintf(fileID, BF);
+        fclose(fileID);
+    else
+        fileID = fopen(fullfile(dataDir, BFFile), 'w');
+        fprintf(fileID, BF);
+        fclose(fileID);
+    end
+    
+    
+    options = {};
+    % perform group-BMS on data
+    [p1, o1] = VBA_groupBMC (log_proportions, options);
+    set (o1.options.handles.hf, 'name', 'group BMS: y_1')
+    saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', data_poolings{ii}, model_selection_type)));
+end
 
-%% ########################################################################
-% display subfunctions
-% #########################################################################
-function plotBayesFactor (logEvidence_y1)
-    [n1, x1] = VBA_empiricalDensity ((logEvidence_y1(1,:) - logEvidence_y1(2, :))');
-    hf = figure ('color' ,'w', 'name', 'demo_modelComparison: distribution of log Bayes factors');
-    ha = axes ('parent', hf,'nextplot','add');
-    plot (ha, x1, n1, 'color', 'r');
-    xlabel (ha, 'log p(y|EUT) - log(y|EE)');
-    ylabel (ha, 'proportion of simulations');
+end
+
+function newDir = getParentDir(dir,numUpDirs)
+%   Function to get parent dir from either a file or a directory, going up
+%   the number of directories indicated by numUpDirs. 
+%
+%   dir = string (filepath or pwd)
+%   numUpDirs = positive integer
+%   
+%   Written by: Walter Adame Gonzalez
+%   McGill University
+%   walter.adamegonzalez@mail.mcgill.ca
+%   slightly updated by SRSteinkamp
+
+if nargin < 2
+    numUpDirs = 1;
+end
+
+
+pre = '';
+if ispc
+
+    if dir(1) == '\'
+        pre = '\';
+    end
+    parts = strsplit(dir, '\');
+    
+else
+    if dir(1) == '/'
+        pre = '/';
+    end
+    parts = strsplit(dir, '/');
+end
+
+newDir = '';
+if numUpDirs<length(parts)
+    for i=1:(length(parts)-numUpDirs)
+    newDir = fullfile(newDir,string(parts(i)));
+    end
+else
+    disp("numUpDirs indicated is larger than the number of possible parent directories. Returning the unchanged dir")
+    newDir = dir;
+end
+newDir = [char(pre) char(newDir)];
 end
