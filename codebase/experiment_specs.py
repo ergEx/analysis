@@ -96,6 +96,7 @@ def create_spec_dict(folder):
             print(f"Not including subject {ii} due to no_brainer performance\n" +
                   f"Ses1: {performance_ses1:4.2f} === Ses2: {performance_ses2:4.2f}")
     
+    print(f"Read in data from {len(included_subs)} participants - Control: {len(order)}")
     return {'id': included_subs, 'first_run': order}
 
 
