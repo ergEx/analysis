@@ -38,5 +38,6 @@ if __name__ == "__main__":
     try:
         main()
         write_provenance('executed successfully')
-    except:
+    except Exception as e:
+        print(e)
         write_provenance('FAILED!!')

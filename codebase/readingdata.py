@@ -45,7 +45,7 @@ def reading_participant_active_data(
     first_run: str,
     bids_text: str,
     lambd: float,
-    run: int = 1,
+    run: int = 4,
     input_path: str = None,
     extension: str = 'beh.csv'
 ) -> pd.DataFrame:
@@ -153,6 +153,11 @@ def reading_data(
                 passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
                 no_brainer_df = pd.concat([no_brainer_df, no_brainer_participant_df])
 
+            if data_type == '1_pilot':
+                run = 1
+            else:
+                run =4 
+
             active_participant_df = reading_participant_active_data(
                 data_type=data_type,
                 data_folder=data_folder,
@@ -161,7 +166,8 @@ def reading_data(
                 bids_text=CONDITION_SPECS["bids_text"][c],
                 lambd=CONDITION_SPECS["lambd"][c],
                 input_path=input_path,
-                extension=extension
+                extension=extension,
+                run=run
             )
 
             ##CSV
