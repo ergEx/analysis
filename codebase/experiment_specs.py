@@ -64,6 +64,7 @@ def create_spec_dict(folder):
 
     subs = sorted([i.split('/')[-1].split('-')[-1] for i in glob(f'{folder}/sub-*')])
     order = []
+    included_subs = []
 
     pattern = r"acq-(\w+)_run"
 
@@ -74,13 +75,41 @@ def create_spec_dict(folder):
             extracted_part = match.group(1)
 
             if extracted_part == 'lambd0d0':
-                order.append([1, 2])
+                ses_order = [1, 2]
             elif extracted_part == 'lambd1d0':
-                order.append([2 ,1])
+                ses_order = [2 ,1]
             else:
                 raise ValueError(f"Something went wrong with {ii}")
 
         else:
             raise ValueError("No match?!")
+        
+        nobrainer_file_ses1 = glob(f'{folder}/sub-{ii}/ses-1/*passive*_run-3*')[0]
+        performance_ses1 = extract_no_brainer_performance(nobrainer_file_ses1)
+        nobrainer_file_ses2 = glob(f'{folder}/sub-{ii}/ses-2/*passive*_run-3*')[0]
+        performance_ses2 = extract_no_brainer_performance(nobrainer_file_ses2)
 
-    return {'id': subs, 'first_run': order}
+        if (performance_ses1 >= 0.8) and (performance_ses2 >= 0.8):
+            included_subs.append(ii)
+            order.append(ses_order)
+        else:
+            print(f"Not including subject {ii} due to no_brainer performance\n" +
+                  f"Ses1: {performance_ses1:4.2f} === Ses2: {performance_ses2:4.2f}")
+    
+    print(f"Read in data from {len(included_subs)} participants - Control: {len(order)}")
+    return {'id': included_subs, 'first_run': order}
+
+
+
+def extract_no_brainer_performance(file: str):
+    import pandas as pd
+
+    if not os.path.isfile(file):
+        raise FileNotFoundError(f"Not finding run 3: {file}")
+    else:
+        nob_file = pd.read_csv(file, sep='\t')
+        nob_file = nob_file.query('part == 1 and event_type =="TrialEnd"')
+
+        performance = nob_file['response_correct'].mean()
+        
+        return performance
