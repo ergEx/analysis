@@ -1,19 +1,19 @@
 import os
 
 import mat73
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import ptitprince as pt
 import seaborn as sns
 import statsmodels.api
+from matplotlib import rcParamsDefault
+from matplotlib.ticker import FormatStrFormatter
 from scipy import misc
 from scipy.optimize import fsolve
 from scipy.special import expit, logit
 from scipy.stats import gaussian_kde
 from statsmodels.tools import add_constant
-import matplotlib.pyplot as plt
-import ptitprince as pt
-from matplotlib import rcParamsDefault
-from matplotlib.ticker import FormatStrFormatter
 
 sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
@@ -60,7 +60,7 @@ def isoelastic_utility(x: np.ndarray, eta: float) -> np.ndarray:
         u[x > 0] = np.log(x[x > 0])
         u[x <= 0] = np.finfo(float).min
     elif np.isclose(eta, 0):  # allow negative values in additive dynamic
-        u[x > 0] = (np.power(x[x > 0], 1 - eta) - 1) / (1 - eta)
+        u = (np.power(x, 1 - eta) - 1) / (1 - eta)
     else:
         bound = (-1) / (1 - eta)
         u[x > 0] = (np.power(x[x > 0], 1 - eta) - 1) / (1 - eta)
@@ -487,7 +487,7 @@ def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
 
 
 def write_provenance(string: str, file: str = 'provenance.txt'):
-    """Helper function to write termination and start to provenance.txt 
+    """Helper function to write termination and start to provenance.txt
     to help us keep track of what happened.
 
     Parameters
