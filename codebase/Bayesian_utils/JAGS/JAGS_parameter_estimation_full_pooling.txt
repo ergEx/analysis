@@ -11,11 +11,6 @@ for (t in 1:nTrials){
     wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]
     wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]
     wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]
-    wLUp[i,c,t]   = ifelse(wLU[i,c,t] > 0, wLU[i,c,t], 1)
-    wLLp[i,c,t]   = ifelse(wLL[i,c,t] > 0, wLL[i,c,t], 1)
-    wRUp[i,c,t]   = ifelse(wRU[i,c,t] > 0, wRU[i,c,t], 1)
-    wRLp[i,c,t]   = ifelse(wRL[i,c,t] > 0, wRL[i,c,t], 1)
-    wp[i,c,t]     = ifelse(w[i,c,t] > 0, w[i,c,t], 1)
     u[i,c,t]      = (pow(wp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]
     uLU[i,c,t]    = (pow(wLUp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]
     uLL[i,c,t]    = (pow(wLLp[i,c,t],oneminEta[i,c]) - 1) / oneminEta[i,c]

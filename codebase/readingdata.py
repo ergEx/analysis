@@ -100,6 +100,12 @@ def reading_participant_active_data(
             active_phase_data.loc[ii, "selected_side_map"] if min(x_updates) > 0 else np.nan
         )
 
+        active_phase_data.loc[ii, "wealth_no_neg"] = (
+            active_phase_data.loc[ii, "wealth"] if min(x_updates) > 0 else 1000
+        )
+
+
+
     return active_phase_data
 
 
@@ -202,7 +208,7 @@ def reading_data(
 
             # Retrive wealth
             datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}', []).append(
-                np.array(active_participant_df["wealth"])
+                np.array(active_participant_df["wealth_no_neg"])
             )
 
             # Retrieve keypresses
