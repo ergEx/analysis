@@ -97,11 +97,11 @@ def reading_participant_active_data(
         )
 
         active_phase_data.loc[ii, "selected_side_map"] = (
-            active_phase_data.loc[ii, "selected_side_map"] if min(x_updates) > 0 else np.nan
+            active_phase_data.loc[ii, "selected_side_map"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else np.nan
         )
 
         active_phase_data.loc[ii, "wealth_no_neg"] = (
-            active_phase_data.loc[ii, "wealth"] if min(x_updates) > 0 else 1000
+            active_phase_data.loc[ii, "wealth"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1000
         )
 
 

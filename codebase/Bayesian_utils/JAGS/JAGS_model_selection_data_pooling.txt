@@ -16,11 +16,11 @@ for (t in 1:nTrials){
     wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]
 
     #No pooling (1)
-    u_1[i,c,t]      = (pow(wp[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
-    uLU_1[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
-    uLL_1[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
-    uRU_1[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
-    uRL_1[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
+    u_1[i,c,t]      = (pow(w[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
+    uLU_1[i,c,t]    = (pow(wLU[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
+    uLL_1[i,c,t]    = (pow(wLL[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
+    uRU_1[i,c,t]    = (pow(wRU[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
+    uRL_1[i,c,t]    = (pow(wRL[i,c,t],oneminEta_1[i,c]) - 1) / oneminEta_1[i,c]
     duLU_1[i,c,t]   = uLU_1[i,c,t] - u_1[i,c,t]
     duLL_1[i,c,t]   = uLL_1[i,c,t] - u_1[i,c,t]
     duRU_1[i,c,t]   = uRU_1[i,c,t] - u_1[i,c,t]
@@ -33,11 +33,11 @@ for (t in 1:nTrials){
     theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_1[i,c,t]))
 
     #Partial pooling (2)
-    u_2[i,c,t]      = (pow(wp[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
-    uLU_2[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
-    uLL_2[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
-    uRU_2[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
-    uRL_2[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
+    u_2[i,c,t]      = (pow(w[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
+    uLU_2[i,c,t]    = (pow(wLU[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
+    uLL_2[i,c,t]    = (pow(wLL[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
+    uRU_2[i,c,t]    = (pow(wRU[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
+    uRL_2[i,c,t]    = (pow(wRL[i,c,t],oneminEta_2[i,c]) - 1) / oneminEta_2[i,c]
     duLU_2[i,c,t]   = uLU_2[i,c,t] - u_2[i,c,t]
     duLL_2[i,c,t]   = uLL_2[i,c,t] - u_2[i,c,t]
     duRU_2[i,c,t]   = uRU_2[i,c,t] - u_2[i,c,t]
@@ -50,11 +50,11 @@ for (t in 1:nTrials){
     theta[i,c,t,2]     = max(0.000001,min(0.999999,cp_2[i,c,t]))
 
     #Full pooling (3)
-    u_3[i,c,t]      = (pow(wp[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
-    uLU_3[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
-    uLL_3[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
-    uRU_3[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
-    uRL_3[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
+    u_3[i,c,t]      = (pow(w[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
+    uLU_3[i,c,t]    = (pow(wLU[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
+    uLL_3[i,c,t]    = (pow(wLL[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
+    uRU_3[i,c,t]    = (pow(wRU[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
+    uRL_3[i,c,t]    = (pow(wRL[i,c,t],oneminEta_3[i,c]) - 1) / oneminEta_3[i,c]
     duLU_3[i,c,t]   = uLU_3[i,c,t] - u_3[i,c,t]
     duLL_3[i,c,t]   = uLL_3[i,c,t] - u_3[i,c,t]
     duRU_3[i,c,t]   = uRU_3[i,c,t] - u_3[i,c,t]

@@ -20,11 +20,11 @@ for (t in 1:nTrials){
     wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]
 
     #EUT
-    u_EUT[i,c,t]      = (pow(wp[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
-    uLU_EUT[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
-    uLL_EUT[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
-    uRU_EUT[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
-    uRL_EUT[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    u_EUT[i,c,t]      = (pow(w[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uLU_EUT[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uLL_EUT[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uRU_EUT[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uRL_EUT[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
     duLU_EUT[i,c,t]   = uLU_EUT[i,c,t] - u_EUT[i,c,t]
     duLL_EUT[i,c,t]   = uLL_EUT[i,c,t] - u_EUT[i,c,t]
     duRU_EUT[i,c,t]   = uRU_EUT[i,c,t] - u_EUT[i,c,t]
@@ -37,11 +37,11 @@ for (t in 1:nTrials){
     theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
 
     #EE
-    u_EE[i,c,t]      = (pow(wp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
-    uLU_EE[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
-    uLL_EE[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
-    uRU_EE[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
-    uRL_EE[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
+    u_EE[i,c,t]      = (pow(w[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
+    uLU_EE[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
+    uLL_EE[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
+    uRU_EE[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
+    uRL_EE[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
     duLU_EE[i,c,t]   = uLU_EE[i,c,t] - u_EE[i,c,t]
     duLL_EE[i,c,t]   = uLL_EE[i,c,t] - u_EE[i,c,t]
     duRU_EE[i,c,t]   = uRU_EE[i,c,t] - u_EE[i,c,t]
@@ -54,11 +54,11 @@ for (t in 1:nTrials){
     theta[i,c,t,2]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
 
     #EE2
-    u_EE2[i,c,t]      = (pow(wp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uLU_EE2[i,c,t]    = (pow(wLUp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uLL_EE2[i,c,t]    = (pow(wLLp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uRU_EE2[i,c,t]    = (pow(wRUp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
-    uRL_EE2[i,c,t]    = (pow(wRLp[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    u_EE2[i,c,t]      = (pow(w[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uLU_EE2[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uLL_EE2[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uRU_EE2[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uRL_EE2[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
     duLU_EE2[i,c,t]   = uLU_EE2[i,c,t] - u_EE2[i,c,t]
     duLL_EE2[i,c,t]   = uLL_EE2[i,c,t] - u_EE2[i,c,t]
     duRU_EE2[i,c,t]   = uRU_EE2[i,c,t] - u_EE2[i,c,t]
