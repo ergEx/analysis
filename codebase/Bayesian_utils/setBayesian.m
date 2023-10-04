@@ -21,10 +21,11 @@ function setBayesian(dataSource,simVersion,dataPooling,inferenceMode,model_selec
 
 %% Specifies qualities to be selected from
 numRuns      = length(dataPooling);     %how many separate instances of an MCMC to run
-nBurnin      = [1e1,1e3,1e4,2e4,4e4];  %from 100 to 40k
+nBurnin      = [0,0,0,0,0];
+manualBurnin = [1e1,1e3,1e4,2e4,4e4];  %from 100 to 40k
 nSamples     = [5e1,5e2,5e3,1e4,2e4];  %from 50 to 20k
 nChains      = [2,4,4,4,4];            %Keep this to 4
-nThin        = 10;                     %thinnning factor, 1 = no thinning, 2=every 2nd etc.
+nThin        = 1;                      %thinnning factor, 1 = no thinning, 2=every 2nd etc.
 
 %% Specifies subjects, trials and directory_name
 switch dataSource
@@ -45,5 +46,5 @@ end %dataSource
 
 %% Runs HLMs sequentially
 for i=dataPooling
-    computeBayesian(dataSource,i,inferenceMode,model_selection_type,nBurnin(whichQuals),nSamples(whichQuals),nThin,nChains(whichQuals),subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
+    computeBayesian(dataSource,i,inferenceMode,model_selection_type,nBurnin(whichQuals),nSamples(whichQuals) + manualBurnin(whichQuals) ,nThin,nChains(whichQuals),subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 end
