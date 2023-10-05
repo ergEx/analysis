@@ -10,11 +10,11 @@ bracketing method:
   calculate_indif_eta: true
   log_reg: true
   run: true
-data directory: data/1_pilot
+data directory: data/2_full_data
 data_type: real_data
-data_variant: 1_pilot
+data_variant: 2_full_data
 extension: beh.tsv
-figure directory: figs/1_pilot
+figure directory: figs/2_full_data
 input_path:
 n_agents: 60
 n_conditions: 2
