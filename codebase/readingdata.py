@@ -156,10 +156,10 @@ def reading_data(
                 passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
                 no_brainer_df = pd.concat([no_brainer_df, no_brainer_participant_df])
 
-            if data_type == '1_pilot':
+            if data_variant == '1_pilot':
                 run = 1
             else:
-                run =4
+                run = 4
 
             active_participant_df = reading_participant_active_data(
                 data_type=data_type,

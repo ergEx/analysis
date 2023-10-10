@@ -37,7 +37,7 @@ def sub_specs(data_type: str, data_variant: str, in_folder: str = None):
 
     elif data_type == "real_data":
 
-        return create_spec_dict(in_folder)
+        return create_spec_dict(in_folder, ignore_no_brainer=(data_variant=='1_pilot'))
 
     else:
         ValueError("Data type not supported")
@@ -58,7 +58,7 @@ def condition_specs():
     }
 
 
-def create_spec_dict(folder):
+def create_spec_dict(folder, ignore_no_brainer=False):
     from glob import glob
     import re
 
@@ -89,7 +89,7 @@ def create_spec_dict(folder):
         nobrainer_file_ses2 = glob(f'{folder}/sub-{ii}/ses-2/*passive*_run-3*')[0]
         performance_ses2 = extract_no_brainer_performance(nobrainer_file_ses2)
 
-        if (performance_ses1 >= 0.8) and (performance_ses2 >= 0.8):
+        if ((performance_ses1 >= 0.8) and (performance_ses2 >= 0.8)) or ignore_no_brainer:
             included_subs.append(ii)
             order.append(ses_order)
         else:
