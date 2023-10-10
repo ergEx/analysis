@@ -2,11 +2,11 @@
 import os
 
 import matplotlib.pyplot as plt
-from matplotlib import rcParamsDefault
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import yaml
+from matplotlib import rcParamsDefault
 
 plt.rcParams.update({
     "text.usetex": True})
@@ -14,8 +14,8 @@ plt.rcParams.update({
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
 
-from .utils import (plot_individual_heatmaps, plot_single_kde, read_Bayesian_output,
-                    jasp_like_correlation, paired_swarm_plot)
+from .utils import jasp_like_correlation, paired_swarm_plot, plot_individual_heatmaps, plot_single_kde, \
+    read_Bayesian_output
 
 
 def main(config_file):
@@ -35,9 +35,10 @@ def main(config_file):
         os.makedirs(fig_dir)
 
     data_type = config["data_type"]
-    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4]}
+    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
     n_agents = config["n_agents"]
-    n_samples = int(quality_dictionary['samples'][config['qual'] - 1])
+    burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
+    n_samples = int(quality_dictionary['samples'][config['qual'] - 1] - burn_in)
     n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
     n_conditions = config["n_conditions"]
 
@@ -181,7 +182,7 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta_g"]
+        eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
         fig.savefig(os.path.join(fig_dir,'04a_riskaversion_full_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
@@ -191,7 +192,7 @@ def main(config_file):
         bayesian_samples_partial_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
                 )
-        eta_group = bayesian_samples_partial_pooling["eta_g"]
+        eta_group = bayesian_samples_partial_pooling["eta_g"][:,burn_in:,:]
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1], limits=[-0.5, 1.5])
         ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
@@ -199,7 +200,7 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir,'05a_riskaversion_partial_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
 
         #individual
-        eta_i = bayesian_samples_partial_pooling["eta_i"]
+        eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
         eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
@@ -215,7 +216,7 @@ def main(config_file):
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
-        eta_i = bayesian_samples_no_pooling["eta_i"]
+        eta_i = bayesian_samples_no_pooling["eta_i"][:,burn_in:,:,:]
         eta_i_t = eta_i.transpose((2, 0, 1, 3))
         eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
         h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples),

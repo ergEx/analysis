@@ -74,14 +74,11 @@ def reading_participant_active_data(
         active_phase_data = active_phase_data.query('event_type == "WealthUpdate"').reset_index(
             drop=True
         )
-    active_phase_data["wealth_shift"] = np.concatenate(
-        (np.array([1000]), np.array(active_phase_data.wealth))
-    )[:-1]
 
     for i, ii in enumerate(active_phase_data.index):
         trial = active_phase_data.loc[ii, :]
         x_updates = wealth_change(
-            x=trial.wealth_shift,
+            x=trial.wealth,
             gamma=[
                 trial.gamma_left_up,
                 trial.gamma_left_down,
@@ -90,18 +87,24 @@ def reading_participant_active_data(
             ],
             lambd=trial.eta,
         )
-        active_phase_data.loc[ii, "x1_1"] = x_updates[0] - trial.wealth_shift
-        active_phase_data.loc[ii, "x1_2"] = x_updates[1] - trial.wealth_shift
-        active_phase_data.loc[ii, "x2_1"] = x_updates[2] - trial.wealth_shift
-        active_phase_data.loc[ii, "x2_2"] = x_updates[3] - trial.wealth_shift
+        active_phase_data.loc[ii, "x1_1"] = x_updates[0] - trial.wealth
+        active_phase_data.loc[ii, "x1_2"] = x_updates[1] - trial.wealth
+        active_phase_data.loc[ii, "x2_1"] = x_updates[2] - trial.wealth
+        active_phase_data.loc[ii, "x2_2"] = x_updates[3] - trial.wealth
 
         active_phase_data.loc[ii, "selected_side_map"] = (
             0 if active_phase_data.loc[ii, "selected_side"] == "right" else 1
         )
 
         active_phase_data.loc[ii, "selected_side_map"] = (
-            active_phase_data.loc[ii, "selected_side_map"] if min(x_updates) > 0 else np.nan
+            active_phase_data.loc[ii, "selected_side_map"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else np.nan
         )
+
+        active_phase_data.loc[ii, "wealth_no_neg"] = (
+            active_phase_data.loc[ii, "wealth"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1000
+        )
+
+
 
     return active_phase_data
 
@@ -153,10 +156,10 @@ def reading_data(
                 passive_phase_df = pd.concat([passive_phase_df, passive_participant_df])
                 no_brainer_df = pd.concat([no_brainer_df, no_brainer_participant_df])
 
-            if data_type == '1_pilot':
+            if data_variant == '1_pilot':
                 run = 1
             else:
-                run =4 
+                run = 4
 
             active_participant_df = reading_participant_active_data(
                 data_type=data_type,
@@ -205,7 +208,7 @@ def reading_data(
 
             # Retrive wealth
             datadict.setdefault(f'wealth{CONDITION_SPECS["txt_append"][c]}', []).append(
-                np.array(active_participant_df["wealth_shift"])
+                np.array(active_participant_df["wealth_no_neg"])
             )
 
             # Retrieve keypresses

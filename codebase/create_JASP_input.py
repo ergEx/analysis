@@ -30,6 +30,13 @@ def main(config_file):
     subjects = SUBJECT_SPECS["id"]
     CONDITION_SPECS = condition_specs()
 
+    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
+    n_agents = config["n_agents"]
+    burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
+    n_samples = int(quality_dictionary['samples'][config['qual'] - 1] - burn_in)
+    n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
+    n_conditions = config["n_conditions"]
+
     data = {"0.0_partial_pooling": [None] * len(subjects), "1.0_partial_pooling": [None] * len(subjects),
             "0.0_no_pooling": [None] * len(subjects), "1.0_no_pooling": [None] * len(subjects)}
 
@@ -43,10 +50,11 @@ def main(config_file):
         bayesian_samples = read_Bayesian_output(
                     os.path.join(data_dir, f"Bayesian_JAGS_parameter_estimation_{pool}.mat")
                 )
+        eta_samples = bayesian_samples["eta_i"][:,burn_in:,:,:]
         for j, subject1 in enumerate(subjects):
             for c, condition in enumerate(CONDITION_SPECS["lambd"]):
                 try:
-                    eta_dist = bayesian_samples["eta_i"][:, :, j, c].flatten()
+                    eta_dist = eta_samples[:, :, j, c].flatten()
                     kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
                     data[f"{c}.0_{pool}"][j] = kde.support[np.argmax(kde.density)]
                 except Exception as e:
