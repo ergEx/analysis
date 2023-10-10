@@ -58,13 +58,16 @@ The arguments in order:
 1. the config file to be used
 2. Sets the `inferenceMode`, it can be `1` or `2` and decides if to perform model inversion for parameter estimation or model selection. In mode `3` it is doing model selection between pooling methods.
 3. Sets the `model_selection_type`, it can be `1` for EE vs EUT or `2`, which further includes weak EUT.
+4. This sets the data pooling: 1 - no pooling, 2 partial pooling, 3 full pooling
 4. This sets the submission method. It can be `1` for simply sourcing the shell script or `2` for commiting the script via SLURM.
 5. Which JAGS, set this to run multiple JAGS models at the same time.
 
 
 For a full analysis of the data set, you need thus to run the following three for each dataset:
 
-`python step2_run_JAGS.py config_files/config_1_pilot.yaml 1 1 1 1`
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 1 1 1 1 1`
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 1 1 2 1 2`
+`python step2_run_JAGS.py config_files/config_1_pilot.yaml 1 1 3 1 3`
 
 `python step2_run_JAGS.py config_files/config_1_pilot.yaml 2 1 1 1`
 
