@@ -1,6 +1,7 @@
 #%% # -*- coding: utf-8 -*-
 
 #%%
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from utils import isoelastic_utility, wealth_change
@@ -140,3 +141,16 @@ for j, participant in enumerate(list(set(df.participant_id))[:N]):
     ax[j,1].set_yscale('log')
 fig.tight_layout()
 plt.show()
+
+#%%
+#Calculate and save specific values based on end values
+tmp = {0.0: {'wealth': [], 'expected': [], 'sub': []} ,
+       1.0: {'wealth': [], 'expected': [], 'sub': []}}
+for j, participant in enumerate(list(set(df.participant_id))[:1]):
+    for i, eta in enumerate(tmp.keys()):
+        df_eta = df.query('participant_id == @participant and eta == @eta')
+        tmp[eta]['wealth'].append(df_eta['wealth'].iloc[-1])
+        tmp[eta]['expected'].append(df_eta['expected_gamma_opt'].iloc[-1] - df_eta['expected_gamma_sub'].iloc[-1])
+        tmp[eta]['sub'].append(df_eta['expected_gamma_sub'].iloc[-1] - df_eta['wealth'].iloc[-1])
+
+tmp[1.0] = {key: [np.log(value) for value in values] for key, values in tmp[1.0].items()}
