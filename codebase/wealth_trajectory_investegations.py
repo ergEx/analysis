@@ -120,3 +120,23 @@ def add_data(group):
     return group
 
 df = df.groupby(['participant_id', 'eta']).apply(add_data).reset_index(drop=True)
+
+#%%
+#plot trajectories of descriptors per participant
+labels = ['wealth', 'expected_gamma_opt', 'expected_gamma_sub', 'gamma_opt', 'gamma_sub']
+etas = [0.0, 1.0]
+N = 3
+fig, ax = plt.subplots(N, 2, figsize=(15, 3*N))
+for j, participant in enumerate(list(set(df.participant_id))[:N]):
+    ax[j,0].set_title(participant)
+    for i, eta in enumerate(etas):
+        df_eta = df.query('participant_id == @participant and eta == @eta')
+
+        for label in labels:
+            ax[j,i].plot(df_eta['trial'], df_eta[label], label=label)
+
+        ax[j,i].legend()
+
+    ax[j,1].set_yscale('log')
+fig.tight_layout()
+plt.show()
