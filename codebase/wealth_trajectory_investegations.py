@@ -4,6 +4,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from utils import isoelastic_utility, wealth_change
 
 #%%
@@ -154,3 +155,35 @@ for j, participant in enumerate(list(set(df.participant_id))[:1]):
         tmp[eta]['sub'].append(df_eta['expected_gamma_sub'].iloc[-1] - df_eta['wealth'].iloc[-1])
 
 tmp[1.0] = {key: [np.log(value) for value in values] for key, values in tmp[1.0].items()}
+
+#%%
+#check hypothetical wealth trajectories based on the experienced realizations on the experiment
+custom_palette = sns.color_palette("Set1", n_colors=2)
+
+etas = [0.0, 1.0]
+fig, ax = plt.subplots(2, 2, figsize=(18, 10), gridspec_kw={'width_ratios': [3, 1]})
+
+sub_eta = ['n0_5', '0_0', '0_5', '1_0', '1_5']
+sub_eta = ['0_0','1_0']
+for eta_idx, eta in enumerate(etas):
+    log_scale = True if eta == 1.0 else False
+    densities = {key: [] for key in sub_eta}
+
+    for participant in list(set(df.participant_id)):# df['participant_id'].unique():
+        df_eta = df.query('participant_id == @participant and eta == @eta')
+        for l, label in enumerate(sub_eta):
+            ax[eta_idx,0].plot(df_eta['trial'], df_eta[label], label=label, color=custom_palette[l])
+            densities[label].append(df_eta[label].iloc[-1])
+
+    densities['difference'] = [x - y for x, y in zip(densities['0_0'], densities['1_0'])] if eta == 0.0 else [np.log(x) - np.log(y) for x, y in zip(densities['1_0'], densities['0_0'])]
+
+
+    # Plot the right plot (density plot)
+    #for i, (key, values) in enumerate(densities.items()):
+    #sns.kdeplot(data=values, color=custom_palette[i], label=key, ax=ax[eta_idx,1], log_scale=log_scale)
+    #sns.kdeplot(data=densities['subtract'], color=custom_palette[0], label=key, ax=ax[eta_idx,1], log_scale=False)
+    ax[eta_idx, 1].hist(densities['difference'])
+    ax[eta_idx, 1].axvline(0)
+
+ax[1,0].set(yscale = 'log')
+plt.show()
