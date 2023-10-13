@@ -1,6 +1,8 @@
 #%% # -*- coding: utf-8 -*-
 
 #%%
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,7 +11,8 @@ from utils import isoelastic_utility, wealth_change
 
 #%%
 #read in data
-df = pd.read_csv('all_active_phase_data.csv', sep = '\t')
+data_dir = os.path.join('..','data','1_pilot')
+df = pd.read_csv(os.path.join(data_dir, 'all_active_phase_data.csv', sep = '\t'))
 print(f'Total number of rows: {len(df)}')
 print(f'Number of participants in data: {len(set(df.participant_id))}')
 print(f'Number of conditions in data: {len(set(df.eta))}')
