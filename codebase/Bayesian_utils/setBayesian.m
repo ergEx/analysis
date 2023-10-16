@@ -7,20 +7,29 @@ function setBayesian(dataSource,simVersion,dataPooling,inferenceMode,model_selec
 % DataSource  - set which data source is used; Simualtion (0)
 %                                              Pilot (1)
 %                                              Full experiment (2)
-% SimVersion - set which simulation to run (only used if DataSource is simulation);
+% SimVersion - set which simulation to run (only used if DataSource == 0);
 %                                              grid with varying values (1-6)
 %                                              varying noise (7)
 %                                              varying ground truth risk aversion, and varying noise (8)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
-% inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
+% inferenceMode - set whether to do parameter estimation (1)
+%                                   Bayesian model comparison of three different models (2)
+%                                   Bayesian model comparison of data pooling (2)
+% model_selection_type - set which type of model selection to perform (only used for inferencemode == 2):
+%                                 - Flat prior for EUT and EE
+%                                 - Flat prior for all three models
+%                                 - Parameter estimation for EUT model
+%                                 - Parameter estimation for EE model
+%                                 - Parameter estimation for EE2 model
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
-% whichQuals    - sets the order of qualities to run
-% doParallel    - whether to run chains in parallel
+% whichQuals    - specifies the number of samples to run
+% doParallel    - sets whether to run chains in parallel
+% startDir      - root directory for the repo
+% seedChoice    - specifies whether to run on manually set seed (1) or random seed (2)
 
 %% Specifies qualities to be selected from
-numRuns      = length(dataPooling);     %how many separate instances of an MCMC to run
 nBurnin      = [0,0,0,0,0];
 manualBurnin = [1e1,1e3,1e4,2e4,4e4];  %from 100 to 40k
 nSamples     = [5e1,5e2,5e3,1e4,2e4];  %from 50 to 20k

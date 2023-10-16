@@ -35,6 +35,9 @@ for (t in 1:nTrials){
     sdeu_EUT[i,c,t]   = -1 * beta_i_EUT[i,c] * deu_EUT[i,c,t]
     cp_EUT[i,c,t]     = 1 / (1 + (exp(sdeu_EUT[i,c,t])))
     theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+    theta[i,c,t,4]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+    theta[i,c,t,7]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+    theta[i,c,t,10]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
 
     #EE
     u_EE[i,c,t]      = (pow(w[i,c,t],oneminEta_EE[i,c]) - 1) / oneminEta_EE[i,c]
@@ -52,6 +55,9 @@ for (t in 1:nTrials){
     sdeu_EE[i,c,t]   = -1 * beta_i_EE[i,c] * deu_EE[i,c,t]
     cp_EE[i,c,t]     = 1 / (1 + (exp(sdeu_EE[i,c,t])))
     theta[i,c,t,2]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
+    theta[i,c,t,5]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
+    theta[i,c,t,8]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
+    theta[i,c,t,11]     = max(0.000001,min(0.999999,cp_EE[i,c,t]))
 
     #EE2
     u_EE2[i,c,t]      = (pow(w[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
@@ -69,6 +75,9 @@ for (t in 1:nTrials){
     sdeu_EE2[i,c,t]   = -1 * beta_i_EE2[i,c] * deu_EE2[i,c,t]
     cp_EE2[i,c,t]     = 1 / (1 + (exp(sdeu_EE2[i,c,t])))
     theta[i,c,t,3]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+    theta[i,c,t,6]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+    theta[i,c,t,9]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+    theta[i,c,t,12]     = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
 
     #choice
     y[i,c,t]           ~ dbern(theta[i,c,t,z[i]])
@@ -80,8 +89,14 @@ for (t in 1:nTrials){
 
 ## PRIORS
 #model indicator
+#the model indicator variable z can take on any value from 1:n, and is subject to two stochastic processes, to prevent getting stuck
+#the n values map onto just 3 models, and is simply a means of obtaining parameter expansion for the model indication
 for (i in 1:nSubjects){
-    z[i] ~ dcat(pz[])
+px_z1[i]    ~ dcat(pz[])
+px_z2[i]    ~ dcat(pz[])
+delta_z1[i] = px_z2[i]-1
+sum_z[i]    = px_z1[i]+delta_z1[i]
+z[i]        = (sum_z[i] - (12 * trunc(sum_z[i]/12))) + 1
 }
 
 #submodels

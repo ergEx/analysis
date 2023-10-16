@@ -7,26 +7,32 @@ function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurni
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% DataSource  - set which data source is used; Simualtion (0)
-%                                              Pilot (1)
-%                                              Full experiment (2)
+% DataSource (unused)  - set which data source is used; Simualtion (0)
+%                                                       Pilot (1)
+%                                                       Full experiment (2)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
 % inferenceMode - set whether to do parameter estimation (1)
 %                                   Bayesian model comparison of three different models (2)
 %                                   Bayesian model comparison of data pooling (2)
-% whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
+% model_selection_type - set which type of model selection to perform (only used for inferencemode == 2):
+%                                 - Flat prior for EUT and EE
+%                                 - Flat prior for all three models
+%                                 - Parameter estimation for EUT model
+%                                 - Parameter estimation for EE model
+%                                 - Parameter estimation for EE2 model
 % nBurnin       - specifies how many burn in samples to run
 % nSamples      - specifies the number of samples to run
 % nThin         - specifies the thinnning number
 % nChains       - specifies number of chains
 % subjList      - list of subject numbers to include
-% whichJAGS     - sets which copy of matjags to run
+% whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
 % doParallel    - sets whether to run chains in parallel
 % startDir      - root directory for the repo
 % nTrials       - number of trials in experiment
 % folder        - folder within the datafolder the relevant data is stored
+% seedChoice    - specifies whether to run on manually set seed (1) or random seed (2)
 
 %% Set paths
 disp(startDir)
@@ -83,8 +89,11 @@ switch inferenceMode
         %no model indicator used for parameter estimation
     case {2}
         switch model_selection_type
-            case {1}, pz = [1/2, 1/2, 0];   %only test model 1 v model 2
-            case {2}, pz = [1/3, 1/3, 1/3]; %flat prior over all three models
+            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);   %only test model 1 v model 2
+            case {2}, pz = repmat([1/3, 1/3, 1/3], 1, 4); %flat prior over all three models
+            case {3}, pz = repmat([1, 0, 0], 1, 4); %parameter estimation for EUT model
+            case {4}, pz = repmat([0, 1, 0], 1, 4); %parameter estimation for EE model
+            case {5}, pz = repmat([0, 0, 1], 1, 4); %parameter estimation for EE2 model
         end
     case {3}
         pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
