@@ -35,7 +35,7 @@ addpath(fullfile(startDir,'/Bayesian_utils'));
 % model_selection_type = 1;
 %whichJAGS = 1;
 %whichQuals = 1;
-doParallel = 0;
+doParallel = 1;
 seedChoice = 1;
 
 %% Call setHLM

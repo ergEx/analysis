@@ -248,11 +248,12 @@ if doParallel==1
             [status{ whchain },result{whchain}] = dos( cmd );
         end
     elseif ismac | isunix
+        parpool(nChains)
         parfor whchain=1:nChains
             jagsScript   = sprintf( 'jagscript%d.cmd' , whchain );
             jagsPrefix = sprintf('/usr/bin/');%sprintf('/usr/local/bin/');
             cmd = sprintf( '%sjags %s' ,jagsPrefix, jagsScript );
-
+            disp(cmd)
             %if run on DRCMR Cluster
             cmd = sprintf('/home/benjaminsf/run_j.sh %s', jagsScript');
 

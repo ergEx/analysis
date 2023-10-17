@@ -28,10 +28,12 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
                 'runBayesPath': os.path.abspath(os.path.join(script_path, 'codebase/'))}
 
     tmp = """#!/bin/bash
-    #SBATCH --partition=HPC
+#SBATCH --partition=HPC
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
     # Created {date}
-    module load matlab
-    matlab -nodesktop -nojvm -nosplash -r "addpath('{runBayesPath}');\
+    module load matlab/R2022b
+    matlab -nodesktop -nosplash -r "addpath('{runBayesPath}');\
           runBayesian({dataSource}, {simVersion}, {inferenceMode}\
             , {quality}, {model_selection_type}, {dataPooling}, {whichJags}); exit;"
     """.format(**shellparams)
