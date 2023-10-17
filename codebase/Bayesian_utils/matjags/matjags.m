@@ -235,6 +235,16 @@ if doParallel==1
     %if (numworkers == 0)
     %    error( 'Matlab pool of workers not initialized. Use command "matlabpool open 7" for example to open up a pool of 7 workers' );
     %end
+    try
+        parpool(nChains)
+    catch 
+        try 
+            disp(['Parpool with ' num2str(nChains) ' failed, trying without'])
+            parpool()
+        catch
+            disp('Cannot open parallel pool, continuing without.')
+        end
+    end
 
     status = cell( 1,nChains );
     result = cell( 1,nChains );
@@ -248,7 +258,6 @@ if doParallel==1
             [status{ whchain },result{whchain}] = dos( cmd );
         end
     elseif ismac | isunix
-        parpool(nChains)
         parfor whchain=1:nChains
             jagsScript   = sprintf( 'jagscript%d.cmd' , whchain );
             jagsPrefix = sprintf('/usr/bin/');%sprintf('/usr/local/bin/');
