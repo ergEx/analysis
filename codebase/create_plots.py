@@ -276,6 +276,44 @@ def main(config_file):
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing', colors=colors)
         fig.savefig(os.path.join(fig_dir, f"03d_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
+    if stages['plot_mcmc_samples']:
+        # full pooling
+        # group
+        bayesian_samples_full_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
+                    )
+        eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                )
+        eta_group = bayesian_samples_partial_pooling["eta_g"]
+
+        fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
+        ax.axvspan(0, burn_in, alpha=0.2, color='grey')
+        for c in range(n_chains):
+            ax.plot(range(len(eta_group[c,:,0].flatten())), eta_group[c,:,0].flatten(), alpha = (c+1)/n_chains, color = 'blue')
+            ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red',)
+        ax.set_xlim(left = 0)
+        ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+        fig.savefig(os.path.join(fig_dir, '07b_riskaversion_full_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
+
+
+        # partial pooling
+        # group
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                )
+        eta_group = bayesian_samples_partial_pooling["eta_g"]
+
+        fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
+        ax.axvspan(0, burn_in, alpha=0.2, color='grey', label = 'Burn in')
+        for c in range(n_chains):
+            ax.plot(range(len(eta_group[c,:,0].flatten())), eta_group[c,:,0].flatten(), alpha = (c+1)/n_chains, color = 'blue', label = 'Additive')
+            ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red', label = 'Multiplicative')
+        ax.legend(['burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+        ax.set_xlim(left = 0)
+        fig.savefig(os.path.join(fig_dir, '07b_riskaversion_partial_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
+
     return
 
     if stages['plot_sensitivity_bayesian']:
