@@ -25,11 +25,12 @@ for ii = 1 : length(data_poolings)
     file = sprintf('Bayesian_JAGS_model_selection_%s_%d.mat', data_poolings{ii} ,model_selection_type);
     BFFile = sprintf('model_selection_BF_%s_%d.txt', data_poolings{ii} ,model_selection_type);
     
-    jags_dat = load(fullfile(dataDir, file))
+    jags_dat = load(fullfile(dataDir, file));
     
     z = jags_dat.samples.z;
     [n_chains, n_samples, n_participants] = size(z);
     z_i = reshape(z, [n_chains * n_samples, n_participants]);
+    z_i = mod(z_i, 3) + 1 %note this changes the order such that m1=2, m2=3, m3=1
     
     n_models = max(z(:));
     
@@ -84,11 +85,11 @@ end
 
 function newDir = getParentDir(dir,numUpDirs)
 %   Function to get parent dir from either a file or a directory, going up
-%   the number of directories indicated by numUpDirs. 
+%   the number of directories indicated by numUpDirs.
 %
 %   dir = string (filepath or pwd)
 %   numUpDirs = positive integer
-%   
+%
 %   Written by: Walter Adame Gonzalez
 %   McGill University
 %   walter.adamegonzalez@mail.mcgill.ca
@@ -101,7 +102,7 @@ end
 
 pre = '';
 if ispc
-
+    
     if dir(1) == '\'
         pre = '\';
     end
@@ -117,7 +118,7 @@ end
 newDir = '';
 if numUpDirs<length(parts)
     for i=1:(length(parts)-numUpDirs)
-    newDir = fullfile(newDir,string(parts(i)));
+        newDir = fullfile(newDir,string(parts(i)));
     end
 else
     disp("numUpDirs indicated is larger than the number of possible parent directories. Returning the unchanged dir")
