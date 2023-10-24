@@ -89,11 +89,11 @@ switch inferenceMode
         %no model indicator used for parameter estimation
     case {2}
         switch model_selection_type
-            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);   %only test model 1 v model 2
-            case {2}, pz = repmat([1/3, 1/3, 1/3], 1, 4); %flat prior over all three models
+            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);   %flat prior EUT model v EE model
+            case {2}, pz = repmat([1/3, 0, 1/2], 1, 4); %flat prior EUT model v Weak EE model (EE2)
             case {3}, pz = repmat([1, 0, 0], 1, 4); %parameter estimation for EUT model
             case {4}, pz = repmat([0, 1, 0], 1, 4); %parameter estimation for EE model
-            case {5}, pz = repmat([0, 0, 1], 1, 4); %parameter estimation for EE2 model
+            case {5}, pz = repmat([0, 0, 1], 1, 4); %parameter estimation for weak EE model (EE2)
         end
     case {3}
         pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
