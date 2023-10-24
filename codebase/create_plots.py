@@ -295,6 +295,7 @@ def main(config_file):
             ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red',)
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+        ax.set(xlabel="Samples", ylabel=f"$\eta$")
         fig.savefig(os.path.join(fig_dir, '07b_riskaversion_full_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
 
 
