@@ -30,7 +30,7 @@ for ii = 1 : length(data_poolings)
     z = jags_dat.samples.z;
     [n_chains, n_samples, n_participants] = size(z);
     z_i = reshape(z, [n_chains * n_samples, n_participants]);
-    z_i = mod(z_i, 3) + 1 %note this changes the order such that m1=2, m2=3, m3=1
+    z_i = mod(z_i, 3) + 1; %note this changes the order such that m1=2, m2=3, m3=1
     
     n_models = max(z(:));
     
@@ -47,6 +47,10 @@ for ii = 1 : length(data_poolings)
     
     total_counts = sum(counts, 1);
     proportions = counts ./ repmat(total_counts, n_models, 1);
+    
+    proportions_file = sprintf('proportions_%s_%d.csv', data_poolings{ii}, model_selection_type);
+    writematrix(proportions, fullfile(dataDir, proportions_file));
+    
     
     log_proportions = log10(proportions);
     
@@ -74,11 +78,11 @@ for ii = 1 : length(data_poolings)
     end
     
     
-    options = {};
+    %options = {};
     % perform group-BMS on data
-    [p1, o1] = VBA_groupBMC (log_proportions, options);
-    set (o1.options.handles.hf, 'name', 'group BMS: y_1')
-    saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', data_poolings{ii}, model_selection_type)));
+    %[p1, o1] = VBA_groupBMC (log_proportions, options);
+    %set (o1.options.handles.hf, 'name', 'group BMS: y_1')
+    %saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', data_poolings{ii}, model_selection_type)));
 end
 
 end

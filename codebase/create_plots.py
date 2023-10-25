@@ -276,6 +276,33 @@ def main(config_file):
         fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing', colors=colors)
         fig.savefig(os.path.join(fig_dir, f"03d_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
 
+    if stages['plot_model_comparison']:
+        #EUT v EE
+        df = pd.read_csv(os.path.join(data_dir, "proportions_data_partial_pooling_1.csv"), sep="\t")
+        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+
+        sns.heatmap(df.T, cmap='gray_r', xticklabels=False, yticklabels=['EUT', 'EE'], cbar=False, ax=ax[0])
+        ax[0].set_xlabel('Participants')
+
+        ax[1].bar(['EUT', 'EE'], df.sum() / df.sum().sum(), color='black')
+
+        fig.savefig(os.path.join(fig_dir, '10_model_selection_2.png.png'), dpi=600, bbox_inches='tight')
+
+        #EUT v EE2
+        df = pd.read_csv(os.path.join(data_dir, "proportions_data_partial_pooling_2.csv"), sep="\t")
+        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+
+        sns.heatmap(df.T, cmap='gray_r', xticklabels=False, yticklabels=['EUT', 'EE'], cbar=False, ax=ax[0])
+        ax[0].set_xlabel('Participants')
+
+        ax[1].bar(['EUT', 'EE'], df.sum() / df.sum().sum(), color='black')
+
+        fig.savefig(os.path.join(fig_dir, '10_model_selection_2.png.png'), dpi=600, bbox_inches='tight')
+
+
+
+
+
     return
 
     if stages['plot_sensitivity_bayesian']:
