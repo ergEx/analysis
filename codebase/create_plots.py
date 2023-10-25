@@ -283,10 +283,6 @@ def main(config_file):
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
         eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
-        bayesian_samples_partial_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
-                )
-        eta_group = bayesian_samples_partial_pooling["eta_g"]
 
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey')
