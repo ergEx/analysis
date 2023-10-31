@@ -50,8 +50,6 @@ def main(config_file):
     if not config["bracketing method"]["run"]:
         return
 
-
-
     if config["bracketing method"]["calculate_indif_eta"]:
         print(f'\nADDING INDIFFERENCE ETAS')
         df = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
@@ -73,14 +71,18 @@ def main(config_file):
 
     df = df.dropna(subset=["indif_eta"])
 
+    participants = np.unique(df.participant_id)
+    participants_sort = np.argsort([i.upper() for i in participants])
+    participant_list = list(participants[participants_sort])
+
     index_logistic = pd.MultiIndex.from_product(
-        [["all"] + list(set(df.participant_id)), [0.0, 1.0], range(1000),],
+        [["all"] + participant_list, [0.0, 1.0], range(1000),],
         names=["participant", "dynamic", "measurement"],
     )
     df_logistic = pd.DataFrame(index=index_logistic, columns=["x_test", "pred", "lower", "upper"])
 
     index_bracketing_overview = pd.MultiIndex.from_product(
-        [["all"] + list(set(df.participant_id)), [0.0, 1.0],],
+        [["all"] + participant_list, [0.0, 1.0],],
         names=["participant", "dynamic"],
     )
     df_bracketing_overview = pd.DataFrame(
@@ -105,7 +107,7 @@ def main(config_file):
         ] = decision_boundary
         df_bracketing_overview.loc[idx[f"all", con], "log_reg_std_dev"] = std_dev
 
-        for i, participant in enumerate(set(df.participant_id)):
+        for i, participant in enumerate(participant_list):
             # INDIVIDUAL LEVEL DATA
             df_tmp = df.query(
                 "participant_id == @participant and eta == @con"
