@@ -156,6 +156,10 @@ def main(config_file):
         ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
         ax.spines[['top','right']].set_visible(False)
 
+        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
+
+        ax.legend('lower right')
+
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bayesian']:
@@ -205,6 +209,11 @@ def main(config_file):
         ax.axhline(1, color='red', alpha=0.5, linestyle='--')
         ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
         ax.spines[['top','right']].set_visible(False)
+
+        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
+
+        ax.legend('lower right')
+
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
         #Partial pooling
@@ -235,6 +244,10 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
+
+        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
+
+        ax.legend('lower right')
 
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
