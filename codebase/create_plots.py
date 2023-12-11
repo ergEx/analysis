@@ -7,6 +7,7 @@ import pandas as pd
 import seaborn as sns
 import yaml
 from matplotlib import rcParamsDefault
+from scipy.stats import gaussian_kde
 
 plt.rcParams.update({
     "text.usetex": True})
@@ -47,11 +48,14 @@ def main(config_file):
     title_dict={0: "Additive", 1: "Multiplicative"}
     soft_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
+    colors = ['blue','red']
     # Set slightly larger fontscale throughout, but keeping matplotlib settings
     sns.set_context('paper', font_scale=1.0) #, rc=rcParamsDefault)
     # params = {"font.family" : "serif", If the need occurs to set fonts
     #          "font.serif" : ["Computer Modern Serif"]}
     # plt.rcParams.update(params)
+
+    LIMITS = [-1,2]
 
     if stages['plot_passive']:
         if data_type != 'real_data':
@@ -105,29 +109,53 @@ def main(config_file):
     sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 
     if stages['plot_riskaversion_bracketing']:
-        #Full pooling
         bracketing_overview = pd.read_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep = '\t')
 
-        df_tmp = bracketing_overview[bracketing_overview.participant == 'all']
-        add = np.random.normal(df_tmp[df_tmp.dynamic == 0.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 0.0].log_reg_std_dev, n_samples * n_conditions)
-        mul = np.random.normal(df_tmp[df_tmp.dynamic == 1.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 1.0].log_reg_std_dev, n_samples * n_chains)
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax = plot_single_kde([add,mul], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_full_pooling_group_bracketing.pdf'), dpi=600, bbox_inches='tight')
+        df_full_pooling = bracketing_overview[bracketing_overview.participant == 'all']
+        df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
 
-        #No pooling
-        df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
-        etas = np.empty([n_agents,n_samples*n_chains,n_conditions])
-        for i, participant in enumerate(list(set(df_tmp.participant))):
-            for c, con in enumerate(list(set(df_tmp.dynamic))):
-                tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
+        eta_add_full_pooling = np.random.normal(df_full_pooling[df_full_pooling.dynamic == 0.0].log_reg_decision_boundary, df_full_pooling[df_full_pooling.dynamic == 0.0].log_reg_std_dev, n_samples * n_conditions)
+        eta_mul_full_pooling = np.random.normal(df_full_pooling[df_full_pooling.dynamic == 1.0].log_reg_decision_boundary, df_full_pooling[df_full_pooling.dynamic == 1.0].log_reg_std_dev, n_samples * n_chains)
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        ax2 = ax.twinx()
+        maxi = np.empty([n_conditions,len(df_no_pooling['participant_id'].unique()),2])
+        etas_no_pooling = np.empty([n_agents,n_samples*n_chains,n_conditions])
+        for i, participant in enumerate(df_no_pooling['participant_id'].unique()):
+            for c, con in enumerate(df_no_pooling['dynamic'].unique()):
+                tmp_df = df_no_pooling.query('participant == @participant and dynamic == @con')
                 if float(tmp_df.log_reg_std_dev) <= 0:
                     continue
-                etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
-        etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, '03b_riskaversion_no_pooling_individual_bracketing.pdf'), dpi=600, bbox_inches='tight')
+                tmp = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
+                etas_no_pooling[i,:,c] = tmp
+                sns.kdeplot(tmp, ax = ax, color = colors[c], alpha = 0.1)
+                kde = gaussian_kde(tmp)
+                maxi[c,i,0] = tmp[np.argmax(kde.pdf(tmp))]
+                maxi[c,i,1] = kde.pdf(maxi[c,i,0])
+        sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[0], alpha = 1, label = 'Additive')
+        sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[1], alpha = 1, label = 'Multiplicative')
+
+        ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
+        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax.spines[['left', 'top','right']].set_visible(False)
+
+        ax2.set(ylabel = '')
+        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax2.spines[['left', 'top', 'right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
+
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        sns.kdeplot(x=etas_no_pooling[:,:,0].ravel(), y=etas_no_pooling[:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
+
+        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.5)
+        ax.axvline(0, color=colors[0], alpha=0.5, linestyle='--')
+        ax.axhline(1, color=colors[1], alpha=0.5, linestyle='--')
+        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
+        ax.spines[['top','right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bayesian']:
         # full pooling
