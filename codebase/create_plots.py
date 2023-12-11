@@ -78,53 +78,6 @@ def main(config_file):
             fig.tight_layout()
             fig.savefig(os.path.join(fig_dir, '01a_passive_trajectories.png'), dpi=600, bbox_inches='tight')
 
-    if stages['plot_no_brainers']:
-        if data_type != "real_data":
-            print('There is no no-brainer data for simulated data')
-        else:
-            # Slightly increase font size for nobrainer plots
-            sns.set_context('paper', font_scale=1.2)
-            df_no_brainer = pd.read_csv(os.path.join(data_dir, "all_no_brainer_data.csv"), sep="\t")
-            fig, ax = plt.subplots(1,2, figsize=(12 * cm, 7 * cm))
-            ax = ax.flatten()
-            for c, con in enumerate(set(df_no_brainer.eta)):
-                df_rankings_copy = df_no_brainer.copy()
-                if config['data_variant'] == '1_pilot':
-                    df_rankings_copy["trial_bins"] = pd.cut(
-                        df_rankings_copy["trial"], bins=[40, 70, 110, 160], labels=["First", "Second", "Third"]
-                    )
-                else:
-                    df_rankings_copy['trial_bins'] = df_rankings_copy['run']
-                    df_rankings_copy['trial_bins'].replace({1: 'First', 2: 'Second',
-                                                            3: 'Third'},
-                                                            inplace=True)
-                df_prop = (
-                    df_rankings_copy.groupby(["participant_id", "trial_bins"])
-                    .mean()["response_correct"]
-                    .reset_index()
-                )
-                sns.stripplot(
-                    x="trial_bins",
-                    y="response_correct",
-                    hue="participant_id",
-                    palette=colors,
-                    data=df_prop,
-                    ax=ax[c],
-                    s=7
-                )
-                ax[c].set(
-                    ylim=(0, 1), ylabel="No-brainers: Proportion correct", xlabel=""
-                )
-                ax[c].set_title(title_dict[c], fontsize=17)
-                if c == 1:
-                    ax[c].set(ylabel='', yticks=[], yticklabels=[])
-
-                #ax[c].collections[0].set_sizes([75])
-                ax[c].legend().remove()
-                ax[c].axhline(y=0.8, color="black", linestyle="--")
-            fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01b_no_brainers.png'), dpi=600, bbox_inches='tight')
-            sns.set_context('paper', font_scale=1.2)
     if stages['plot_active']:
         if data_type != 'real_data':
             print('There is no passive trajectories for simulated data')
