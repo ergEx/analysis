@@ -119,7 +119,7 @@ def main(config_file):
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         ax2 = ax.twinx()
-        maxi = np.empty([n_conditions,len(df_no_pooling['participant_id'].unique()),2])
+        maxi = np.empty([n_conditions,n_agents,2])
         etas_no_pooling = np.empty([n_agents,n_samples*n_chains,n_conditions])
         for i, participant in enumerate(df_no_pooling['participant_id'].unique()):
             for c, con in enumerate(df_no_pooling['dynamic'].unique()):
@@ -158,51 +158,94 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bayesian']:
-        # full pooling
-        # group
+        #no pooling and full pooling
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir,'04a_riskaversion_full_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
+        eta_g = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
 
-        # partial pooling
-        # group
-        bayesian_samples_partial_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
-                )
-        eta_group = bayesian_samples_partial_pooling["eta_g"][:,burn_in:,:]
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1], limits=[-0.5, 1.5])
-        ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
-        ax.set(xticks=ticks, xticklabels=ticks)
-        fig.savefig(os.path.join(fig_dir,'05a_riskaversion_partial_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
-
-        #individual
-        eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
-        eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
-        eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1], limits=[-0.5, 1.5])
-        ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
-        h1.ax_joint.set(xticks=ticks, xticklabels=ticks)
-        h1.ax_joint.set(yticks=ticks, yticklabels=ticks)
-
-        h1.savefig(os.path.join(fig_dir, f"05b_riskaversion_partial_pooling_individual_bayesian.pdf"), dpi=600, bbox_inches='tight')
-
-        # no pooling
-        # individual
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
         eta_i = bayesian_samples_no_pooling["eta_i"][:,burn_in:,:,:]
-        eta_i_t = eta_i.transpose((2, 0, 1, 3))
-        eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, f"06b_riskaversion_no_pooling_individual_bayesian.pdf"), dpi=600, bbox_inches='tight')
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        ax2 = ax.twinx()
+        maxi = np.empty([n_conditions,n_agents,2])
+        for c in range(n_conditions):
+            for i in range(n_agents):
+                data_tmp = eta_i[:,:,i,c].ravel()
+                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                kde = gaussian_kde(data_tmp)
+
+                maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
+                maxi[c,i,1] = kde.pdf(maxi[c,i,0])
+
+            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-')
+
+        ax.set(xlim = [-1,2], xlabel = r"$\eta$", ylabel = '')
+        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax.spines[['left', 'top','right']].set_visible(False)
+
+        ax2.set(ylabel = '')
+        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax2.spines[['left', 'top', 'right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
+
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
+
+        sns.lineplot(x=[-1,2], y=[-1,2], color='black', linestyle='--', ax=ax, alpha = 0.5)
+        ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
+        ax.axhline(1, color='red', alpha=0.5, linestyle='--')
+        ax.set(xlim = [-1, 2], ylim = [-1,2], xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
+        ax.spines[['top','right']].set_visible(False)
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
+
+        #Partial pooling
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                    )
+        eta_g = bayesian_samples_partial_pooling["eta_g"][:,burn_in:,:]
+        eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        ax2 = ax.twinx()
+        maxi = np.empty([n_conditions,n_agents,2])
+        for c in range(n_conditions):
+            for i in range(n_agents):
+                data_tmp = eta_i[:,:,i,c].ravel()
+                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                kde = gaussian_kde(data_tmp)
+
+                maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
+                maxi[c,i,1] = kde.pdf(maxi[c,i,0])
+
+            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-')
+
+        ax.set(xlim = [-1,2], xlabel = r"$\eta$", ylabel = '')
+        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax.spines[['left', 'top','right']].set_visible(False)
+
+        ax2.set(ylabel = '')
+        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax2.spines[['left', 'top', 'right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
+
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
+
+        sns.lineplot(x=[-1,2], y=[-1,2], color='black', linestyle='--', ax=ax, alpha = 0.5)
+        ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
+        ax.axhline(1, color='red', alpha=0.5, linestyle='--')
+        ax.set(xlim = [-1, 2], ylim = [-1,2], xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
+        ax.spines[['top','right']].set_visible(False)
+        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
+
 
     if stages['plot_jasp_like']:
         y_offset = np.array([-0.1, 0.1])
