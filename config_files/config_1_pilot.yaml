@@ -20,14 +20,12 @@ n_agents: 60
 n_conditions: 2
 qual: 3
 plots:
-  plot_active: true
-  plot_bayes: true
-  plot_jasp_like: true
-  plot_no_brainers: true
-  plot_passive: true
-  plot_riskaversion_bayesian: true
-  plot_riskaversion_bracketing: true
-  plot_mcmc_samples: true
   run: true
+  plot_passive: true
+  plot_active: true
+  plot_risk_aversion_bracketing: true
+  plot_riskaversion_bayesian: true
+  plot_mcmc_samples: true
+  plot_sensitivity_bayesian: true
 readingdata:
   run: true
