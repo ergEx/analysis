@@ -267,13 +267,13 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
+        eta_g = bayesian_samples_full_pooling["eta_g"]
 
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey')
         for c in range(n_chains):
-            ax.plot(range(len(eta_group[c,:,0].flatten())), eta_group[c,:,0].flatten(), alpha = (c+1)/n_chains, color = 'blue')
-            ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red',)
+            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), alpha = (c+1)/n_chains, color = colors[0])
+            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), alpha = (c+1)/n_chains, color = colors[1])
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
@@ -290,10 +290,11 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey', label = 'Burn in')
         for c in range(n_chains):
-            ax.plot(range(len(eta_group[c,:,0].flatten())), eta_group[c,:,0].flatten(), alpha = (c+1)/n_chains, color = 'blue', label = 'Additive')
-            ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red', label = 'Multiplicative')
-        ax.legend(['burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), alpha = (c+1)/n_chains, color = colors[0])
+            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), alpha = (c+1)/n_chains, color = colors[1])
         ax.set_xlim(left = 0)
+        ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+        ax.set(xlabel="Samples", ylabel=f"$\eta$")
         fig.savefig(os.path.join(fig_dir, '07b_riskaversion_partial_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
 
     return
