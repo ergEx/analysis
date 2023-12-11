@@ -77,9 +77,9 @@ d_mu_beta     = 0.5;
 
 %priors for no pooling + full pooling
 mu_eta       = 0.5;
-tau_eta      = power(swrt(2)/2,-2);
+tau_eta      = power(sqrt(2)/2,-2);
 mu_log_beta  = 1;
-tau_log_beta = power(swrt(2)/2,-2);
+tau_log_beta = power(sqrt(2)/2,-2);
 
 %used in all pooling methods
 mu_log_beta_l = -2;
