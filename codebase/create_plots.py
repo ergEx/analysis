@@ -185,7 +185,7 @@ def main(config_file):
 
             sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
 
-        ax.set(xlim = [-1,2], xlabel = r"$\eta$", ylabel = '')
+        ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
         ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax.spines[['left', 'top','right']].set_visible(False)
 
@@ -200,10 +200,10 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=[-1,2], y=[-1,2], color='black', linestyle='--', ax=ax, alpha = 0.5)
+        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.5)
         ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
         ax.axhline(1, color='red', alpha=0.5, linestyle='--')
-        ax.set(xlim = [-1, 2], ylim = [-1,2], xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
+        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
         ax.spines[['top','right']].set_visible(False)
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
@@ -228,7 +228,7 @@ def main(config_file):
 
             sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-')
 
-        ax.set(xlim = [-1,2], xlabel = r"$\eta$", ylabel = '')
+        ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
         ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax.spines[['left', 'top','right']].set_visible(False)
 
@@ -242,10 +242,10 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=[-1,2], y=[-1,2], color='black', linestyle='--', ax=ax, alpha = 0.5)
+        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.5)
         ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
         ax.axhline(1, color='red', alpha=0.5, linestyle='--')
-        ax.set(xlim = [-1, 2], ylim = [-1,2], xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
+        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
         ax.spines[['top','right']].set_visible(False)
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
 
