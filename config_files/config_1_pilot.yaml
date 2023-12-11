@@ -27,6 +27,7 @@ plots:
   plot_passive: true
   plot_riskaversion_bayesian: true
   plot_riskaversion_bracketing: true
+  plot_mcmc_samples: true
   run: true
 readingdata:
   run: true
