@@ -86,24 +86,24 @@ for (i in 1:nSubjects){
 
 #submodels
 
-eta_EUT       ~ dnorm(mu_eta,tau_eta)
+eta_EUT       ~ dnorm(muEta,tauEta)
 
-eta_EE[1]     ~ dnorm(mu_eta_EE_add,tau_eta)
-eta_EE[2]     ~ dnorm(mu_eta_EE_mul,tau_eta)
+eta_EE[1]     ~ dnorm(muEtaEEAdd,tauEta)
+eta_EE[2]     ~ dnorm(muEtaEEMul,tauEta)
 
-eta_EE2[1]    ~ dnorm(mu_eta,tau_eta)
+eta_EE2[1]    ~ dnorm(muEta,tauEta)
 delta_eta_EE2 ~ dgamma(dMuAlpha, dMuBeta)
 eta_EE2[2]    = eta_EE2[1] + delta_eta_EE2
 
 for (c in 1:nConditions){
     beta_EUT[c]     = exp(log_beta_EUT[c])
-    log_beta_EUT[c] ~ dnorm(mu_log_beta,tau_log_beta)
+    log_beta_EUT[c] ~ dnorm(muLogBeta,tauLogBeta)
 
     beta_EE[c]      = exp(log_beta_EE[c])
-    log_beta_EE[c]  ~ dnorm(mu_log_beta,tau_log_beta)
+    log_beta_EE[c]  ~ dnorm(muLogBeta,tauLogBeta)
 
     beta_EE2[c]     = exp(log_beta_EE2[c])
-    log_beta_EE2[c] ~ dnorm(mu_log_beta,tau_log_beta)
+    log_beta_EE2[c] ~ dnorm(muLogBeta,tauLogBeta)
 }#end of conditions
 
 }

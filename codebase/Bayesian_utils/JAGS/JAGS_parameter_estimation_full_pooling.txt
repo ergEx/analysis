@@ -34,9 +34,9 @@ for (t in 1:nTrials){
 
 ## PRIORS
 for (c in 1:nConditions){
-eta_g[c]       ~ dnorm(mu_eta,tau_eta)
+eta_g[c]       ~ dnorm(muEta,tauEta)
 beta_g[c]      = exp(log_beta_g[c])
-log_beta_g[c]  ~ dnorm(mu_log_beta, tau_log_beta)
+log_beta_g[c]  ~ dnorm(muLogBeta, tauLogBeta)
 
 for (i in 1:nSubjects){
     eta_i[i,c]       ~ dnorm(0,1) # not used

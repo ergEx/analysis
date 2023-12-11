@@ -39,9 +39,9 @@ beta_g[c]      = exp(1)       # Not used
 log_beta_g[c]  ~ dnorm(0,1)   # Not used
 
 for (i in 1:nSubjects){
-    eta_i[i,c]       ~ dnorm(mu_eta,tau_eta)
+    eta_i[i,c]       ~ dnorm(muEta,tauEta)
     beta_i[i,c]      = exp(log_beta_i)
-    log_beta_i[i,c]  ~ dnorm(mu_log_beta, tau_log_beta)
+    log_beta_i[i,c]  ~ dnorm(muLogBeta, tauLogBeta)
 }#end of subjects
 }#end of conditions
 
