@@ -157,7 +157,6 @@ def main(config_file):
         ax.spines[['top','right']].set_visible(False)
 
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-
         ax.legend('lower right')
 
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
@@ -211,7 +210,6 @@ def main(config_file):
         ax.spines[['top','right']].set_visible(False)
 
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-
         ax.legend('lower right')
 
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
@@ -235,7 +233,7 @@ def main(config_file):
                 maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
                 maxi[c,i,1] = kde.pdf(maxi[c,i,0])
 
-            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-')
+            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
 
         ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
         ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
@@ -244,10 +242,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
-
-        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-
-        ax.legend('lower right')
+        ax2.legend('upper right')
 
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
@@ -260,6 +255,10 @@ def main(config_file):
         ax.axhline(1, color='red', alpha=0.5, linestyle='--')
         ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
         ax.spines[['top','right']].set_visible(False)
+
+        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
+        ax.legend('lower right')
+
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_mcmc_samples']:
