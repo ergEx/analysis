@@ -133,7 +133,7 @@ def main(config_file):
                 maxi[c,i,0] = tmp[np.argmax(kde.pdf(tmp))]
                 maxi[c,i,1] = kde.pdf(maxi[c,i,0])
         sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[0], alpha = 1, label = 'Additive')
-        sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[1], alpha = 1, label = 'Multiplicative')
+        sns.kdeplot(eta_mul_full_pooling, ax = ax, color = colors[1], alpha = 1, label = 'Multiplicative')
 
         ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
         ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
