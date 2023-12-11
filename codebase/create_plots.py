@@ -80,7 +80,7 @@ def main(config_file):
                 ax[c].legend(loc="upper left")
 
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01a_passive_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_active']:
         if data_type != 'real_data':
@@ -103,7 +103,7 @@ def main(config_file):
                 ax[c].axhline(soft_limits[c][0], linestyle="--", color="grey", label='lower limit')
                 #ax[c].legend(loc="upper left")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01c_active_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '02_active_trajectories.png'), dpi=600, bbox_inches='tight')
 
     #sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
     sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
@@ -144,7 +144,7 @@ def main(config_file):
         ax2.spines[['left', 'top', 'right']].set_visible(False)
         ax2.legend('upper right')
 
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
@@ -159,7 +159,7 @@ def main(config_file):
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
         ax.legend('lower right')
 
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bayesian']:
         labels = ['Additive','Multiplicative']
@@ -197,7 +197,7 @@ def main(config_file):
         ax2.spines[['left', 'top', 'right']].set_visible(False)
         ax2.legend('upper right')
 
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
@@ -212,7 +212,7 @@ def main(config_file):
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
         ax.legend('lower right')
 
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
         #Partial pooling
         bayesian_samples_partial_pooling = read_Bayesian_output(
@@ -244,7 +244,7 @@ def main(config_file):
         ax2.spines[['left', 'top', 'right']].set_visible(False)
         ax2.legend('upper right')
 
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
@@ -259,7 +259,7 @@ def main(config_file):
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
         ax.legend('lower right')
 
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_mcmc_samples']:
         # full pooling
@@ -277,7 +277,7 @@ def main(config_file):
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
-        fig.savefig(os.path.join(fig_dir, '07b_riskaversion_full_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_1.png'), dpi=600, bbox_inches='tight')
 
 
         # partial pooling
@@ -295,7 +295,7 @@ def main(config_file):
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
-        fig.savefig(os.path.join(fig_dir, '07b_riskaversion_partial_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_2.png'), dpi=600, bbox_inches='tight')
 
     if stages['plot_sensitivity_bayesian']:
         labels = ['Additive','Multiplicative']
@@ -331,7 +331,7 @@ def main(config_file):
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
 
-        fig.savefig(os.path.join(fig_dir, 'beta1.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.png'), dpi=600, bbox_inches='tight')
 
         #partial pooling
         bayesian_samples_partial_pooling = read_Bayesian_output(
@@ -361,7 +361,7 @@ def main(config_file):
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
 
-        fig.savefig(os.path.join(fig_dir, 'beta2.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2png'), dpi=600, bbox_inches='tight')
 
 
 
