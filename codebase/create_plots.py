@@ -47,8 +47,6 @@ def main(config_file):
     title_dict={0: "Additive", 1: "Multiplicative"}
     soft_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
-    cmap = plt.get_cmap("tab20")
-    colors = [cmap(i) for i in np.linspace(0, 1, n_agents)]
     # Set slightly larger fontscale throughout, but keeping matplotlib settings
     sns.set_context('paper', font_scale=1.0) #, rc=rcParamsDefault)
     # params = {"font.family" : "serif", If the need occurs to set fonts
@@ -60,13 +58,14 @@ def main(config_file):
             print('There is no passive trajectories for simulated data')
         else:
             df_passive = pd.read_csv(os.path.join(data_dir, "all_passive_phase_data.csv"), sep="\t")
+            participants_to_plot = df_passive['participant_id'].unique()[:10]
             fig, ax = plt.subplots(1,2, figsize=(23 * cm, 4.75 * cm))
             ax = ax.flatten()
             for c, con in enumerate(set(df_passive.eta)):
                 tmp_df = df_passive.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
-                for i, participant in enumerate(pivoted_df.columns):
-                    ax[c].plot(pivoted_df.index, pivoted_df[participant],  color = colors[i])
+                for i, participant in enumerate(participants_to_plot):
+                    ax[c].plot(pivoted_df.index, pivoted_df[participant],  color = 'black', alpha = 0.8)
                 ax[c].set(title = title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
                     ax[c].set(yscale="log", ylabel="Wealth")
