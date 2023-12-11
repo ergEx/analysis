@@ -363,6 +363,52 @@ def main(config_file):
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2png'), dpi=600, bbox_inches='tight')
 
+    if stages['plot_model_comparison']:
+        #no pooling
+        #EUT v EE
+        df = pd.read_csv(os.path.join(data_dir, "proportions_data_no_pooling_1.csv"), sep="\t")
+        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+
+        sns.heatmap(df[['EUT','EE']], cmap='gray_r', xticklabels=False, yticklabels=['EUT', 'EE'], cbar=False, ax=ax[0])
+        ax[0].set_xlabel('Participants')
+
+        ax[1].bar(['EUT', 'EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
+
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_1.png.png'), dpi=600, bbox_inches='tight')
+
+        #EUT v EE2
+        df = pd.read_csv(os.path.join(data_dir, "proportions_data_no_pooling_2.csv"), sep="\t")
+        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+
+        sns.heatmap(df[['EUT','Weak_EE']], cmap='gray_r', xticklabels=False, yticklabels=['EUT', 'Weak EE'], cbar=False, ax=ax[0])
+        ax[0].set_xlabel('Participants')
+
+        ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
+
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_2.png.png'), dpi=600, bbox_inches='tight')
+
+        #Partial pooling
+        #EUT v EE
+        df = pd.read_csv(os.path.join(data_dir, "proportions_data_partial_pooling_1.csv"), sep="\t")
+        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+
+        sns.heatmap(df[['EUT','EE']], cmap='gray_r', xticklabels=False, yticklabels=['EUT', 'EE'], cbar=False, ax=ax[0])
+        ax[0].set_xlabel('Participants')
+
+        ax[1].bar(['EUT', 'EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
+
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_3.png.png'), dpi=600, bbox_inches='tight')
+
+        #EUT v EE2
+        df = pd.read_csv(os.path.join(data_dir, "proportions_data_partial_pooling_2.csv"), sep="\t")
+        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+
+        sns.heatmap(df[['EUT','Weak_EE']], cmap='gray_r', xticklabels=False, yticklabels=['EUT', 'Weak EE'], cbar=False, ax=ax[0])
+        ax[0].set_xlabel('Participants')
+
+        ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
+
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_4.png.png'), dpi=600, bbox_inches='tight')
 
 
 

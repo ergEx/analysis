@@ -27,5 +27,6 @@ plots:
   plot_riskaversion_bayesian: true
   plot_mcmc_samples: true
   plot_sensitivity_bayesian: true
+  plot_model_selection: true
 readingdata:
   run: true
