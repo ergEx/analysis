@@ -142,6 +142,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
+        ax2.legend('upper right')
 
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -158,6 +159,7 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bayesian']:
+        labels = ['Additive','Multiplicative']
         #no pooling and full pooling
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
@@ -181,7 +183,7 @@ def main(config_file):
                 maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
                 maxi[c,i,1] = kde.pdf(maxi[c,i,0])
 
-            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-')
+            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
 
         ax.set(xlim = [-1,2], xlabel = r"$\eta$", ylabel = '')
         ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
@@ -190,6 +192,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
+        ax2.legend('upper right')
 
         fig.savefig(os.path.join(fig_dir, '02a_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
