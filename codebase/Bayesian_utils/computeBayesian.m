@@ -93,8 +93,8 @@ switch inferenceMode
         %no model indicator used for parameter estimation
     case {2}
         switch model_selection_type
-            case {1}, pz = [1/2, 1/2, 0];   %test model 1 (EUT) v model 2 (EE)
-            case {2}, pz = [1/2, 0  , 1/2]; %test model 1 (EUT) v model 3 (Weak EE)
+            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);   %test model 1 (EUT) v model 2 (EE)
+            case {2}, pz = repmat([1/2, 0, 1/2], 1, 4);   %test model 1 (EUT) v model 3 (Weak EE)
         end
     case {3}
         pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
