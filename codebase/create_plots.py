@@ -83,13 +83,14 @@ def main(config_file):
             print('There is no passive trajectories for simulated data')
         else:
             df_active = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
-            fig, ax = plt.subplots(1,2, figsize=(23 * cm, 4.75 * cm))
+            participants_to_plot = df_active['participant_id'].unique()[:10]
+            fig, ax = plt.subplots(2,1, figsize=((23 * cm)/2, (4.75 * cm)*2))
             ax = ax.flatten()
             for c, con in enumerate(set(df_active.eta)):
                 tmp_df = df_active.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
-                for i, participant in enumerate(pivoted_df.columns):
-                    ax[c].plot(pivoted_df.index, pivoted_df[participant], color = colors[i])
+                for i, participant in enumerate(participants_to_plot):
+                    ax[c].plot(pivoted_df.index, pivoted_df[participant], color = 'black', alpha = 0.8)
                 ax[c].set(title=title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
                     ax[c].set(yscale="log", ylabel="Wealth")
