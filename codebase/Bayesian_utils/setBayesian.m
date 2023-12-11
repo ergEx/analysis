@@ -7,17 +7,23 @@ function setBayesian(dataSource,simVersion,dataPooling,inferenceMode,model_selec
 % DataSource  - set which data source is used; Simualtion (0)
 %                                              Pilot (1)
 %                                              Full experiment (2)
-% SimVersion - set which simulation to run (only used if DataSource is simulation);
+% SimVersion - set which simulation to run (only used if DataSource == 0);;
 %                                              grid with varying values (1-6)
-%                                              varying noise (7)
-%                                              varying ground truth risk aversion, and varying noise (8)
+% model_selection_type - set which type of model selection to perform (only used for inferencemode == 2):
+%                                 - test model 1 (EUT) v model 2 (EE) (1)
+%                                 - test model 1 (EUT) v model 2 (Weak EE) (2)
+%                                 - Parameter estimation for EUT model (3)
+%                                 - Parameter estimation for EE model (4)
+%                                 - Parameter estimation for EE2 model (5)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
 % inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
-% whichQuals    - sets the order of qualities to run
-% doParallel    - whether to run chains in parallel
+% whichQuals    - specifies the number of samples to run
+% doParallel    - sets whether to run chains in parallel
+% startDir      - root directory for the repo
+% seedChoice    - specifies whether to run on manually set seed (1) or random seed (2)
 
 %% Specifies qualities to be selected from
 numRuns      = length(dataPooling);     %how many separate instances of an MCMC to run
@@ -37,8 +43,6 @@ switch dataSource
             case {4}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_10';
             case {5}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/eta_15';
             case {6}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/time_optimal';
-            case {7}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/varying_variance';
-            case {8}, subjList = 1:(2*10); nTrials = 160; folder = '0_simulation/strong_weak_signal';
         end %simVersion
     case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
     case {2}, subjList = 1:60; nTrials = 160; folder = '2_full_data';%Full experiment data

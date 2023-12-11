@@ -7,12 +7,18 @@ function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurni
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% DataSource  - set which data source is used; Simualtion (0)
+% DataSource (unsuded)  - set which data source is used; Simualtion (0)
 %                                              Pilot (1)
 %                                              Full experiment (2)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
+% model_selection_type - set which type of model selection to perform (only used for inferencemode == 2):
+%                                 - test model 1 (EUT) v model 2 (EE) (1)
+%                                 - test model 1 (EUT) v model 2 (Weak EE) (2)
+%                                 - Parameter estimation for EUT model (3)
+%                                 - Parameter estimation for EE model (4)
+%                                 - Parameter estimation for EE2 model (5)
 % inferenceMode - set whether to do parameter estimation (1)
 %                                   Bayesian model comparison of three different models (2)
 %                                   Bayesian model comparison of data pooling (2)
@@ -27,6 +33,7 @@ function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurni
 % startDir      - root directory for the repo
 % nTrials       - number of trials in experiment
 % folder        - folder within the datafolder the relevant data is stored
+% seedChoice - specifies whether to run on manually set seed (1) or random seed (2)
 
 %% Set paths
 disp(startDir)
@@ -95,6 +102,14 @@ switch inferenceMode
         switch model_selection_type
             case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);   %test model 1 (EUT) v model 2 (EE)
             case {2}, pz = repmat([1/2, 0, 1/2], 1, 4);   %test model 1 (EUT) v model 3 (Weak EE)
+                
+        end
+        switch model_selection_type
+            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);  %test model 1 (EUT) v model 2 (EE)
+            case {2}, pz = repmat([1/3, 0, 1/2], 1, 4);  %test model 1 (EUT) v model 3 (Weak EE)
+            case {3}, pz = repmat([1, 0, 0], 1, 4); %parameter estimation for EUT model
+            case {4}, pz = repmat([0, 1, 0], 1, 4); %parameter estimation for EE model
+            case {5}, pz = repmat([0, 0, 1], 1, 4); %parameter estimation for weak EE model (EE2)
         end
     case {3}
         pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
