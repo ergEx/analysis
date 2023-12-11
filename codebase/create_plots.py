@@ -297,6 +297,75 @@ def main(config_file):
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
         fig.savefig(os.path.join(fig_dir, '07b_riskaversion_partial_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
 
+    if stages['plot_sensitivity_bayesian']:
+        labels = ['Additive','Multiplicative']
+        #no pooling and full pooling
+        bayesian_samples_full_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
+                    )
+        beta_g = bayesian_samples_full_pooling["beta_g"][:,burn_in:,:]
+
+        bayesian_samples_no_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
+                )
+        beta_i = bayesian_samples_no_pooling["beta_i"][:,burn_in:,:,:]
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        ax2 = ax.twinx()
+        beta_maxi = np.empty([n_conditions,n_agents])
+        for c in range(n_conditions):
+            for i in range(n_agents):
+                data_tmp = np.log(beta_i[:,:,i,c].ravel())
+                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                kde = gaussian_kde(data_tmp)
+
+                beta_maxi[c,i] = data_tmp[np.argmax(kde.pdf(data_tmp))]
+
+            sns.kdeplot(np.log(beta_g[:,:,c].ravel()), ax = ax2, color = colors[c], linestyle = '-')
+
+        ax.set( xlabel = r"$\ln \beta$", ylabel = '')
+        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax.spines[['left', 'top','right']].set_visible(False)
+
+        ax2.set(ylabel = '')
+        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax2.spines[['left', 'top', 'right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, 'beta1.png'), dpi=600, bbox_inches='tight')
+
+        #partial pooling
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                    )
+        beta_g = bayesian_samples_partial_pooling["beta_g"][:,burn_in:,:]
+        beta_i = bayesian_samples_partial_pooling["beta_i"][:,burn_in:,:,:]
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        ax2 = ax.twinx()
+        beta_maxi = np.empty([n_conditions,n_agents])
+        for c in range(n_conditions):
+            for i in range(n_agents):
+                data_tmp = np.log(beta_i[:,:,i,c].ravel())
+                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                kde = gaussian_kde(data_tmp)
+
+                beta_maxi[c,i] = data_tmp[np.argmax(kde.pdf(data_tmp))]
+
+            sns.kdeplot(np.log(beta_g[:,:,c].ravel()), ax = ax2, color = colors[c], linestyle = '-')
+
+        ax.set( xlabel = r"$\ln \beta$", ylabel = '')
+        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax.spines[['left', 'top','right']].set_visible(False)
+
+        ax2.set(ylabel = '')
+        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+        ax2.spines[['left', 'top', 'right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, 'beta2.png'), dpi=600, bbox_inches='tight')
+
+
+
+
     return
 
     if stages['plot_sensitivity_bayesian']:
