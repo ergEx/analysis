@@ -3,21 +3,20 @@ function runBayesian(dataSource, simVersion, inferenceMode, whichQuals, model_se
 
 % It provides the following inputs when calling setHLM:
 
-% DataSource  - set which data source is used; Simualtion (0)
+% dataSource  - set which data source is used; Simulation (0)
 %                                              Pilot (1)
 %                                              Full experiment (2)
-% SimVersion - set which simulation to run (only used if DataSource is simulation);
+% simVersion - set which simulation to run (only used if DataSource is simulation);
 %                                              grid with varying values (1-6)
 %                                              varying noise (7)
 %                                              varying ground truth risk aversion, and varying noise (8)
+% inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
+% whichQuals    - sets the order of qualities to run
+% model_selection_type: - 1: EUT vs EE, 2 EUT vs EE vs weakEE
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
-% inferenceMode - set whether to do parameter estimation (1) or Bayesian model comparison (2)
 % whichJAGS     - which copy of matjags to run on. this allows parallel jobs to run as long as they use different matjags
-% whichQuals    - sets the order of qualities to run
-% doParallel    - whether to run chains in parallel
-% seedChoice    - set whether to do manual seed choice (1), or random seed (2)
 
 % The idea is that this is written into by the user, then called by a
 % cluster job via the terminal:
