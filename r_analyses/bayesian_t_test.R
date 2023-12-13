@@ -95,8 +95,14 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
   out[1,3] <- extractBF(test, onlybf=TRUE)[1] # Getting BayesFactor from index 1
   out[1,4] <- mean(diff) # classic descriptives of paired difference
   out[1,5] <- sd(diff)
+  if (sum(is.na(post)) == 0){
   out[1,6:8] <- quantile(post[, 1], probs=c(0.5, 0.025,  0.975)) # Getting quantiles of posterior samples for mu (mean difference)
   out[1,9:11] <- quantile(post[, 3], probs=c(0.5, 0.025,  0.975)) # Getting quantiles of posterior sampels for delta (effect size)
+  } else{
+    print("Posterior estimation failed!")
+    out[1,6:8] <- NaN
+    out[1,9:11] <- NaN
+  }
   out[1, 12] <- cohensD(x=x, y=y, method='paired')
 
   return(out)
