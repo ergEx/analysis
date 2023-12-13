@@ -80,7 +80,7 @@ def main(config_file):
                 ax[c].legend(loc="upper left")
 
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_active']:
         if data_type != 'real_data':
@@ -103,7 +103,7 @@ def main(config_file):
                 ax[c].axhline(soft_limits[c][0], linestyle="--", color="grey", label='lower limit')
                 #ax[c].legend(loc="upper left")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '02_active_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '02_active_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
     #sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
     sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
@@ -277,7 +277,7 @@ def main(config_file):
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
-        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_1.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         # partial pooling
@@ -295,7 +295,7 @@ def main(config_file):
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
-        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_2.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_sensitivity_bayesian']:
         labels = ['Additive','Multiplicative']
@@ -331,7 +331,7 @@ def main(config_file):
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
 
-        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
         #partial pooling
         bayesian_samples_partial_pooling = read_Bayesian_output(
@@ -361,7 +361,7 @@ def main(config_file):
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
 
-        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_model_comparison']:
         #no pooling
@@ -374,7 +374,7 @@ def main(config_file):
 
         ax[1].bar(['EUT', 'EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
 
-        fig.savefig(os.path.join(fig_dir, '07_model_selection_1.png.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_1.pdf'), dpi=600, bbox_inches='tight')
 
         #EUT v EE2
         df = pd.read_csv(os.path.join(data_dir, "proportions_data_no_pooling_2.csv"), sep="\t")
@@ -385,7 +385,7 @@ def main(config_file):
 
         ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
 
-        fig.savefig(os.path.join(fig_dir, '07_model_selection_2.png.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_2.pdf'), dpi=600, bbox_inches='tight')
 
         #Partial pooling
         #EUT v EE
@@ -397,7 +397,7 @@ def main(config_file):
 
         ax[1].bar(['EUT', 'EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
 
-        fig.savefig(os.path.join(fig_dir, '07_model_selection_3.png.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_3.pdf'), dpi=600, bbox_inches='tight')
 
         #EUT v EE2
         df = pd.read_csv(os.path.join(data_dir, "proportions_data_partial_pooling_2.csv"), sep="\t")
@@ -408,7 +408,7 @@ def main(config_file):
 
         ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
 
-        fig.savefig(os.path.join(fig_dir, '07_model_selection_4.png.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '07_model_selection_4.pdf'), dpi=600, bbox_inches='tight')
 
 
 
