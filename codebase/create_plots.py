@@ -108,7 +108,8 @@ def main(config_file):
     #sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
     sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 
-    if stages['plot_riskaversion_bracketing']:
+    if stages['plot_risk_aversion_bracketing']:
+
         bracketing_overview = pd.read_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep = '\t')
 
         df_full_pooling = bracketing_overview[bracketing_overview.participant == 'all']
@@ -121,7 +122,7 @@ def main(config_file):
         ax2 = ax.twinx()
         maxi = np.empty([n_conditions,n_agents,2])
         etas_no_pooling = np.empty([n_agents,n_samples*n_chains,n_conditions])
-        for i, participant in enumerate(df_no_pooling['participant_id'].unique()):
+        for i, participant in enumerate(df_no_pooling['participant'].unique()):
             for c, con in enumerate(df_no_pooling['dynamic'].unique()):
                 tmp_df = df_no_pooling.query('participant == @participant and dynamic == @con')
                 if float(tmp_df.log_reg_std_dev) <= 0:
@@ -157,7 +158,7 @@ def main(config_file):
         ax.spines[['top','right']].set_visible(False)
 
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-        ax.legend('lower right')
+        ax.legend(['eta=0', 'eta=1'], loc='lower right')
 
         fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
@@ -195,7 +196,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend('upper right')
+        ax2.legend(['add', 'mult'], location='upper right')
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -210,7 +211,7 @@ def main(config_file):
         ax.spines[['top','right']].set_visible(False)
 
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-        ax.legend('lower right')
+        ax.legend(['add', 'mult'], loc='lower right')
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
@@ -242,7 +243,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend('upper right')
+        ax2.legend(['add', 'mult'], location='upper right')
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
@@ -257,7 +258,7 @@ def main(config_file):
         ax.spines[['top','right']].set_visible(False)
 
         ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-        ax.legend('lower right')
+        ax.legend(['add', 'mult'], loc='lower right')
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
 
@@ -363,7 +364,7 @@ def main(config_file):
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
-    if stages['plot_model_comparison']:
+    if stages['plot_model_selection']:
         #no pooling
         #EUT v EE
         df = pd.read_csv(os.path.join(data_dir, "proportions_data_no_pooling_1.csv"), sep="\t")
@@ -409,7 +410,5 @@ def main(config_file):
         ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
 
         fig.savefig(os.path.join(fig_dir, '07_model_selection_4.pdf'), dpi=600, bbox_inches='tight')
-
-
 
     return
