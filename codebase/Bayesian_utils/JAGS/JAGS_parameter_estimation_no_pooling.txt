@@ -40,7 +40,7 @@ log_beta_g[c]  ~ dnorm(0,1)   # Not used
 
 for (i in 1:nSubjects){
     eta_i[i,c]       ~ dnorm(muEta,tauEta)
-    beta_i[i,c]      = exp(log_beta_i)
+    beta_i[i,c]      = exp(log_beta_i[i,c])
     log_beta_i[i,c]  ~ dnorm(muLogBeta, tauLogBeta)
 }#end of subjects
 }#end of conditions
