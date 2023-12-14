@@ -3,7 +3,7 @@ import sys
 
 import numpy as np
 import pandas as pd
-import statsmodels.api as sm
+from scipy.stats import gaussian_kde
 import yaml
 
 from .experiment_specs import condition_specs, sub_specs
@@ -55,8 +55,8 @@ def main(config_file):
             for c, condition in enumerate(CONDITION_SPECS["lambd"]):
                 try:
                     eta_dist = eta_samples[:, :, j, c].flatten()
-                    kde = sm.nonparametric.KDEUnivariate(eta_dist).fit()
-                    data[f"{c}.0_{pool}"][j] = kde.support[np.argmax(kde.density)]
+                    kde = gaussian_kde(eta_dist)
+                    data[f"{c}.0_{pool}"][j] = eta_dist[np.argmax(kde.pdf(eta_dist))]
                 except Exception as e:
                     pass
 
