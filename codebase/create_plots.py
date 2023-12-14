@@ -122,7 +122,7 @@ def main(config_file):
 
         for ch in range(n_chains):
             for c, con in enumerate(df_no_pooling['dynamic'].unique()):
-                tmp_df_g = df_no_pooling.query('dynamic == @con')
+                tmp_df_g = df_full_pooling.query('dynamic == @con')
                 eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples)
 
                 for i, participant in enumerate(df_no_pooling['participant'].unique()):
