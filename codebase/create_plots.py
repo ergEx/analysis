@@ -39,7 +39,7 @@ def main(config_file):
     quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
     n_agents = config["n_agents"]
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
-    n_samples = int(quality_dictionary['samples'][config['qual'] - 1]) # - burn_in)
+    n_samples = int(quality_dictionary['samples'][config['qual'] - 1])
     n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
     n_conditions = config["n_conditions"]
 
@@ -123,11 +123,11 @@ def main(config_file):
         for ch in range(n_chains):
             for c, con in enumerate(df_no_pooling['dynamic'].unique()):
                 tmp_df_g = df_full_pooling.query('dynamic == @con')
-                eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples)
+                eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples-burn_in)
 
                 for i, participant in enumerate(df_no_pooling['participant'].unique()):
                     tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
-                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
+                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples-burn_in)
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
