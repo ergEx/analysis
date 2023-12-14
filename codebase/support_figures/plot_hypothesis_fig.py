@@ -16,7 +16,7 @@ def plot_hypotheses(data):
 
     fig, ax = plt.subplots()
 
-    sns.kdeplot(data[:, 0], data[:, 1], cmap="YlOrBr", shade=True, ax=ax)
+    sns.kdeplot(data[:, 0], data[:, 1], cmap="coolwarm", shade=True, ax=ax)
     ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
 
     ax.set(xlim=limits, ylim=limits, xlabel="$\eta^{\mathrm{add}}$", ylabel='$\eta^{\mathrm{mul}}$',
@@ -35,23 +35,23 @@ def plot_hypotheses(data):
 def hypothesis_fig(fig_dir):
     np.random.seed(0)
 
-    #h0
+    #EUT
     data = np.random.uniform(-3, 4, (10000, 2))
     data[:, 1] = data[:, 0] + np.random.normal(0,0.2,10000)
 
     fig, ax = plot_hypotheses(data)
-    fig.savefig(os.path.join(fig_dir, f"h_0.pdf"), dpi=600, bbox_inches='tight')
+    fig.savefig(os.path.join(fig_dir, f"EUT_pred.pdf"), dpi=600, bbox_inches='tight')
 
-    #h1
+    #EE
     data = np.random.normal(0, 0.2, (10000, 2))
     data[:,1] = np.random.normal(1, 0.2, (10000))
 
     fig, ax = plot_hypotheses(data)
-    fig.savefig(os.path.join(fig_dir, f"h_1.pdf"), dpi=600, bbox_inches='tight')
+    fig.savefig(os.path.join(fig_dir, f"EE_pred.pdf"), dpi=600, bbox_inches='tight')
 
-    #h2
+    #EE2
     data = np.random.uniform(-3, 4, (10000, 2))
     data[:, 1] = data[:, 0] + np.abs(np.random.uniform(0, 4, (10000)))
 
     fig, ax = plot_hypotheses(data)
-    fig.savefig(os.path.join(fig_dir, f"h_2.pdf"), dpi=600, bbox_inches='tight')
+    fig.savefig(os.path.join(fig_dir, f"EE2_pred.pdf"), dpi=600, bbox_inches='tight')

@@ -330,7 +330,7 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     return fig, ax, ax2, maxi
 
 def posterior_dist_2dplot(fig, ax, data_no_pooling, colors_alpha, LIMITS, maxi):
-        sns.kdeplot(x=data_no_pooling[:,:,:,0].ravel(), y=data_no_pooling[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
+        sns.kdeplot(x=data_no_pooling[:,:,:,0].ravel(), y=data_no_pooling[:,:,:,1].ravel(), cmap="coolwarm", fill=True, ax = ax)
 
         sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
         ax.axvline(0, color=colors_alpha[0], linestyle='--')
