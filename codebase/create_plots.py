@@ -117,50 +117,28 @@ def main(config_file):
         df_full_pooling = bracketing_overview[bracketing_overview.participant == 'all']
         df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
 
-        eta_add_full_pooling = np.random.normal(df_full_pooling[df_full_pooling.dynamic == 0.0].log_reg_decision_boundary, df_full_pooling[df_full_pooling.dynamic == 0.0].log_reg_std_dev, n_samples * n_conditions)
-        eta_mul_full_pooling = np.random.normal(df_full_pooling[df_full_pooling.dynamic == 1.0].log_reg_decision_boundary, df_full_pooling[df_full_pooling.dynamic == 1.0].log_reg_std_dev, n_samples * n_chains)
+        eta_g = np.zeros(n_chains, n_samples, n_conditions)
+        eta_i = np.zeros(n_chains, n_samples, n_agents, n_conditions)
+
+        for ch in range(n_chains):
+            for c, con in enumerate(df_no_pooling['dynamic'].unique()):
+                tmp_df_g = df_no_pooling.query('dynamic == @con')
+                eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples)
+
+                for i, participant in enumerate(df_no_pooling['participant'].unique()):
+                    tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
+                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax2 = ax.twinx()
-        maxi = np.empty([n_conditions,n_agents,2])
-        etas_no_pooling = np.empty([n_agents,n_samples*n_chains,n_conditions])
-        for i, participant in enumerate(df_no_pooling['participant'].unique()):
-            for c, con in enumerate(df_no_pooling['dynamic'].unique()):
-                tmp_df = df_no_pooling.query('participant == @participant and dynamic == @con')
-                if float(tmp_df.log_reg_std_dev) <= 0:
-                    continue
-                tmp = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
-                etas_no_pooling[i,:,c] = tmp
-                sns.kdeplot(tmp, ax = ax, color = colors_alpha[c])
-                kde = gaussian_kde(tmp)
-                maxi[c,i,0] = tmp[np.argmax(kde.pdf(tmp))]
-                maxi[c,i,1] = kde.pdf(maxi[c,i,0])
-        sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[0], label = 'Additive')
-        sns.kdeplot(eta_mul_full_pooling, ax = ax, color = colors[1], label = 'Multiplicative')
 
-        ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
-        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax.spines[['left', 'top','right']].set_visible(False)
-
-        ax2.set(ylabel = '')
-        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend('upper right')
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS)
 
         fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        sns.kdeplot(x=etas_no_pooling[:,:,0].ravel(), y=etas_no_pooling[:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
-        ax.axvline(0, color=colors_alpha[0], linestyle='--')
-        ax.axhline(1, color=colors_alpha[1], linestyle='--')
-        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
-        ax.spines[['top','right']].set_visible(False)
-
-        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-        ax.legend(['eta=0', 'eta=1'], loc='lower right')
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, LIMITS, maxi)
 
         fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
