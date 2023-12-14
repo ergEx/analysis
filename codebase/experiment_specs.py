@@ -61,14 +61,27 @@ def condition_specs():
 def create_spec_dict(folder, ignore_no_brainer=False):
     from glob import glob
     import re
+    import warnings
+    import pandas as pd
 
-    subs = sorted([i.split('/')[-1].split('-')[-1] for i in glob(f'{folder}/sub-*')])
+    participants_tsv = os.path.join(folder, 'participants.tsv')
+
+    # TODO add participants.tsv to pilot data.
+    if not os.path.isfile(participants_tsv):
+        subs = sorted([i.split('/')[-1].split('-')[-1] for i in glob(f'{folder}/sub-*')])
+        warnings.warn("Using folder structure, not participants.tsv")
+        exclusion = np.zeros(len(subs))
+    else:
+        participants = pd.read_csv(participants_tsv, sep='\t')
+        subs = participants['participant_id'].values
+        exclusion = participants['exclusion'].values
+
     order = []
     included_subs = []
 
     pattern = r"acq-(\w+)_run"
 
-    for ii in subs:
+    for nsu, ii in enumerate(subs):
         file = glob(f'{folder}/sub-{ii}/ses-1/*passive*_run-1*')[0]
         match = re.search(pattern, file)
         if match:
@@ -83,19 +96,22 @@ def create_spec_dict(folder, ignore_no_brainer=False):
 
         else:
             raise ValueError("No match?!")
-        
+
         nobrainer_file_ses1 = glob(f'{folder}/sub-{ii}/ses-1/*passive*_run-3*')[0]
         performance_ses1 = extract_no_brainer_performance(nobrainer_file_ses1)
         nobrainer_file_ses2 = glob(f'{folder}/sub-{ii}/ses-2/*passive*_run-3*')[0]
         performance_ses2 = extract_no_brainer_performance(nobrainer_file_ses2)
 
-        if ((performance_ses1 >= 0.8) and (performance_ses2 >= 0.8)) or ignore_no_brainer:
+        if exclusion[nsu] in [1, 2]:
+            print(f"Not including subject {ii} due to reason {exclusion[nsu]}\n" +
+                  f"Ses1: {performance_ses1:4.2f} === Ses2: {performance_ses2:4.2f}")
+        elif ((performance_ses1 >= 0.8) and (performance_ses2 >= 0.8)) or ignore_no_brainer:
             included_subs.append(ii)
             order.append(ses_order)
         else:
             print(f"Not including subject {ii} due to no_brainer performance\n" +
                   f"Ses1: {performance_ses1:4.2f} === Ses2: {performance_ses2:4.2f}")
-    
+
     print(f"Read in data from {len(included_subs)} participants - Control: {len(order)}")
     return {'id': included_subs, 'first_run': order}
 
@@ -111,5 +127,5 @@ def extract_no_brainer_performance(file: str):
         nob_file = nob_file.query('part == 1 and event_type =="TrialEnd"')
 
         performance = nob_file['response_correct'].mean()
-        
+
         return performance
