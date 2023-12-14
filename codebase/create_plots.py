@@ -131,7 +131,7 @@ def main(config_file):
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS)
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
 
         fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -157,7 +157,7 @@ def main(config_file):
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS)
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -177,7 +177,7 @@ def main(config_file):
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS)
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
@@ -238,25 +238,8 @@ def main(config_file):
         beta_i = bayesian_samples_no_pooling["beta_i"][:,burn_in:,:,:]
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax2 = ax.twinx()
-        beta_maxi = np.empty([n_conditions,n_agents])
-        for c in range(n_conditions):
-            for i in range(n_agents):
-                data_tmp = np.log(beta_i[:,:,i,c].ravel())
-                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
-                kde = gaussian_kde(data_tmp)
 
-                beta_maxi[c,i] = data_tmp[np.argmax(kde.pdf(data_tmp))]
-
-            sns.kdeplot(np.log(beta_g[:,:,c].ravel()), ax = ax2, color = colors[c], linestyle = '-')
-
-        ax.set( xlabel = r"$\ln \beta$", ylabel = '')
-        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax.spines[['left', 'top','right']].set_visible(False)
-
-        ax2.set(ylabel = '')
-        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax2.spines[['left', 'top', 'right']].set_visible(False)
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -268,25 +251,8 @@ def main(config_file):
         beta_i = bayesian_samples_partial_pooling["beta_i"][:,burn_in:,:,:]
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax2 = ax.twinx()
-        beta_maxi = np.empty([n_conditions,n_agents])
-        for c in range(n_conditions):
-            for i in range(n_agents):
-                data_tmp = np.log(beta_i[:,:,i,c].ravel())
-                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
-                kde = gaussian_kde(data_tmp)
 
-                beta_maxi[c,i] = data_tmp[np.argmax(kde.pdf(data_tmp))]
-
-            sns.kdeplot(np.log(beta_g[:,:,c].ravel()), ax = ax2, color = colors[c], linestyle = '-')
-
-        ax.set( xlabel = r"$\ln \beta$", ylabel = '')
-        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax.spines[['left', 'top','right']].set_visible(False)
-
-        ax2.set(ylabel = '')
-        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax2.spines[['left', 'top', 'right']].set_visible(False)
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\beta$")
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
@@ -339,7 +305,7 @@ def main(config_file):
 
     return
 
-def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS):
+def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, x_label):
     ax2 = ax.twinx()
     maxi = np.zeros([n_conditions,n_agents,2])
     for c in range(n_conditions):
@@ -353,7 +319,7 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
 
         sns.kdeplot(data_pooling[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
 
-    ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
+    ax.set(xlim = LIMITS, xlabel = x_label, ylabel = '')
     ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
     ax.spines[['left', 'top','right']].set_visible(False)
 
