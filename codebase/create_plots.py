@@ -39,7 +39,7 @@ def main(config_file):
     quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
     n_agents = config["n_agents"]
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
-    n_samples = int(quality_dictionary['samples'][config['qual'] - 1] - burn_in)
+    n_samples = int(quality_dictionary['samples'][config['qual'] - 1]) # - burn_in)
     n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
     n_conditions = config["n_conditions"]
 
@@ -177,10 +177,10 @@ def main(config_file):
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         ax2 = ax.twinx()
-        maxi = np.empty([n_conditions,n_agents,2])
+        maxi = np.zeros([n_conditions,n_agents,2])
         for c in range(n_conditions):
             for i in range(n_agents):
-                data_tmp = eta_i[:,:,i,c].ravel()
+                data_tmp = eta_i[:,:,i,c].flatten()
                 sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
                 kde = gaussian_kde(data_tmp)
 
@@ -196,7 +196,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend(['add', 'mult'], location='upper right')
+        ax2.legend(['additive', 'multiplicative'], loc='upper right')
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -243,7 +243,7 @@ def main(config_file):
         ax2.set(ylabel = '')
         ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
         ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend(['add', 'mult'], location='upper right')
+        ax2.legend(['add', 'mult'], loc='upper right')
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
