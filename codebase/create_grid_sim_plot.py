@@ -4,14 +4,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from .utils import plot_individual_heatmaps, read_Bayesian_output
+import yaml
 
-def create_grid_sim_plot():
-    cmap = plt.get_cmap("tab20")
+from .utils import posterior_dist_2dplot, read_Bayesian_output
+
+
+def create_grid_sim_plot(config_file):
+    with open(f"{config_file}", "r") as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
 
     plt.rcParams.update({
         "text.usetex": True})
     sns.set_context('paper', font_scale=1.1)
+
+    cm = 1/2.54  # centimeters in inches (for plot size conversion)
+    fig_size = (6.5 * cm , 5.75 * cm)
+
+    LIMITS = [-1,2]
 
     data_dir = "data/0_simulation/grid/"
     fig_dir = "figs/0_simulation/grid/"
@@ -19,52 +28,51 @@ def create_grid_sim_plot():
     if not os.path.isdir(fig_dir):
         os.makedirs(fig_dir)
 
+    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
+    n_agents = config["n_agents"]
+    burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
+    n_samples = int(quality_dictionary['samples'][config['qual'] - 1])
+    n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
+    n_conditions = config["n_conditions"]
+
+    colors_alpha = [np.array([0, 0, 1, 0.3], dtype=float), np.array([1, 0, 0, 0.3], dtype=float)]
+
     types = ['eta_n05', 'eta_00', 'eta_05', 'eta_10', 'eta_15', 'time_optimal']
-    colors = [cmap(i) for i in np.linspace(0, 1, len(types))]
-    #Bracketing
-    all_data_add = np.ones([len(types),10*5000*4])
-    all_data_mul = np.ones([len(types),10*5000*4])
-    for i, version in enumerate(types):
-        data_dir_tmp = data_dir + version
+
+    fig_bracketing, ax_bracketing = plt.subplots(1, 1, figsize=fig_size)
+    fig_bayesian_no_pooling, ax_bayesian_no_pooling = plt.subplots(1, 1, figsize=fig_size)
+    fig_bayesian_partial_pooling, ax_bayesian_partial_pooling = plt.subplots(1, 1, figsize=fig_size)
+
+    for i, type in enumerate(types):
+        data_dir_tmp = data_dir + type
+
+        #Bracketing
         bracketing_overview = pd.read_csv(os.path.join(data_dir_tmp, "bracketing_overview.csv"), sep = '\t')
+        df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
+        eta_i = np.zeros(n_chains, n_samples, n_agents, n_conditions)
+        for ch in range(n_chains):
+            for c, con in enumerate(df_no_pooling['dynamic'].unique()):
+                for i, participant in enumerate(df_no_pooling['participant'].unique()):
+                    tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
+                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples-burn_in)
 
-        df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
+        fig_bracketing, ax_bracketing = posterior_dist_2dplot(fig_bracketing, ax_bracketing, eta_i, colors_alpha, LIMITS, None)
 
-        etas = np.ones([10,5000*4,2])
-        for j, participant in enumerate(list(set(df_tmp.participant))):
-            for c, con in enumerate(list(set(df_tmp.dynamic))):
-                tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
-                if tmp_df.log_reg_std_dev.values <= 0:
-                    etas[j,:,c] if j > 0 else np.ones([5000*4])
-                    continue
-                etas[j,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, 5000*4)
-        etas_log_r = np.reshape(etas, (10 * 5000 * 4, 2))
-        all_data_add[i,:] = etas_log_r[:,0]
-        all_data_mul[i,:] = etas_log_r[:,1]
-
-    all_data = np.array([all_data_add.flatten(), all_data_mul.flatten()])
-    h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10),
-                                limits=[-1.5, 2.0], x_fiducial=[0], y_fiducial=[1])
-    h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
-
-    #Bayesian
-    for pooling in ['no_pooling', 'partial_pooling']:
-        all_data_add = np.ones([len(types),10*5000*4])
-        all_data_mul = np.ones([len(types),10*5000*4])
-        for i, version in enumerate(types):
-            data_dir_tmp = data_dir + version
-            d = read_Bayesian_output(
-                            os.path.join(data_dir_tmp, f"Bayesian_JAGS_parameter_estimation_{pooling}.mat")
+        #Bayesian
+        bayesian_samples_no_pooling = read_Bayesian_output(
+                        os.path.join(data_dir_tmp, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                         )
-            eta_i = d["eta_i"]
-            eta_i_t = eta_i.transpose((2, 0, 1, 3))
-            eta_i_t_r = np.reshape(eta_i_t, (10 * 5000 * 4, 2))
-            all_data_add[i,:] = eta_i_t_r[:,0]
-            all_data_mul[i,:] = eta_i_t_r[:,1]
+        eta_i = bayesian_samples_no_pooling["eta_i"]
 
-        all_data = np.array([all_data_add.flatten(), all_data_mul.flatten()])
+        fig_bayesian_no_pooling, ax_bayesian_no_pooling = posterior_dist_2dplot(fig_bayesian_no_pooling, ax_bayesian_no_pooling, eta_i, colors_alpha, LIMITS, None)
 
-        h1 = plot_individual_heatmaps(all_data.T, colors, hue = np.repeat(np.arange(len(types)), 5000*4*10),
-                                    limits=[-1.5, 2.0],  x_fiducial=[0], y_fiducial=[1])
+        bayesian_samples_no_pooling = read_Bayesian_output(
+                        os.path.join(data_dir_tmp, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                        )
+        eta_i = bayesian_samples_no_pooling["eta_i"]
 
-        h1.savefig(os.path.join(fig_dir, f"grid_simulation_riskaversion_{pooling}.pdf"), dpi=600, bbox_inches='tight')
+        fig_bayesian_partial_pooling, ax_bayesian_partial_pooling = posterior_dist_2dplot(fig_bayesian_partial_pooling, ax_bayesian_partial_pooling, eta_i, colors_alpha, LIMITS, None)
+
+    fig_bracketing.savefig(os.path.join(fig_dir, 'simulations_bracketing.png'), dpi=600, bbox_inches='tight')
+    fig_bayesian_no_pooling.savefig(os.path.join(fig_dir, 'simulations_bayesian_no_pooling.png'), dpi=600, bbox_inches='tight')
+    fig_bayesian_partial_pooling.savefig(os.path.join(fig_dir, 'simulations_bauesian_partial_pooling.png'), dpi=600, bbox_inches='tight')
