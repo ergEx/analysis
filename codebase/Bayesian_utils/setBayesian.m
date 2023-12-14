@@ -45,7 +45,7 @@ switch dataSource
             case {6}, subjList = 1:(1*10); nTrials = 160; folder = '0_simulation/grid/time_optimal';
         end %simVersion
     case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
-    case {2}, subjList = 1:60; nTrials = 160; folder = '2_full_data';%Full experiment data
+    case {2}, subjList = 1:58; nTrials = 160; folder = '2_full_data';%Full experiment data
 end %dataSource
 
 %% Runs HLMs sequentially
