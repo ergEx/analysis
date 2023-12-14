@@ -26,14 +26,6 @@ restoredefaultpath
 [startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
 addpath(fullfile(startDir,'/Bayesian_utils'));
 
-%% Specify variables
-% dataSource = 1;
-% simVersion = 1;
-% dataPooling = [2, 1, 3];
-% inferenceMode = 1;
-% model_selection_type = 1;
-%whichJAGS = 1;
-%whichQuals = 1;
 doParallel = 1;
 seedChoice = 1;
 
