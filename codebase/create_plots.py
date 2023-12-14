@@ -178,42 +178,15 @@ def main(config_file):
         eta_i = bayesian_samples_no_pooling["eta_i"][:,burn_in:,:,:]
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax2 = ax.twinx()
-        maxi = np.zeros([n_conditions,n_agents,2])
-        for c in range(n_conditions):
-            for i in range(n_agents):
-                data_tmp = eta_i[:,:,i,c].flatten()
-                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
-                kde = gaussian_kde(data_tmp)
 
-                maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
-                maxi[c,i,1] = kde.pdf(maxi[c,i,0])
-
-            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
-
-        ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
-        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax.spines[['left', 'top','right']].set_visible(False)
-
-        ax2.set(ylabel = '')
-        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend(['additive', 'multiplicative'], loc='upper right')
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS)
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
-        ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
-        ax.axhline(1, color='red', alpha=0.5, linestyle='--')
-        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
-        ax.spines[['top','right']].set_visible(False)
-
-        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-        ax.legend(['add', 'mult'], loc='lower right')
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, LIMITS, maxi)
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
@@ -225,42 +198,15 @@ def main(config_file):
         eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax2 = ax.twinx()
-        maxi = np.empty([n_conditions,n_agents,2])
-        for c in range(n_conditions):
-            for i in range(n_agents):
-                data_tmp = eta_i[:,:,i,c].ravel()
-                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
-                kde = gaussian_kde(data_tmp)
 
-                maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
-                maxi[c,i,1] = kde.pdf(maxi[c,i,0])
-
-            sns.kdeplot(eta_g[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
-
-        ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
-        ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax.spines[['left', 'top','right']].set_visible(False)
-
-        ax2.set(ylabel = '')
-        ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-        ax2.spines[['left', 'top', 'right']].set_visible(False)
-        ax2.legend(['add', 'mult'], loc='upper right')
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS)
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.5)
-        ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
-        ax.axhline(1, color='red', alpha=0.5, linestyle='--')
-        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
-        ax.spines[['top','right']].set_visible(False)
-
-        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', label = 'MAP estimates')
-        ax.legend(['add', 'mult'], loc='lower right')
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, LIMITS, maxi)
 
         fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
 
@@ -414,3 +360,40 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, '07_model_selection_4.pdf'), dpi=600, bbox_inches='tight')
 
     return
+
+def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS):
+    ax2 = ax.twinx()
+    maxi = np.zeros([n_conditions,n_agents,2])
+    for c in range(n_conditions):
+        for i in range(n_agents):
+            data_tmp = data_no_pooling[:,:,i,c].flatten()
+            sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
+            kde = gaussian_kde(data_tmp)
+
+            maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
+            maxi[c,i,1] = kde.pdf(maxi[c,i,0])
+
+        sns.kdeplot(data_pooling[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
+
+    ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
+    ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+    ax.spines[['left', 'top','right']].set_visible(False)
+
+    ax2.set(ylabel = '')
+    ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
+    ax2.spines[['left', 'top', 'right']].set_visible(False)
+    ax2.legend(loc='upper right')
+    return fig, ax, ax2, maxi
+
+def posterior_dist_2dplot(fig, ax, data_no_pooling, colors_alpha, LIMITS, maxi):
+        sns.kdeplot(x=data_no_pooling[:,:,:,0].ravel(), y=data_no_pooling[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
+
+        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
+        ax.axvline(0, color=colors_alpha[0], linestyle='--')
+        ax.axhline(1, color=colors_alpha[1], linestyle='--')
+        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
+        ax.spines[['top','right']].set_visible(False)
+
+        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', alpha = 0.3, label = 'MAP estimates')
+        ax.legend(loc='lower right')
+        return fig, ax
