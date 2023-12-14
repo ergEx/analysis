@@ -9,6 +9,8 @@ import yaml
 from matplotlib import rcParamsDefault
 from scipy.stats import gaussian_kde
 
+from .utils import posterior_dist_2dplot
+
 plt.rcParams.update({
     "text.usetex": True})
 
@@ -329,15 +331,3 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     ax2.legend(loc='upper right')
     return fig, ax, ax2, maxi
 
-def posterior_dist_2dplot(fig, ax, data_no_pooling, colors_alpha, LIMITS, maxi):
-        sns.kdeplot(x=data_no_pooling[:,:,:,0].ravel(), y=data_no_pooling[:,:,:,1].ravel(), cmap="coolwarm", fill=True, ax = ax)
-
-        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
-        ax.axvline(0, color=colors_alpha[0], linestyle='--')
-        ax.axhline(1, color=colors_alpha[1], linestyle='--')
-        ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
-        ax.spines[['top','right']].set_visible(False)
-
-        ax.scatter(x=maxi[0, :, 0], y=maxi[1, :, 0], marker='x', color='black', alpha = 0.3, label = 'MAP estimates')
-        ax.legend(loc='lower right')
-        return fig, ax
