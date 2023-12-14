@@ -48,7 +48,9 @@ def main(config_file):
     title_dict={0: "Additive", 1: "Multiplicative"}
     soft_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
-    colors = ['blue','red']
+    colors    = [np.array([0, 0, 1, 1], dtype=float), np.array([1, 0, 0, 0.3], dtype=float)]
+    colors_alpha = [np.array([0, 0, 1, 0.3], dtype=float), np.array([1, 0, 0, 0.3], dtype=float)]
+
     # Set slightly larger fontscale throughout, but keeping matplotlib settings
     sns.set_context('paper', font_scale=1.0) #, rc=rcParamsDefault)
     # params = {"font.family" : "serif", If the need occurs to set fonts
@@ -129,12 +131,12 @@ def main(config_file):
                     continue
                 tmp = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
                 etas_no_pooling[i,:,c] = tmp
-                sns.kdeplot(tmp, ax = ax, color = colors[c], alpha = 0.1)
+                sns.kdeplot(tmp, ax = ax, color = colors_alpha[c])
                 kde = gaussian_kde(tmp)
                 maxi[c,i,0] = tmp[np.argmax(kde.pdf(tmp))]
                 maxi[c,i,1] = kde.pdf(maxi[c,i,0])
-        sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[0], alpha = 1, label = 'Additive')
-        sns.kdeplot(eta_mul_full_pooling, ax = ax, color = colors[1], alpha = 1, label = 'Multiplicative')
+        sns.kdeplot(eta_add_full_pooling, ax = ax, color = colors[0], label = 'Additive')
+        sns.kdeplot(eta_mul_full_pooling, ax = ax, color = colors[1], label = 'Multiplicative')
 
         ax.set(xlim = LIMITS, xlabel = r"$\eta$", ylabel = '')
         ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
@@ -151,9 +153,9 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         sns.kdeplot(x=etas_no_pooling[:,:,0].ravel(), y=etas_no_pooling[:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.5)
-        ax.axvline(0, color=colors[0], alpha=0.5, linestyle='--')
-        ax.axhline(1, color=colors[1], alpha=0.5, linestyle='--')
+        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
+        ax.axvline(0, color=colors_alpha[0], linestyle='--')
+        ax.axhline(1, color=colors_alpha[1], linestyle='--')
         ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
         ax.spines[['top','right']].set_visible(False)
 
@@ -181,7 +183,7 @@ def main(config_file):
         for c in range(n_conditions):
             for i in range(n_agents):
                 data_tmp = eta_i[:,:,i,c].flatten()
-                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
                 kde = gaussian_kde(data_tmp)
 
                 maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
@@ -204,7 +206,7 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         sns.kdeplot(x=eta_i[:,:,:,0].ravel(), y=eta_i[:,:,:,1].ravel(), cmap="YlOrBr", fill=True, ax = ax)
 
-        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.5)
+        sns.lineplot(x=LIMITS, y=LIMITS, color='black', linestyle='--', ax=ax, alpha = 0.3)
         ax.axvline(0, color='blue', alpha=0.5, linestyle='--')
         ax.axhline(1, color='red', alpha=0.5, linestyle='--')
         ax.set(xlim = LIMITS, ylim = LIMITS, xlabel = r"$\eta^{\mathrm{add}}$", ylabel = r"$\eta^{\mathrm{mul}}$")
@@ -228,7 +230,7 @@ def main(config_file):
         for c in range(n_conditions):
             for i in range(n_agents):
                 data_tmp = eta_i[:,:,i,c].ravel()
-                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
                 kde = gaussian_kde(data_tmp)
 
                 maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
@@ -273,8 +275,8 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey')
         for c in range(n_chains):
-            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), alpha = (c+1)/n_chains, color = colors[0])
-            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), alpha = (c+1)/n_chains, color = colors[1])
+            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), color = colors_alpha[0])
+            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), color = colors_alpha[1])
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
@@ -291,8 +293,8 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey', label = 'Burn in')
         for c in range(n_chains):
-            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), alpha = (c+1)/n_chains, color = colors[0])
-            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), alpha = (c+1)/n_chains, color = colors[1])
+            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), color = colors_alpha[0])
+            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), color = colors_alpha[1])
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
@@ -317,7 +319,7 @@ def main(config_file):
         for c in range(n_conditions):
             for i in range(n_agents):
                 data_tmp = np.log(beta_i[:,:,i,c].ravel())
-                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
                 kde = gaussian_kde(data_tmp)
 
                 beta_maxi[c,i] = data_tmp[np.argmax(kde.pdf(data_tmp))]
@@ -347,7 +349,7 @@ def main(config_file):
         for c in range(n_conditions):
             for i in range(n_agents):
                 data_tmp = np.log(beta_i[:,:,i,c].ravel())
-                sns.kdeplot(data_tmp, ax = ax, color = colors[c], alpha = 0.1)
+                sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
                 kde = gaussian_kde(data_tmp)
 
                 beta_maxi[c,i] = data_tmp[np.argmax(kde.pdf(data_tmp))]
