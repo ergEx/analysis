@@ -31,17 +31,30 @@ for (t in 1:nTrials){
 }# end of conditions
 }# end of subjects
 
-
 ## PRIORS
 for (c in 1:nConditions){
-eta_g[c]       ~ dnorm(muEta,tauEta)
+eta_g[c]       ~ dnorm(mu_eta[c],tau_eta[c])
+log_beta_g[c]  ~ dnorm(mu_log_beta[c], tau_log_beta[c])
 beta_g[c]      = exp(log_beta_g[c])
-log_beta_g[c]  ~ dnorm(muLogBeta, tauLogBeta)
 
 for (i in 1:nSubjects){
-    eta_i[i,c]       ~ dnorm(0,1) # not used
-    beta_i[i,c]      = exp(1)     # not used
     log_beta_i[i,c]  ~ dnorm(0,1) # not used
+    beta_i[i,c]      = exp(1)     # not used
+    eta_i[i,c]       ~ dnorm(0,1) # not used
 }#end of subjects
+}#end of conditions
+
+
+##HYPERPRIORS
+for (c in 1:nConditions){
+    #beta parameter
+    mu_log_beta[c]       ~ dunif(muLogBetaL,muLogBetaH)
+    tau_log_beta[c]      = pow(sigma_log_beta[c],-2)
+    sigma_log_beta[c]    ~ dunif(sigmaL,sigmaH)
+
+    #eta parameter
+    mu_eta[c]            ~ dunif(muEtaL,muEtaH)
+    tau_eta[c]           = pow(sigma_eta[c],-2)
+    sigma_eta[c]         ~ dunif(sigmaL,sigmaH)
 }#end of conditions
 }
