@@ -31,11 +31,7 @@ def main(config_file):
     CONDITION_SPECS = condition_specs()
 
     quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
-    n_agents = config["n_agents"]
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
-    n_samples = int(quality_dictionary['samples'][config['qual'] - 1] - burn_in)
-    n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
-    n_conditions = config["n_conditions"]
 
     data = {"0.0_partial_pooling": [None] * len(subjects), "1.0_partial_pooling": [None] * len(subjects),
             "0.0_no_pooling": [None] * len(subjects), "1.0_no_pooling": [None] * len(subjects)}
