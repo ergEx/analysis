@@ -48,7 +48,7 @@ def main(config_file):
     title_dict={0: "Additive", 1: "Multiplicative"}
     soft_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
-    colors    = [np.array([0, 0, 1, 1], dtype=float), np.array([1, 0, 0, 0.3], dtype=float)]
+    colors    = [np.array([0, 0, 1, 1], dtype=float), np.array([1, 0, 0, 1], dtype=float)]
     colors_alpha = [np.array([0, 0, 1, 0.3], dtype=float), np.array([1, 0, 0, 0.3], dtype=float)]
 
     # Set slightly larger fontscale throughout, but keeping matplotlib settings
