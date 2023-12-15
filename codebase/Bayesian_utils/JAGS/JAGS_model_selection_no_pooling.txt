@@ -56,7 +56,7 @@ for (t in 1:nTrials){
     cp_EE[i,c,t]     = 1 / (1 + (exp(sdeu_EE[i,c,t])))
     theta[i,c,t,2]   = max(0.000001,min(0.999999,cp_EE[i,c,t]))
     theta[i,c,t,5]   = max(0.000001,min(0.999999,cp_EE[i,c,t]))
-    theta[i,c,t,7]   = max(0.000001,min(0.999999,cp_EE[i,c,t]))
+    theta[i,c,t,8]   = max(0.000001,min(0.999999,cp_EE[i,c,t]))
     theta[i,c,t,11]   = max(0.000001,min(0.999999,cp_EE[i,c,t]))
 
     #EE2
