@@ -131,7 +131,7 @@ def jasp_like_raincloud(data, col_name1, col_name2,
     diff = d1 - d2
     pt.RainCloud(y=diff, x=None, axes=axes[2], orient='h')
     axes[2].spines[['right', 'top']].set_visible(False)
-    axes[2].set(ylabel='Pairwise difference', xlabel='\Delta Risk aversion parameter')
+    axes[2].set(title='Pairwise difference', xlabel='$\Delta$ Risk aversion parameter')
 
     axes[2].set_ylim([0.2, -0.7125])
     plt.tight_layout()
