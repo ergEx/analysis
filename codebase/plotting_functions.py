@@ -19,14 +19,15 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     for c in range(n_conditions):
         for i in range(n_agents):
             data_tmp = data_no_pooling[:,:,i,c].flatten()
-            sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
+            sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c], linewidth=0.5)
             kde = gaussian_kde(data_tmp)
 
             maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
             maxi[c,i,1] = kde.pdf(maxi[c,i,0])
 
         sns.kdeplot(data_pooling[:,:,c].ravel(), ax = ax2,
-                    color = colors[c], linestyle = '-', label = labels[c])
+                    color = colors[c], linestyle = '-', label = labels[c],
+                    linewidth=1.5)
 
     ax.set(xlim = LIMITS, xlabel = x_label, ylabel = '')
     ax.tick_params(axis='y', which='both', left=False, right=False,
