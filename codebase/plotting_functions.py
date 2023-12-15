@@ -1,6 +1,7 @@
 from scipy.stats import gaussian_kde
 import seaborn as sns
 import matplotlib.pyplot as plt
+import ptitprince as pt
 import numpy as np
 
 
@@ -60,8 +61,9 @@ def posterior_dist_2dplot(fig, ax, data_no_pooling, colors_alpha, LIMITS, maxi):
     return fig, ax
 
 
-def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
-                        ylimits=[-0.1, 1.2], alpha=0.5, colors=None):
+def jasp_like_raincloud(data, col_name1, col_name2,
+                        palette=[[0, 0, 1, 0.25], [1, 0, 0, 0.25]],
+                        alpha=0.5, colors=None, fig_size=fig_size):
     """Recreates raincloud plots, similarly to the ones in JASP
 
     Args:
@@ -75,24 +77,33 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
         fig, axes: figure and axes of the raincloud plots
     """
 
-    fig, axes = plt.subplots(1, 2, sharey=False, figsize=fig_size)
-    axes = axes.flatten()
+    fig = plt.figure(figsize=fig_size) #, figsize=fig_size)
+
+    ax1 = plt.subplot2grid(shape=(6, 3), loc=(0, 0), rowspan=4, colspan=2)
+    ax2 = plt.subplot2grid(shape=(6, 3), loc=(0, 2), rowspan=4, colspan=1)
+    ax3 = plt.subplot2grid(shape=(6, 3), loc=(4, 0), rowspan=2, colspan=3)
+
+    axes = [ax1, ax2, ax3]
+
 
     sub_data = data[[col_name1, col_name2]].copy()
-    sub_data = sub_data.melt(value_vars=[col_name1, col_name2], var_name='Condition', value_name='Estimate')
+    sub_data = sub_data.melt(value_vars=[col_name1, col_name2],
+                             var_name='Condition', value_name='Estimate')
     sub_data['x'] = 1
 
     d1 = data[[col_name1]].values
     d2 = data[[col_name2]].values
 
-    x_jitter = np.random.rand(*d1.shape) * 0.1
+    x_jitter = np.random.randn(*d1.shape) * 0.05
     xj_mean = x_jitter.mean()
 
     for n, (i, j) in enumerate(zip(d1, d2)):
         if colors is not None:
-            axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=colors[n])
+            axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=colors[n],
+                         linewidth=0.2)
         else:
-            axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25])
+            axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25],
+                         linewidth=0.2)
 
     if colors is not None:
         axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=colors)
@@ -100,22 +111,30 @@ def jasp_like_raincloud(data, col_name1, col_name2, palette=['blue', 'red'],
     else:
         axes[0].scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
         axes[0].scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
-
-    axes[0].set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
+    # ylim=ylimits,
+    axes[0].set(xticks=[1 + xj_mean, 2 + xj_mean],
                 xticklabels=['Additive\ncondition', 'Multiplicative\ncondition'],
                 ylabel='Risk aversion parameter')
     axes[0].spines[['right', 'top']].set_visible(False)
 
-    pt.RainCloud(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1],
+    pt.half_violinplot(x='x', y='Estimate', hue='Condition', data=sub_data, ax=axes[1],
                  palette=palette, alpha=alpha)
 
     axes[1].get_legend().remove()
-    axes[1].set(ylim=ylimits, ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
+    axes[1].set(ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
     axes[1].invert_xaxis()
     axes[1].spines[['right', 'top', 'left', 'bottom']].set_visible(False)
 
     for artist in axes[1].patches:
-            artist.set_alpha(alpha)
+        artist.set_alpha(alpha)
+
+    diff = d1 - d2
+    pt.RainCloud(y=diff, x=None, axes=axes[2], orient='h')
+    axes[2].spines[['right', 'top']].set_visible(False)
+    axes[2].set(ylabel='Pairwise difference', xlabel='\Delta Risk aversion parameter')
+
+    axes[2].set_ylim([0.2, -0.7125])
+    plt.tight_layout()
 
     return fig, axes
 
@@ -155,54 +174,6 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
     ax.spines[['right', 'top']].set_visible(False)
 
     return fig, ax
-
-
-def paired_swarm_plot(data, col_name1, col_name2, palette=['blue', 'red'],
-                        ylimits=[-0.1, 1.2], alpha=0.5, colors=None):
-    """Recreates raincloud plots, similarly to the ones in JASP
-
-    Args:
-        data (pd.DataFrame): Jasp input file
-        col_name1 (str): Column name 1, assumed to be additive condition.
-        col_name2 (str): Column name 2, assumed to be multiplicative condition.
-        palette (list, optional): Color palette for plots. Defaults to ['blue', 'red'].
-        ylimits (list, optional): Limits of the yaxis. Defaults to [-0.1, 1.2].
-
-    Returns:
-        fig, axes: figure and axes of the raincloud plots
-    """
-
-    fig, axes = plt.subplots(1, 1, sharey=False, figsize=(fig_size[1], fig_size[1]))
-
-    sub_data = data[[col_name1, col_name2]].copy()
-    sub_data = sub_data.melt(value_vars=[col_name1, col_name2], var_name='Condition', value_name='Estimate')
-    sub_data['x'] = 1
-
-    d1 = data[[col_name1]].values
-    d2 = data[[col_name2]].values
-
-    x_jitter = np.random.rand(*d1.shape) * 0.1
-    xj_mean = x_jitter.mean()
-
-    for n, (i, j) in enumerate(zip(d1, d2)):
-        #if colors is not None:
-        #    axes[0].plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=colors[n])
-        #else:
-        axes.plot([1 + x_jitter[n], 2 + x_jitter[n]], [i, j], color=[0.1, 0.1, 0.1, 0.25], linewidth=0.5)
-
-    if colors is not None:
-        axes.scatter(np.ones(d1.shape) + x_jitter, d1, color=colors)
-        axes.scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=colors)
-    else:
-        axes.scatter(np.ones(d1.shape) + x_jitter, d1, color=palette[0])
-        axes.scatter(np.ones(d1.shape) + 1 + x_jitter, d2, color=palette[1])
-
-    axes.set(ylim=ylimits, xticks=[1 + xj_mean, 2 + xj_mean],
-                xticklabels=['$\eta^{\mathrm{add}}$', '$\eta^{\mathrm{mul}}$'],
-                ylabel='Risk aversion parameter')
-    axes.spines[['right', 'top']].set_visible(False)
-
-    return fig, axes
 
 
 def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
