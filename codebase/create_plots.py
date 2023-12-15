@@ -6,19 +6,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import yaml
-from matplotlib import rcParamsDefault
-from scipy.stats import gaussian_kde
-
-from .utils import posterior_dist_2dplot
+from .utils import read_Bayesian_output
+from .plotting_functions import posterior_dist_2dplot, posterior_dist_plot
 
 plt.rcParams.update({
     "text.usetex": True})
 
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
-
-from .utils import jasp_like_correlation, paired_swarm_plot, plot_individual_heatmaps, plot_single_kde, \
-    read_Bayesian_output
 
 
 def main(config_file):
@@ -306,28 +301,3 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, '07_model_selection_4.pdf'), dpi=600, bbox_inches='tight')
 
     return
-
-def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, x_label):
-    ax2 = ax.twinx()
-    maxi = np.zeros([n_conditions,n_agents,2])
-    for c in range(n_conditions):
-        for i in range(n_agents):
-            data_tmp = data_no_pooling[:,:,i,c].flatten()
-            sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c])
-            kde = gaussian_kde(data_tmp)
-
-            maxi[c,i,0] = data_tmp[np.argmax(kde.pdf(data_tmp))]
-            maxi[c,i,1] = kde.pdf(maxi[c,i,0])
-
-        sns.kdeplot(data_pooling[:,:,c].ravel(), ax = ax2, color = colors[c], linestyle = '-', label = labels[c])
-
-    ax.set(xlim = LIMITS, xlabel = x_label, ylabel = '')
-    ax.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-    ax.spines[['left', 'top','right']].set_visible(False)
-
-    ax2.set(ylabel = '')
-    ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-    ax2.spines[['left', 'top', 'right']].set_visible(False)
-    ax2.legend(loc='upper right')
-    return fig, ax, ax2, maxi
-
