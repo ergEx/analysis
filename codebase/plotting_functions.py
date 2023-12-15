@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
+cm = 1/2.54  # centimeters in inches (for plot size conversion)
+fig_size = (6.5 * cm , 5.75 * cm)
+
+plt.rcParams.update({
+    "text.usetex": True})
+
+
 def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_alpha,
                         n_conditions, n_agents, labels, LIMITS, x_label):
     ax2 = ax.twinx()
