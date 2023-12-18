@@ -1,7 +1,13 @@
 import os
+from glob import glob
+import re
+import warnings
+import pandas as pd
+import numpy as np
 
 
-def sub_specs(data_type: str, data_variant: str, in_folder: str = None):
+def sub_specs(data_type: str, data_variant: str, in_folder: str = None,
+              exclusion_crit=[1,2], ignore_nobs=False):
     """
     Returns a dictionary of data specification for the given data variant.
 
@@ -12,7 +18,7 @@ def sub_specs(data_type: str, data_variant: str, in_folder: str = None):
 
     Returns a dictionary containing relevant information on the subject structure of the data in the given data variant.
     """
-
+    print('EXCLUSION', exclusion_crit)
     if in_folder is None:
         in_folder = os.path.join('data', data_variant)
 
@@ -37,7 +43,10 @@ def sub_specs(data_type: str, data_variant: str, in_folder: str = None):
 
     elif data_type == "real_data":
 
-        return create_spec_dict(in_folder, ignore_no_brainer=(data_variant=='1_pilot'))
+        return create_spec_dict(in_folder,
+                                ignore_no_brainer=((data_variant=='1_pilot') or
+                                                   ignore_nobs),
+                                exclusion_crit=exclusion_crit)
 
     else:
         ValueError("Data type not supported")
@@ -58,11 +67,7 @@ def condition_specs():
     }
 
 
-def create_spec_dict(folder, ignore_no_brainer=False):
-    from glob import glob
-    import re
-    import warnings
-    import pandas as pd
+def create_spec_dict(folder, ignore_no_brainer=False, exclusion_crit=[1,2]):
 
     participants_tsv = os.path.join(folder, 'participants.tsv')
 
@@ -102,7 +107,7 @@ def create_spec_dict(folder, ignore_no_brainer=False):
         nobrainer_file_ses2 = glob(f'{folder}/sub-{ii}/ses-2/*passive*_run-3*')[0]
         performance_ses2 = extract_no_brainer_performance(nobrainer_file_ses2)
 
-        if exclusion[nsu] in [1, 2]:
+        if exclusion[nsu] in exclusion_crit:
             print(f"Not including subject {ii} due to reason {exclusion[nsu]}\n" +
                   f"Ses1: {performance_ses1:4.2f} === Ses2: {performance_ses2:4.2f}")
         elif ((performance_ses1 >= 0.8) and (performance_ses2 >= 0.8)) or ignore_no_brainer:
@@ -116,9 +121,7 @@ def create_spec_dict(folder, ignore_no_brainer=False):
     return {'id': included_subs, 'first_run': order}
 
 
-
 def extract_no_brainer_performance(file: str):
-    import pandas as pd
 
     if not os.path.isfile(file):
         raise FileNotFoundError(f"Not finding run 3: {file}")
