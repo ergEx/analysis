@@ -8,6 +8,7 @@ import seaborn as sns
 import yaml
 from .utils import read_Bayesian_output
 from .plotting_functions import posterior_dist_2dplot, posterior_dist_plot, jasp_like_raincloud
+from .support_figures.plot_nobrainer_performance import plot_nobrainers
 
 plt.rcParams.update({
     "text.usetex": True})
@@ -80,6 +81,10 @@ def main(config_file):
 
             fig.tight_layout()
             fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.pdf'), dpi=600, bbox_inches='tight')
+
+    if stages['plot_nobrainers']:
+        fig, axes = plot_nobrainers(config, fig_size=fig_size)
+        fig.savefig(os.path.join(fig_dir, '01_nobrainer_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_active']:
         if data_type != 'real_data':
