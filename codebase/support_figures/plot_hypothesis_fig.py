@@ -2,9 +2,8 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 
-from ..utils import posterior_dist_2dplot
+from ..plotting_functions import posterior_dist_2dplot
 
 
 def hypothesis_fig(fig_dir):
