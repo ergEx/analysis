@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
 import yaml
+from tqdm.auto import tqdm
 
 from .experiment_specs import condition_specs, sub_specs
 from .utils import get_config_filename, read_Bayesian_output
@@ -47,7 +48,7 @@ def main(config_file):
                     os.path.join(data_dir, f"Bayesian_JAGS_parameter_estimation_{pool}.mat")
                 )
         eta_samples = bayesian_samples["eta_i"][:,burn_in:,:,:]
-        for j, subject1 in enumerate(subjects):
+        for j, subject1 in tqdm(enumerate(subjects), desc='Estimating KDE', total=len(subjects)):
             for c, condition in enumerate(CONDITION_SPECS["lambd"]):
                 try:
                     eta_dist = eta_samples[:, :, j, c].flatten()
