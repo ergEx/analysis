@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import yaml
+from tqdm.auto import tqdm
 from .utils import read_Bayesian_output
 from .plotting_functions import posterior_dist_2dplot, posterior_dist_plot, jasp_like_raincloud
 from .support_figures.plot_nobrainer_performance import plot_nobrainers
@@ -119,19 +120,22 @@ def main(config_file):
         df_full_pooling = bracketing_overview[bracketing_overview.participant == 'all']
         df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
 
-        eta_g = np.zeros(n_chains, n_samples, n_conditions)
-        eta_i = np.zeros(n_chains, n_samples, n_agents, n_conditions)
+        eta_g = np.zeros((n_chains, n_samples, n_conditions))
+        eta_i = np.zeros((n_chains, n_samples, n_agents, n_conditions))
 
         for ch in range(n_chains):
             for c, con in enumerate(df_no_pooling['dynamic'].unique()):
                 tmp_df_g = df_full_pooling.query('dynamic == @con')
-                eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples-burn_in)
+                eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples)
 
-                for i, participant in enumerate(df_no_pooling['participant'].unique()):
+                for i, participant in tqdm(enumerate(df_no_pooling['participant'].unique()),
+                                           total=len(df_no_pooling['participant'].unique()),
+                                           desc='Approximating eta for bracketing'):
                     tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
-                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples-burn_in)
+                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        labels = ['Additive','Multiplicative']
 
         fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
 
