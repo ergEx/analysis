@@ -226,6 +226,10 @@ def logistic_regression(df: pd.DataFrame):
         (x_test[np.argmin(np.abs(lower - 0.5))] - decision_boundary) / c if slope > 0 else np.nan
     )
 
+    # Replacing std_deviations of 0 with a small number, to prevent downstream effects
+    if std_dev == 0:
+        std_dev = 1e-10
+
     return (
         x_test,
         pred,
