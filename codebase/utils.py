@@ -6,11 +6,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import statsmodels.api
-from matplotlib import rcParamsDefault
-from matplotlib.ticker import FormatStrFormatter
 from scipy import misc
 from scipy.optimize import fsolve
-from scipy.special import expit, logit
 from statsmodels.tools import add_constant
 
 sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
@@ -210,7 +207,8 @@ def logistic_regression(df: pd.DataFrame):
     model = statsmodels.api.Logit(np.array(df.min_max), add_constant(np.array(df.indif_eta))).fit(
         disp=0
     )
-    x_test = np.linspace(min(df.indif_eta), max(df.indif_eta), 1000)
+
+    x_test = np.linspace(-50, 50, 1_000)
     X_test = add_constant(x_test)
     pred = model.predict(X_test)
     cov = model.cov_params()
@@ -269,4 +267,3 @@ def write_provenance(string: str, file: str = 'provenance.txt'):
 
     with open(file, 'a+') as f:
         f.write(out_string)
-
