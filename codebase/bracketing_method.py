@@ -4,8 +4,9 @@ import sys
 import numpy as np
 import pandas as pd
 import yaml
-
-from .utils import calculate_min_v_max, get_config_filename, indiference_eta, logistic_regression, wealth_change
+from tqdm.auto import tqdm
+from .utils import (calculate_min_v_max, get_config_filename, indiference_eta,
+                    logistic_regression, wealth_change)
 
 
 def add_indif_eta(df):
@@ -13,7 +14,7 @@ def add_indif_eta(df):
     new_info = np.zeros([df.shape[0], 2])
     new_info_col_names = ["indif_eta", "min_max"]
 
-    for i, ii in enumerate(df.index):
+    for i, ii in tqdm(enumerate(df.index), desc='Adding indifference etas', total=len(df.index)):
         trial = df.loc[ii, :]
         x_updates = wealth_change(
             x=trial.wealth,
@@ -42,8 +43,8 @@ def add_indif_eta(df):
 
 
 def main(config_file):
-    with open(f"{config_file}", "r") as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
+    with open(f"{config_file}", "r") as file:
+        config = yaml.load(file, Loader=yaml.SafeLoader)
 
     data_dir = config["data directory"]
 
@@ -51,7 +52,7 @@ def main(config_file):
         return
 
     if config["bracketing method"]["calculate_indif_eta"]:
-        print(f'\nADDING INDIFFERENCE ETAS')
+        print('\nADDING INDIFFERENCE ETAS')
         df = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
         df = add_indif_eta(df)
         df.to_csv(os.path.join(data_dir, "all_active_phase_data_w_indif_etas.csv"), sep="\t")
@@ -63,7 +64,7 @@ def main(config_file):
             )
         except:
             ValueError(
-                f"\nLooks like you haven't calculated the indifference etas; please do that by changing in the .yaml file you use.\n"
+                "\nLooks like you haven't calculated the indifference etas; please do that by changing in the .yaml file you use.\n"
             )
 
     if not config["bracketing method"]["log_reg"]:
@@ -91,43 +92,37 @@ def main(config_file):
     )
 
     ## CALCULATING AND ADDING DATA
-    print(f'\nCALCULATING LOGISTIC REGRESSION')
-    for c, con in enumerate(set(df.eta)):
+    print('\nCALCULATING LOGISTIC REGRESSION')
+    for con in set(df.eta):
         # GROUP LEVEL DATA
         df_tmp = df.query("eta == @con").reset_index(drop=True)
         (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
         idx = pd.IndexSlice
-        df_logistic.loc[idx[f"all", con, :], "x_test"] = x_test
-        df_logistic.loc[idx[f"all", con, :], "pred"] = pred
-        df_logistic.loc[idx[f"all", con, :], "lower"] = lower
-        df_logistic.loc[idx[f"all", con, :], "upper"] = upper
+        df_logistic.loc[idx["all", con, :], "x_test"] = x_test
+        df_logistic.loc[idx["all", con, :], "pred"] = pred
+        df_logistic.loc[idx["all", con, :], "lower"] = lower
+        df_logistic.loc[idx["all", con, :], "upper"] = upper
 
         df_bracketing_overview.loc[
-            idx[f"all", con], "log_reg_decision_boundary"
+            idx["all", con], "log_reg_decision_boundary"
         ] = decision_boundary
-        df_bracketing_overview.loc[idx[f"all", con], "log_reg_std_dev"] = std_dev
+        df_bracketing_overview.loc[idx["all", con], "log_reg_std_dev"] = std_dev
 
-        for i, participant in enumerate(participant_list):
+        for i, participant in tqdm(enumerate(participant_list),
+                                   desc='Calculating logistic regression',
+                                   total=len(participant_list)):
             # INDIVIDUAL LEVEL DATA
             df_tmp = df.query(
                 "participant_id == @participant and eta == @con"
             ).reset_index(drop=True)
-            try:
-                (
-                    x_test,
-                    pred,
-                    lower,
-                    upper,
-                    decision_boundary,
-                    std_dev,
-                ) = logistic_regression(df_tmp)
-                idx = pd.IndexSlice
-                df_logistic.loc[idx[participant, con, :], "x_test"] = x_test
-                df_logistic.loc[idx[participant, con, :], "pred"] = pred
-                df_logistic.loc[idx[participant, con, :], "lower"] = lower
-                df_logistic.loc[idx[participant, con, :], "upper"] = upper
-            except:
-                pass
+
+            (x_test, pred, lower, upper, decision_boundary, std_dev) = logistic_regression(df_tmp)
+
+            idx = pd.IndexSlice
+            df_logistic.loc[idx[participant, con, :], "x_test"] = x_test
+            df_logistic.loc[idx[participant, con, :], "pred"] = pred
+            df_logistic.loc[idx[participant, con, :], "lower"] = lower
+            df_logistic.loc[idx[participant, con, :], "upper"] = upper
 
             df_bracketing_overview.loc[
                 idx[participant, con], "log_reg_decision_boundary"
@@ -140,14 +135,10 @@ def main(config_file):
     df_bracketing_overview.to_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep="\t")
     df_bracketing_overview.to_pickle(os.path.join(data_dir, "bracketing_overview.pkl"))
 
-    print(f'\nRESULTS FROM BRACKETING METHOD SAVED SUCCESFULLY')
+    print('\nRESULTS FROM BRACKETING METHOD SAVED SUCCESFULLY')
 
 
 if __name__ == "__main__":
     config_file = get_config_filename(sys.argv)
 
-    with open(f"{config_file}", "r") as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
-
     main(config_file)
-
