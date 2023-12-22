@@ -1,9 +1,8 @@
-from scipy.stats import gaussian_kde
-import seaborn as sns
 import matplotlib.pyplot as plt
-import ptitprince as pt
 import numpy as np
-
+import ptitprince as pt
+import seaborn as sns
+from scipy.stats import gaussian_kde
 
 sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
@@ -175,91 +174,3 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
 
     return fig, ax
 
-
-def plot_individual_heatmaps(data, colors, hue, limits = [-3,3],
-                             x_fiducial=[], y_fiducial=[]):
-
-    h1 = sns.jointplot(
-        data=data,
-        x=data[:,0],
-        y=data[:,1],
-        hue=hue,
-        kind="kde",
-        alpha=0.7,
-        fill=True,
-        palette = sns.color_palette(colors),
-        xlim = limits,
-        ylim = limits,
-        legend = False
-        )
-
-    h1.set_axis_labels("$\eta^{\mathrm{add}}$", "$\eta^{\mathrm{mul}}$")
-    ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
-    h1.ax_joint.set_xticks(ticks)
-    h1.ax_joint.set_yticks(ticks)
-
-    if len(ticks) > 5:
-        ticklabels = [f'{ii}' if ii == np.round(ii) else '' for ii in ticks ]
-    else:
-        ticklabels = ticks
-
-    h1.ax_joint.set(xticklabels=ticklabels, yticklabels=ticklabels)
-
-    h2 = sns.lineplot(x=limits, y=limits, color=[0.25, 0.25, 0.25, 0.25], linestyle='--', ax=h1.ax_joint)
-
-    for xl in x_fiducial:
-        fid_color = 'blue'
-        h1.ax_joint.axvline(xl, color=fid_color, alpha=0.5, linestyle='--')
-
-    for yl in y_fiducial:
-        fid_color = 'red'
-        h1.ax_joint.axhline(yl, color=fid_color, alpha=0.5, linestyle='--')
-
-    h1.fig.set_size_inches(fig_size[1], fig_size[1])
-    return h1
-
-
-def plot_single_kde(data, ax, limits = [-3, 3], colors = ['blue', 'red'], labels = ['Additive', 'Multiplicative'], x_fiducials=[]):
-    maxi = np.empty([2,2])
-    for i in range(2):
-        sns.kdeplot(data[i], color=colors[i], label=labels[i], fill=True, ax=ax)
-
-        kde = gaussian_kde(data[i])
-
-        maxi[i,0] = data[i][np.argmax(kde.pdf(data[i]))]
-        maxi[i,1] = kde.pdf(maxi[i,0])
-
-    ax.axvline(maxi[0,0], ymax=maxi[0,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
-    ax.axvline(maxi[1,0], ymax=maxi[1,1] / (ax.get_ylim()[1]), color='black', linestyle='--')
-    ax.plot([], ls="--", color="black", label="Estimates")
-    ax.legend(loc="upper left", fontsize=6)
-    ticks = np.arange(limits[0], limits[1] + 0.5, 0.5)
-
-    if len(ticks) > 5:
-        ticklabels = [f'{ii}' if ii == np.round(ii) else '' for ii in ticks ]
-    else:
-        ticklabels = ticks
-
-    ax.set(
-        title="",
-        xlabel="$\eta$",
-        ylabel="",
-        xlim=limits,
-        yticks=[],
-        xticks=ticks,
-        xticklabels=ticklabels)
-
-
-    for xl in x_fiducials:
-        # This is a bit convoluted, but just in case we want to use different colors for the fiducials.
-        if xl == 0:
-            fid_color = colors[xl]
-        elif xl == 1:
-            fid_color = colors[xl]
-
-        ax.axvline(xl, color=fid_color, linestyle='--', alpha=0.5)
-
-    ax.spines[['right', 'top']].set_visible(False)
-
-
-    return ax
