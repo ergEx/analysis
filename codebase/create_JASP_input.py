@@ -31,7 +31,7 @@ def main(config_file):
     subjects = SUBJECT_SPECS["id"]
     CONDITION_SPECS = condition_specs()
 
-    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
+    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e3,2e4,4e4]}
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
 
     data = {"0.0_partial_pooling": [None] * len(subjects), "1.0_partial_pooling": [None] * len(subjects),

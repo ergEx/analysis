@@ -28,7 +28,7 @@ def create_grid_sim_plot(config_file):
     if not os.path.isdir(fig_dir):
         os.makedirs(fig_dir)
 
-    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
+    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e3,2e4,4e4]}
     n_agents = config["n_agents"]
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
     n_samples = int(quality_dictionary['samples'][config['qual'] - 1])
