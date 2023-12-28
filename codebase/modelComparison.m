@@ -32,7 +32,7 @@ for ii = 1 : length(data_poolings)
     z_i = reshape(z, [n_chains * n_samples, n_participants]);
     z_i = mod(z_i, 3) + 1; %note this changes the order such that m1=2, m2=3, m3=1
 
-    n_models = max(z(:));
+    n_models = max(z_i(:));
 
     counts = zeros(n_models, n_participants);
     bin_edges = 1:(n_models+1);
@@ -49,7 +49,7 @@ for ii = 1 : length(data_poolings)
     proportions = counts ./ repmat(total_counts, n_models, 1);
     disp(size(proportions))
     proportions_file = sprintf('proportions_%s_%d.csv', data_poolings{ii}, model_selection_type);
-    writetable(array2table(proportions, 'VariableNames', {'EE', 'Weak_EE', 'EUT'}), fullfile(dataDir, proportions_file));
+    writetable(array2table(proportions', 'VariableNames', {'EE', 'Weak_EE', 'EUT'}), fullfile(dataDir, proportions_file));
 
     log_proportions = log10(proportions);
 
