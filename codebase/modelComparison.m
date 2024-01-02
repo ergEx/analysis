@@ -1,21 +1,9 @@
 function modelComparison(data_source, model_selection_type)
 
-
-%data_source = '/1_pilot';
-%model_selection_type = 1;
-
 [startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
-%addpath(genpath(fullfile(startDir,'/VBA-toolbox')));
-
-base = pwd;
-[vba_dir, ~ ] = fileparts(which('VBA_setup'));
-cd(vba_dir)
-VBA_setup;
-cd(base)
 
 data_poolings = {'no_pooling','partial_pooling','full_pooling'};
 dataDir=fullfile(getParentDir(startDir, 1),'/data',data_source);
-figDir = fullfile(getParentDir(startDir,1), '/figs', data_source);
 
 disp(startDir)
 disp(getParentDir(startDir, 1))
@@ -39,7 +27,6 @@ for ii = 1 : length(data_poolings)
 
     % Loop through each column and count occurrences
     for col = 1:n_participants
-        % disp(col)
         counts(:, col) = histcounts(z_i(:, col), bin_edges);
     end
 
@@ -47,7 +34,6 @@ for ii = 1 : length(data_poolings)
 
     total_counts = sum(counts, 1);
     proportions = counts ./ repmat(total_counts, n_models, 1);
-    disp(size(proportions))
     proportions_file = sprintf('proportions_%s_%d.csv', data_poolings{ii}, model_selection_type);
     writetable(array2table(proportions', 'VariableNames', {'EE', 'Weak_EE', 'EUT'}), fullfile(dataDir, proportions_file));
 
