@@ -93,16 +93,13 @@ switch inferenceMode
         %no model indicator used for parameter estimation
     case {2}
         switch model_selection_type
-            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);   %test model 1 (EUT) v model 2 (EE)
-            case {2}, pz = repmat([1/2, 0, 1/2], 1, 4);   %test model 1 (EUT) v model 3 (Weak EE)
-                
-        end
-        switch model_selection_type
-            case {1}, pz = repmat([1/2, 1/2, 0], 1, 4);  %test model 1 (EUT) v model 2 (EE)
-            case {2}, pz = repmat([1/3, 0, 1/2], 1, 4);  %test model 1 (EUT) v model 3 (Weak EE)
-            case {3}, pz = repmat([1, 0, 0], 1, 4); %parameter estimation for EUT model
-            case {4}, pz = repmat([0, 1, 0], 1, 4); %parameter estimation for EE model
-            case {5}, pz = repmat([0, 0, 1], 1, 4); %parameter estimation for weak EE model (EE2)
+            case {1}
+                modelName = 'JAGS_model_selection_no_pooling_EE';
+                pz = repmat([1/2, 1/2], 1, 4);   %test model 1 (EUT) v model 2 (EE)
+            case {2}
+                modelName = 'JAGS_model_selection_no_pooling_EE2';
+                pz = repmat([1/2, 1/2], 1, 4);   %test model 1 (EUT) v model 3 (Weak EE)
+
         end
     case {3}
         pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
@@ -143,7 +140,7 @@ for c = 1:nConditions
             dwRU(:,c,trialInds)=x2_1_add(:,trialInds);
             dwRL(:,c,trialInds)=x2_2_add(:,trialInds);
             w(:,c,trialInds)=wealth_add(:,trialInds);
-            
+
         case {2}% eta=1
             choice(:,c,trialInds)=choice_mul(:,trialInds);
             dwLU(:,c,trialInds)=x1_1_mul(:,trialInds);
@@ -173,7 +170,7 @@ switch inferenceMode
             'sigmaL',sigma_l,'sigmaH',sigma_h,...
             'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
             'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h);
-        
+
         for i = 1:nChains
             monitorParameters = {'beta_i', 'beta_g','eta_i', 'eta_g'};
             S=struct; init0(i)=S;
@@ -188,11 +185,9 @@ switch inferenceMode
             'dMuAlpha',d_mu_alpha,'dMuBeta',d_mu_beta,...
             'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
             'pz',pz);
-        
+
         for i = 1:nChains
-            monitorParameters = {'beta_EUT', 'beta_EE','beta_EE2',...
-                'eta_EUT', 'eta_EE', 'eta_EE2',...
-                'z'};
+            monitorParameters = {'z'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
     case {3}
@@ -203,7 +198,7 @@ switch inferenceMode
             'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
             'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
             'pz',pz);
-        
+
         for i = 1:nChains
             monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',... %no pooling
                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling

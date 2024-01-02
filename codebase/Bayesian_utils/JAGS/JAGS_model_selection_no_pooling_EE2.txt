@@ -1,0 +1,129 @@
+# Model selection selecting between three different models
+# EUT model: eta_i_add = eta_i_mul
+# EE model: eta_i_add = 0, eta_i_mul = 1
+# EE2 model (weak EE model): eta_i_add < eta_i_mul
+
+model{
+
+##LIKELIHOOD
+for (c in 1:nConditions){
+for (i in 1:nSubjects){
+oneminEta_EUT[i,c] = 1 - eta_EUT[i]
+oneminEta_EE[i,c]  = 1 - eta_EE[i,c]
+oneminEta_EE2[i,c] = 1 - eta_EE2[i,c]
+
+for (t in 1:nTrials){
+    #CALCULATE WEALTH UPDATES
+    wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]
+    wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]
+    wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]
+    wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]
+
+    #EUT
+    u_EUT[i,c,t]      = (pow(w[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uLU_EUT[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uLL_EUT[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uRU_EUT[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    uRL_EUT[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EUT[i,c]) - 1) / oneminEta_EUT[i,c]
+    duLU_EUT[i,c,t]   = uLU_EUT[i,c,t] - u_EUT[i,c,t]
+    duLL_EUT[i,c,t]   = uLL_EUT[i,c,t] - u_EUT[i,c,t]
+    duRU_EUT[i,c,t]   = uRU_EUT[i,c,t] - u_EUT[i,c,t]
+    duRL_EUT[i,c,t]   = uRL_EUT[i,c,t] - u_EUT[i,c,t]
+    eduL_EUT[i,c,t]   = (duLU_EUT[i,c,t] + duLL_EUT[i,c,t]) / 2
+    eduR_EUT[i,c,t]   = (duRU_EUT[i,c,t] + duRL_EUT[i,c,t]) / 2
+    deu_EUT[i,c,t]    = eduL_EUT[i,c,t] - eduR_EUT[i,c,t]
+    sdeu_EUT[i,c,t]   = -1 * beta_EUT[i,c] * deu_EUT[i,c,t]
+    cp_EUT[i,c,t]     = 1 / (1 + (exp(sdeu_EUT[i,c,t])))
+    theta[i,c,t,1]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+    theta[i,c,t,3]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+    theta[i,c,t,5]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+    theta[i,c,t,7]     = max(0.000001,min(0.999999,cp_EUT[i,c,t]))
+
+    #EE2
+    u_EE2[i,c,t]      = (pow(w[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uLU_EE2[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uLL_EE2[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uRU_EE2[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    uRL_EE2[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE2[i,c]) - 1) / oneminEta_EE2[i,c]
+    duLU_EE2[i,c,t]   = uLU_EE2[i,c,t] - u_EE2[i,c,t]
+    duLL_EE2[i,c,t]   = uLL_EE2[i,c,t] - u_EE2[i,c,t]
+    duRU_EE2[i,c,t]   = uRU_EE2[i,c,t] - u_EE2[i,c,t]
+    duRL_EE2[i,c,t]   = uRL_EE2[i,c,t] - u_EE2[i,c,t]
+    eduL_EE2[i,c,t]   = (duLU_EE2[i,c,t] + duLL_EE2[i,c,t]) / 2
+    eduR_EE2[i,c,t]   = (duRU_EE2[i,c,t] + duRL_EE2[i,c,t]) / 2
+    deu_EE2[i,c,t]    = eduL_EE2[i,c,t] - eduR_EE2[i,c,t]
+    sdeu_EE2[i,c,t]   = -1 * beta_EE2[i,c] * deu_EE2[i,c,t]
+    cp_EE2[i,c,t]     = 1 / (1 + (exp(sdeu_EE2[i,c,t])))
+    theta[i,c,t,2]    = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+    theta[i,c,t,4]    = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+    theta[i,c,t,6]    = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+    theta[i,c,t,8]    = max(0.000001,min(0.999999,cp_EE2[i,c,t]))
+
+    #choice
+    y[i,c,t]           ~ dbern(theta[i,c,t,z[i]])
+
+}# end of trials
+}# end of conditions
+}# end of subjects
+
+
+## PRIORS
+#model indicator
+#the model indicator variable z can take on any value from 1:n, and is subject to two stochastic processes, to prevent getting stuck
+#the n values map onto just 3 models, and is simply a means of obtaining parameter expansion for the model indication
+for (i in 1:nSubjects){
+px_z1[i]    ~ dcat(pz[])
+px_z2[i]    ~ dcat(pz[])
+delta_z1[i] = px_z2[i]-1
+sum_z[i]    = px_z1[i]+delta_z1[i]
+z[i]        = (sum_z[i] - (8 * trunc(sum_z[i]/8))) + 1
+}
+
+#submodels
+
+for (i in 1:nSubjects){
+    eta_EUT[i]       ~ dnorm(mu_eta_EUT[i],tau_eta_EUT[i])
+
+for (c in 1:nConditions){
+    eta_EE2[i,c]       ~ dnorm(mu_eta_EE2[i,c],tau_eta_EE2[i])
+
+    beta_EUT[i,c]      = exp(log_beta_EUT[i,c])
+    log_beta_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[i,c], tau_log_beta_EUT[i,c])
+
+    beta_EE2[i,c]      = exp(log_beta_EE2[i,c])
+    log_beta_EE2[i,c]  ~ dnorm(mu_log_beta_EE[i,c], tau_log_beta_EE2[i,c])
+
+  }#end of subjects
+}#end of conditions
+
+
+##HYPERPRIORS
+for (i in 1:nSubjects){
+for (c in 1:nConditions){
+    #EUT
+    mu_log_beta_EUT[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT[i,c]    ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EUT[i,c]      = pow(sigma_log_beta_EUT[i,c],-2)
+
+    #EE2
+    mu_log_beta_EE2[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2[i,c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE2[i,c]       = pow(sigma_log_beta_EE2[i,c],-2)
+
+}#end of conditions
+
+#EUT
+mu_eta_EUT[i]    ~ dunif(muEtaL , muEtaH)
+sigma_eta_EUT[i] ~ dunif(sigmaL, sigmaH)
+tau_eta_EUT[i]   = pow(sigma_eta_EUT[i],-2)
+
+#EE2
+mu_eta_EE2[i,1]    ~ dunif(muEtaL, muEtaH)
+d_mu_eta_EE2[i] ~ dgamma(dMuAlpha, dMuBeta)
+mu_eta_EE2[i,2] = mu_eta_EE2[i,1]  + d_mu_eta_EE2[i]
+
+sigma_eta_EE2[i] ~ dunif(sigmaL,sigmaH)
+tau_eta_EE2[i]  = pow(sigma_eta_EE2[i],-2)
+}
+}
+
