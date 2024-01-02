@@ -10,7 +10,6 @@ for (c in 1:nConditions){
 for (i in 1:nSubjects){
 oneminEta_EUT[i,c] = 1 - eta_EUT[i]
 oneminEta_EE[i,c]  = 1 - eta_EE[i,c]
-oneminEta_EE2[i,c] = 1 - eta_EE2[i,c]
 
 for (t in 1:nTrials){
     #CALCULATE WEALTH UPDATES

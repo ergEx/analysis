@@ -9,7 +9,6 @@ model{
 for (c in 1:nConditions){
 for (i in 1:nSubjects){
 oneminEta_EUT[i,c] = 1 - eta_EUT[i]
-oneminEta_EE[i,c]  = 1 - eta_EE[i,c]
 oneminEta_EE2[i,c] = 1 - eta_EE2[i,c]
 
 for (t in 1:nTrials){
@@ -91,7 +90,7 @@ for (c in 1:nConditions){
     log_beta_EUT[i,c]  ~ dnorm(mu_log_beta_EUT[i,c], tau_log_beta_EUT[i,c])
 
     beta_EE2[i,c]      = exp(log_beta_EE2[i,c])
-    log_beta_EE2[i,c]  ~ dnorm(mu_log_beta_EE[i,c], tau_log_beta_EE2[i,c])
+    log_beta_EE2[i,c]  ~ dnorm(mu_log_beta_EE2[i,c], tau_log_beta_EE2[i,c])
 
   }#end of subjects
 }#end of conditions
