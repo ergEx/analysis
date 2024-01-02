@@ -1,10 +1,9 @@
 import sys
+import subprocess
 import time
 import yaml
-import subprocess
-from codebase import readingdata, utils
+from codebase import utils
 
-VBA_PATH = '/mnt/projects/CPM/toolboxes/VBA-toolbox'
 
 def main():
     config_file = utils.get_config_filename(sys.argv)
@@ -26,22 +25,22 @@ def main():
     print(f"\n--- {time.ctime(start_time)} --- ")
     print(f"\Doing model comparison no:")
     print(f"Data: {data_type} \nVariant: {data_variant}")
-    shellparams = {'VBA_PATH': VBA_PATH, 'data_variant' : data_variant, 
+    shellparams = {'data_variant' : data_variant,
                    'model_selection_type': model_selection_type}
     matlab_call = """
     module load matlab;
     matlab -nodesktop  -r\
-    "addpath('codebase/'); addpath('{VBA_PATH}');\
+    "addpath('codebase/');\
     modelComparison('{data_variant}', {model_selection_type}); exit;"
     """.format(**shellparams)
 
     subprocess.call(matlab_call, shell=True)
- 
+
     print(f"\n--- Code ran in {(time.time() - start_time):.2f} seconds ---")
 
 
 if __name__ == "__main__":
-    import sys
+
     from codebase.utils import write_provenance
 
     command = '\t'.join(sys.argv)
