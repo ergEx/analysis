@@ -18,7 +18,7 @@ for ii = 1 : length(data_poolings)
     z = jags_dat.samples.z;
     [n_chains, n_samples, n_participants] = size(z);
     z_i = reshape(z, [n_chains * n_samples, n_participants]);
-    z_i = mod(z_i, 3) + 1; %note this changes the order such that m1=2, m2=3, m3=1
+    z_i = mod(z_i, 2) + 1; %note this changes the order such that m1=2, m2=1
 
     n_models = max(z_i(:));
 
@@ -35,21 +35,20 @@ for ii = 1 : length(data_poolings)
     total_counts = sum(counts, 1);
     proportions = counts ./ repmat(total_counts, n_models, 1);
     proportions_file = sprintf('proportions_%s_%d.csv', data_poolings{ii}, model_selection_type);
-    writetable(array2table(proportions', 'VariableNames', {'EE', 'Weak_EE', 'EUT'}), fullfile(dataDir, proportions_file));
 
     log_proportions = log10(proportions);
 
-    BF10 = exp(sum(log_proportions(1, :)) - sum(log_proportions(3, :)));
-    BF = ['BF10 ', num2str(BF10)];
-
-    if n_models == 3
-        BF20 = exp(sum(log_proportions(2, :)) - sum(log_proportions(3, :)));
-        BF21 = exp(sum(log_proportions(2, :)) - sum(log_proportions(1, :)));
-        BF = [BF, '\n', 'BF20 ', num2str(BF20), '\n', 'BF21 ', num2str(BF21)];
+    switch model_selection_type
+        case {1}, VariableNames = {'EE', 'EUT'};
+        case {2}, VariableNames = {'Weak EE', 'EUT'}
     end
 
+    writetable(array2table(proportions', 'VariableNames', VariableNames), fullfile(dataDir, proportions_file));
+
+    BF = exp(sum(log_proportions(1, :)) - sum(log_proportions(2, :)));
+
     fileID = fopen(fullfile(dataDir, BFFile), 'w');
-    fprintf(fileID, BF);
+    fprintf(fileID, ['BF', num2str(BF)]);
     fclose(fileID);
 
 end
