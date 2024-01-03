@@ -223,7 +223,7 @@ tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
     'dic', doDIC, ...                         % Do the DIC?
     'monitorparams', monitorParameters, ...   % List of latent variables to monitor
     'savejagsoutput' , 1 , ...                % Save command line output produced by JAGS?
-    'verbosity' , 1 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
+    'verbosity' , 2 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
     'cleanup' , 0 ,...                        % clean up of temporary files?
     'rndseed',seedChoice);                    % Randomise seed; 1=no; 2=yes
 
