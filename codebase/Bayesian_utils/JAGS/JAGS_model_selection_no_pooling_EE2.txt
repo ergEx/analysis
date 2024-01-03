@@ -68,14 +68,12 @@ for (t in 1:nTrials){
 
 ## PRIORS
 #model indicator
-#the model indicator variable z can take on any value from 1:n, and is subject to two stochastic processes, to prevent getting stuck
-#the n values map onto just 3 models, and is simply a means of obtaining parameter expansion for the model indication
+#the model indicator variable z can take on any value from 1:n (here 1:8),
+#and is subject to two stochastic processes, to prevent getting stuck
+#the n values map onto just N models (here 2), and is simply a means of
+#obtaining parameter expansion for the model indication
 for (i in 1:nSubjects){
-px_z1[i]    ~ dcat(pz[])
-px_z2[i]    ~ dcat(pz[])
-delta_z1[i] = px_z2[i]-1
-sum_z[i]    = px_z1[i]+delta_z1[i]
-z[i]        = (sum_z[i] - (8 * trunc(sum_z[i]/8))) + 1
+    z[i] ~ dcat(pz[])
 }
 
 #submodels
