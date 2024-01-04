@@ -1,0 +1,403 @@
+# Model selection selecting between three different models using both no, partial and full pooling, ie. 9 models total.
+# EUT model: eta_i_add = eta_mul
+# EE model: eta_add = 0, eta_mul = 1
+# EE2 model (weak EE model): eta_add < eta_mul
+
+model{
+
+##LIKELIHOOD
+for (c in 1:nConditions){
+for (i in 1:nSubjects){
+#no
+oneminEta_EUT_no[i,c] = 1 - eta_EUT_no[i]
+oneminEta_EE_no[i,c] = 1 - eta_EE_no[i,c]
+oneminEta_EE2_no[i,c] = 1 - eta_EE2_no[i,c]
+
+#partial
+oneminEta_EUT_part[i,c] = 1 - eta_EUT_part[i]
+oneminEta_EE_part[i,c] = 1 - eta_EE_part[i,c]
+oneminEta_EE2_part[i,c] = 1 - eta_EE2_part[i,c]
+
+#full
+oneminEta_EUT_full[i,c] = 1 - eta_EUT_full[i]
+oneminEta_EE_full[i,c] = 1 - eta_EE_full[i,c]
+oneminEta_EE2_full[i,c] = 1 - eta_EE2_full[i,c]
+
+for (t in 1:nTrials){
+    #CALCULATE WEALTH UPDATES
+    wLU[i,c,t]    = w[i,c,t] + dwLU[i,c,t]
+    wLL[i,c,t]    = w[i,c,t] + dwLL[i,c,t]
+    wRU[i,c,t]    = w[i,c,t] + dwRU[i,c,t]
+    wRL[i,c,t]    = w[i,c,t] + dwRL[i,c,t]
+
+    ##No pooling
+    #EUT
+    u_EUT_no[i,c,t]      = (pow(w[i,c,t],oneminEta_EUT_no[i,c]) - 1) / oneminEta_EUT_no[i,c]
+    uLU_EUT_no[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EUT_no[i,c]) - 1) / oneminEta_EUT_no[i,c]
+    uLL_EUT_no[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EUT_no[i,c]) - 1) / oneminEta_EUT_no[i,c]
+    uRU_EUT_no[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EUT_no[i,c]) - 1) / oneminEta_EUT_no[i,c]
+    uRL_EUT_no[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EUT_no[i,c]) - 1) / oneminEta_EUT_no[i,c]
+    duLU_EUT_no[i,c,t]   = uLU_EUT_no[i,c,t] - u_EUT_no[i,c,t]
+    duLL_EUT_no[i,c,t]   = uLL_EUT_no[i,c,t] - u_EUT_no[i,c,t]
+    duRU_EUT_no[i,c,t]   = uRU_EUT_no[i,c,t] - u_EUT_no[i,c,t]
+    duRL_EUT_no[i,c,t]   = uRL_EUT_no[i,c,t] - u_EUT_no[i,c,t]
+    eduL_EUT_no[i,c,t]   = (duLU_EUT_no[i,c,t] + duLL_EUT_no[i,c,t]) / 2
+    eduR_EUT_no[i,c,t]   = (duRU_EUT_no[i,c,t] + duRL_EUT_no[i,c,t]) / 2
+    deu_EUT_no[i,c,t]    = eduL_EUT_no[i,c,t] - eduR_EUT_no[i,c,t]
+    sdeu_EUT_no[i,c,t]   = -1 * beta_EUT_no[i,c] * deu_EUT_no[i,c,t]
+    cp_EUT_no[i,c,t]     = 1 / (1 + (exp(sdeu_EUT_no[i,c,t])))
+    theta[i,c,t,1]    = max(0.000001,min(0.999999,cp_EUT_no[i,c,t]))
+    theta[i,c,t,10]    = max(0.000001,min(0.999999,cp_EUT_no[i,c,t]))
+
+    #EE
+    u_EE_no[i,c,t]      = (pow(w[i,c,t],oneminEta_EE_no[i,c]) - 1) / oneminEta_EE_no[i,c]
+    uLU_EE_no[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE_no[i,c]) - 1) / oneminEta_EE_no[i,c]
+    uLL_EE_no[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE_no[i,c]) - 1) / oneminEta_EE_no[i,c]
+    uRU_EE_no[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE_no[i,c]) - 1) / oneminEta_EE_no[i,c]
+    uRL_EE_no[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE_no[i,c]) - 1) / oneminEta_EE_no[i,c]
+    duLU_EE_no[i,c,t]   = uLU_EE_no[i,c,t] - u_EE_no[i,c,t]
+    duLL_EE_no[i,c,t]   = uLL_EE_no[i,c,t] - u_EE_no[i,c,t]
+    duRU_EE_no[i,c,t]   = uRU_EE_no[i,c,t] - u_EE_no[i,c,t]
+    duRL_EE_no[i,c,t]   = uRL_EE_no[i,c,t] - u_EE_no[i,c,t]
+    eduL_EE_no[i,c,t]   = (duLU_EE_no[i,c,t] + duLL_EE_no[i,c,t]) / 2
+    eduR_EE_no[i,c,t]   = (duRU_EE_no[i,c,t] + duRL_EE_no[i,c,t]) / 2
+    deu_EE_no[i,c,t]    = eduL_EE_no[i,c,t] - eduR_EE_no[i,c,t]
+    sdeu_EE_no[i,c,t]   = -1 * beta_EE_no[i,c] * deu_EE_no[i,c,t]
+    cp_EE_no[i,c,t]     = 1 / (1 + (exp(sdeu_EE_no[i,c,t])))
+    theta[i,c,t,2]   = max(0.000001,min(0.999999,cp_EE_no[i,c,t]))
+    theta[i,c,t,11]   = max(0.000001,min(0.999999,cp_EE_no[i,c,t]))
+
+    #EE2
+    u_EE2_no[i,c,t]      = (pow(w[i,c,t],oneminEta_EE2_no[i,c]) - 1) / oneminEta_EE2_no[i,c]
+    uLU_EE2_no[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE2_no[i,c]) - 1) / oneminEta_EE2_no[i,c]
+    uLL_EE2_no[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE2_no[i,c]) - 1) / oneminEta_EE2_no[i,c]
+    uRU_EE2_no[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE2_no[i,c]) - 1) / oneminEta_EE2_no[i,c]
+    uRL_EE2_no[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE2_no[i,c]) - 1) / oneminEta_EE2_no[i,c]
+    duLU_EE2_no[i,c,t]   = uLU_EE2_no[i,c,t] - u_EE2_no[i,c,t]
+    duLL_EE2_no[i,c,t]   = uLL_EE2_no[i,c,t] - u_EE2_no[i,c,t]
+    duRU_EE2_no[i,c,t]   = uRU_EE2_no[i,c,t] - u_EE2_no[i,c,t]
+    duRL_EE2_no[i,c,t]   = uRL_EE2_no[i,c,t] - u_EE2_no[i,c,t]
+    eduL_EE2_no[i,c,t]   = (duLU_EE2_no[i,c,t] + duLL_EE2_no[i,c,t]) / 2
+    eduR_EE2_no[i,c,t]   = (duRU_EE2_no[i,c,t] + duRL_EE2_no[i,c,t]) / 2
+    deu_EE2_no[i,c,t]    = eduL_EE2_no[i,c,t] - eduR_EE2_no[i,c,t]
+    sdeu_EE2_no[i,c,t]   = -1 * beta_EE2_no[i,c] * deu_EE2_no[i,c,t]
+    cp_EE2_no[i,c,t]     = 1 / (1 + (exp(sdeu_EE2_no[i,c,t])))
+    theta[i,c,t,3]    = max(0.000001,min(0.999999,cp_EE2_no[i,c,t]))
+    theta[i,c,t,12]    = max(0.000001,min(0.999999,cp_EE2_no[i,c,t]))
+
+    ##Partial pooling
+    #EUT
+    u_EUT_part[i,c,t]      = (pow(w[i,c,t],oneminEta_EUT_part[i,c]) - 1) / oneminEta_EUT_part[i,c]
+    uLU_EUT_part[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EUT_part[i,c]) - 1) / oneminEta_EUT_part[i,c]
+    uLL_EUT_part[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EUT_part[i,c]) - 1) / oneminEta_EUT_part[i,c]
+    uRU_EUT_part[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EUT_part[i,c]) - 1) / oneminEta_EUT_part[i,c]
+    uRL_EUT_part[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EUT_part[i,c]) - 1) / oneminEta_EUT_part[i,c]
+    duLU_EUT_part[i,c,t]   = uLU_EUT_part[i,c,t] - u_EUT_part[i,c,t]
+    duLL_EUT_part[i,c,t]   = uLL_EUT_part[i,c,t] - u_EUT_part[i,c,t]
+    duRU_EUT_part[i,c,t]   = uRU_EUT_part[i,c,t] - u_EUT_part[i,c,t]
+    duRL_EUT_part[i,c,t]   = uRL_EUT_part[i,c,t] - u_EUT_part[i,c,t]
+    eduL_EUT_part[i,c,t]   = (duLU_EUT_part[i,c,t] + duLL_EUT_part[i,c,t]) / 2
+    eduR_EUT_part[i,c,t]   = (duRU_EUT_part[i,c,t] + duRL_EUT_part[i,c,t]) / 2
+    deu_EUT_part[i,c,t]    = eduL_EUT_part[i,c,t] - eduR_EUT_part[i,c,t]
+    sdeu_EUT_part[i,c,t]   = -1 * beta_EUT_part[i,c] * deu_EUT_part[i,c,t]
+    cp_EUT_part[i,c,t]     = 1 / (1 + (exp(sdeu_EUT_part[i,c,t])))
+    theta[i,c,t,4]    = max(0.000001,min(0.999999,cp_EUT_part[i,c,t]))
+    theta[i,c,t,13]    = max(0.000001,min(0.999999,cp_EUT_part[i,c,t]))
+
+    #EE
+    u_EE_part[i,c,t]      = (pow(w[i,c,t],oneminEta_EE_part[i,c]) - 1) / oneminEta_EE_part[i,c]
+    uLU_EE_part[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE_part[i,c]) - 1) / oneminEta_EE_part[i,c]
+    uLL_EE_part[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE_part[i,c]) - 1) / oneminEta_EE_part[i,c]
+    uRU_EE_part[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE_part[i,c]) - 1) / oneminEta_EE_part[i,c]
+    uRL_EE_part[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE_part[i,c]) - 1) / oneminEta_EE_part[i,c]
+    duLU_EE_part[i,c,t]   = uLU_EE_part[i,c,t] - u_EE_part[i,c,t]
+    duLL_EE_part[i,c,t]   = uLL_EE_part[i,c,t] - u_EE_part[i,c,t]
+    duRU_EE_part[i,c,t]   = uRU_EE_part[i,c,t] - u_EE_part[i,c,t]
+    duRL_EE_part[i,c,t]   = uRL_EE_part[i,c,t] - u_EE_part[i,c,t]
+    eduL_EE_part[i,c,t]   = (duLU_EE_part[i,c,t] + duLL_EE_part[i,c,t]) / 2
+    eduR_EE_part[i,c,t]   = (duRU_EE_part[i,c,t] + duRL_EE_part[i,c,t]) / 2
+    deu_EE_part[i,c,t]    = eduL_EE_part[i,c,t] - eduR_EE_part[i,c,t]
+    sdeu_EE_part[i,c,t]   = -1 * beta_EE_part[i,c] * deu_EE_part[i,c,t]
+    cp_EE_part[i,c,t]     = 1 / (1 + (exp(sdeu_EE_part[i,c,t])))
+    theta[i,c,t,5]   = max(0.000001,min(0.999999,cp_EE_part[i,c,t]))
+    theta[i,c,t,14]   = max(0.000001,min(0.999999,cp_EE_part[i,c,t]))
+
+    #EE2
+    u_EE2_part[i,c,t]      = (pow(w[i,c,t],oneminEta_EE2_part[i,c]) - 1) / oneminEta_EE2_part[i,c]
+    uLU_EE2_part[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE2_part[i,c]) - 1) / oneminEta_EE2_part[i,c]
+    uLL_EE2_part[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE2_part[i,c]) - 1) / oneminEta_EE2_part[i,c]
+    uRU_EE2_part[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE2_part[i,c]) - 1) / oneminEta_EE2_part[i,c]
+    uRL_EE2_part[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE2_part[i,c]) - 1) / oneminEta_EE2_part[i,c]
+    duLU_EE2_part[i,c,t]   = uLU_EE2_part[i,c,t] - u_EE2_part[i,c,t]
+    duLL_EE2_part[i,c,t]   = uLL_EE2_part[i,c,t] - u_EE2_part[i,c,t]
+    duRU_EE2_part[i,c,t]   = uRU_EE2_part[i,c,t] - u_EE2_part[i,c,t]
+    duRL_EE2_part[i,c,t]   = uRL_EE2_part[i,c,t] - u_EE2_part[i,c,t]
+    eduL_EE2_part[i,c,t]   = (duLU_EE2_part[i,c,t] + duLL_EE2_part[i,c,t]) / 2
+    eduR_EE2_part[i,c,t]   = (duRU_EE2_part[i,c,t] + duRL_EE2_part[i,c,t]) / 2
+    deu_EE2_part[i,c,t]    = eduL_EE2_part[i,c,t] - eduR_EE2_part[i,c,t]
+    sdeu_EE2_part[i,c,t]   = -1 * beta_EE2_part[i,c] * deu_EE2_part[i,c,t]
+    cp_EE2_part[i,c,t]     = 1 / (1 + (exp(sdeu_EE2_part[i,c,t])))
+    theta[i,c,t,6]    = max(0.000001,min(0.999999,cp_EE2_part[i,c,t]))
+    theta[i,c,t,15]    = max(0.000001,min(0.999999,cp_EE2_part[i,c,t]))
+
+
+    ##Full pooling
+    #EUT
+    u_EUT_full[i,c,t]      = (pow(w[i,c,t],oneminEta_EUT_full[i,c]) - 1) / oneminEta_EUT_full[i,c]
+    uLU_EUT_full[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EUT_full[i,c]) - 1) / oneminEta_EUT_full[i,c]
+    uLL_EUT_full[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EUT_full[i,c]) - 1) / oneminEta_EUT_full[i,c]
+    uRU_EUT_full[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EUT_full[i,c]) - 1) / oneminEta_EUT_full[i,c]
+    uRL_EUT_full[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EUT_full[i,c]) - 1) / oneminEta_EUT_full[i,c]
+    duLU_EUT_full[i,c,t]   = uLU_EUT_full[i,c,t] - u_EUT_full[i,c,t]
+    duLL_EUT_full[i,c,t]   = uLL_EUT_full[i,c,t] - u_EUT_full[i,c,t]
+    duRU_EUT_full[i,c,t]   = uRU_EUT_full[i,c,t] - u_EUT_full[i,c,t]
+    duRL_EUT_full[i,c,t]   = uRL_EUT_full[i,c,t] - u_EUT_full[i,c,t]
+    eduL_EUT_full[i,c,t]   = (duLU_EUT_full[i,c,t] + duLL_EUT_full[i,c,t]) / 2
+    eduR_EUT_full[i,c,t]   = (duRU_EUT_full[i,c,t] + duRL_EUT_full[i,c,t]) / 2
+    deu_EUT_full[i,c,t]    = eduL_EUT_full[i,c,t] - eduR_EUT_full[i,c,t]
+    sdeu_EUT_full[i,c,t]   = -1 * beta_EUT_full[i,c] * deu_EUT_full[i,c,t]
+    cp_EUT_full[i,c,t]     = 1 / (1 + (exp(sdeu_EUT_full[i,c,t])))
+    theta[i,c,t,7]    = max(0.000001,min(0.999999,cp_EUT_full[i,c,t]))
+    theta[i,c,t,16]    = max(0.000001,min(0.999999,cp_EUT_full[i,c,t]))
+
+    #EE
+    u_EE_full[i,c,t]      = (pow(w[i,c,t],oneminEta_EE_full[i,c]) - 1) / oneminEta_EE_full[i,c]
+    uLU_EE_full[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE_full[i,c]) - 1) / oneminEta_EE_full[i,c]
+    uLL_EE_full[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE_full[i,c]) - 1) / oneminEta_EE_full[i,c]
+    uRU_EE_full[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE_full[i,c]) - 1) / oneminEta_EE_full[i,c]
+    uRL_EE_full[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE_full[i,c]) - 1) / oneminEta_EE_full[i,c]
+    duLU_EE_full[i,c,t]   = uLU_EE_full[i,c,t] - u_EE_full[i,c,t]
+    duLL_EE_full[i,c,t]   = uLL_EE_full[i,c,t] - u_EE_full[i,c,t]
+    duRU_EE_full[i,c,t]   = uRU_EE_full[i,c,t] - u_EE_full[i,c,t]
+    duRL_EE_full[i,c,t]   = uRL_EE_full[i,c,t] - u_EE_full[i,c,t]
+    eduL_EE_full[i,c,t]   = (duLU_EE_full[i,c,t] + duLL_EE_full[i,c,t]) / 2
+    eduR_EE_full[i,c,t]   = (duRU_EE_full[i,c,t] + duRL_EE_full[i,c,t]) / 2
+    deu_EE_full[i,c,t]    = eduL_EE_full[i,c,t] - eduR_EE_full[i,c,t]
+    sdeu_EE_full[i,c,t]   = -1 * beta_EE_full[i,c] * deu_EE_full[i,c,t]
+    cp_EE_full[i,c,t]     = 1 / (1 + (exp(sdeu_EE_full[i,c,t])))
+    theta[i,c,t,8]   = max(0.000001,min(0.999999,cp_EE_full[i,c,t]))
+    theta[i,c,t,17]   = max(0.000001,min(0.999999,cp_EE_full[i,c,t]))
+
+    #EE2
+    u_EE2_full[i,c,t]      = (pow(w[i,c,t],oneminEta_EE2_full[i,c]) - 1) / oneminEta_EE2_full[i,c]
+    uLU_EE2_full[i,c,t]    = (pow(wLU[i,c,t],oneminEta_EE2_full[i,c]) - 1) / oneminEta_EE2_full[i,c]
+    uLL_EE2_full[i,c,t]    = (pow(wLL[i,c,t],oneminEta_EE2_full[i,c]) - 1) / oneminEta_EE2_full[i,c]
+    uRU_EE2_full[i,c,t]    = (pow(wRU[i,c,t],oneminEta_EE2_full[i,c]) - 1) / oneminEta_EE2_full[i,c]
+    uRL_EE2_full[i,c,t]    = (pow(wRL[i,c,t],oneminEta_EE2_full[i,c]) - 1) / oneminEta_EE2_full[i,c]
+    duLU_EE2_full[i,c,t]   = uLU_EE2_full[i,c,t] - u_EE2_full[i,c,t]
+    duLL_EE2_full[i,c,t]   = uLL_EE2_full[i,c,t] - u_EE2_full[i,c,t]
+    duRU_EE2_full[i,c,t]   = uRU_EE2_full[i,c,t] - u_EE2_full[i,c,t]
+    duRL_EE2_full[i,c,t]   = uRL_EE2_full[i,c,t] - u_EE2_full[i,c,t]
+    eduL_EE2_full[i,c,t]   = (duLU_EE2_full[i,c,t] + duLL_EE2_full[i,c,t]) / 2
+    eduR_EE2_full[i,c,t]   = (duRU_EE2_full[i,c,t] + duRL_EE2_full[i,c,t]) / 2
+    deu_EE2_full[i,c,t]    = eduL_EE2_full[i,c,t] - eduR_EE2_full[i,c,t]
+    sdeu_EE2_full[i,c,t]   = -1 * beta_EE2_full[i,c] * deu_EE2_full[i,c,t]
+    cp_EE2_full[i,c,t]     = 1 / (1 + (exp(sdeu_EE2_full[i,c,t])))
+    theta[i,c,t,9]    = max(0.000001,min(0.999999,cp_EE2_full[i,c,t]))
+    theta[i,c,t,18]    = max(0.000001,min(0.999999,cp_EE2_full[i,c,t]))
+
+    #choice
+    y[i,c,t]          ~ dbern(theta[i,c,t,z[i]])
+
+}# end of trials
+}# end of conditions
+}# end of subjects
+
+
+## PRIORS
+#model indicator
+#the model indicator variable z can take on any value from 1:n (here 1:8),
+#and is subject to two stochastic processes, to prevent getting stuck
+#the n values map onto just N models (here 2), and is simply a means of
+#obtaining parameter expansion for the model indication
+for (i in 1:nSubjects){
+    z[i] ~ dcat(pz[])
+}
+
+#submodels
+
+#no pooling
+for (i in 1:nSubjects){
+    eta_EUT_no[i]       ~ dnorm(mu_eta_EUT_no[i],tau_eta_EUT_no[i])
+
+for (c in 1:nConditions){
+    eta_EE_no[i,c]       ~ dnorm(mu_eta_EE_no[i,c],tau_eta_EE_no[i])
+    eta_EE2_no[i,c]       ~ dnorm(mu_eta_EE2_no[i,c],tau_eta_EE2_no[i])
+
+    beta_EUT_no[i,c]      = exp(log_beta_EUT_no[i,c])
+    log_beta_EUT_no[i,c]  ~ dnorm(mu_log_beta_EUT_no[i,c], tau_log_beta_EUT_no[i,c])
+
+    beta_EE_no[i,c]      = exp(log_beta_EE[i,c])
+    log_beta_EE_no[i,c]  ~ dnorm(mu_log_beta_EE_no[i,c], tau_log_beta_EE_no[i,c])
+
+    beta_EE2_no[i,c]      = exp(log_beta_EE2_no[i,c])
+    log_beta_EE2_no[i,c]  ~ dnorm(mu_log_beta_EE_no[i,c], tau_log_beta_EE2_no[i,c])
+
+  }#end of subjects
+}#end of conditions
+
+
+
+##partial pooling
+for (i in 1:nSubjects){
+    eta_EUT_part[i]       ~ dnorm(mu_eta_EUT_part,tau_eta_EUT_part)
+
+for (c in 1:nConditions){
+    eta_EE_part[i,c]       ~ dnorm(mu_eta_EE_part[c],tau_eta_EE_part)
+    eta_EE2_part[i,c]      ~ dnorm(mu_eta_EE2_part[c],tau_eta_EE2_part)
+
+    beta_EUT_part[i,c]     = exp(log_beta_EUT_part[i,c])
+    log_beta_EUT_part[i,c] ~ dnorm(mu_log_beta_EUT_part[c], tau_log_beta_EUT_part[c])
+
+    beta_EE_part[i,c]      = exp(log_beta_EE_part[i,c])
+    log_beta_EE_part[i,c]  ~ dnorm(mu_log_beta_EE_part[c], tau_log_beta_EE_part[c])
+
+    beta_EE2_part[i,c]     = exp(log_beta_EE2_part[i,c])
+    log_beta_EE2_part[i,c] ~ dnorm(mu_log_beta_EE2_part[c], tau_log_beta_EE2_part[c])
+
+  }#end of subjects
+}#end of conditions
+
+
+#full pooling
+eta_EUT_full       ~ dnorm(mu_eta_EUT_full,tau_eta_EUT_full)
+
+for (c in 1:nConditions){
+    eta_EE_full[c]       ~ dnorm(mu_eta_EE_full[c],tau_eta_EE_full)
+    eta_EE2_full[c]       ~ dnorm(mu_eta_EE2_full[c],tau_eta_EE2_full)
+
+    beta_EUT_full[c]      = exp(log_beta_EUT_full[c])
+    log_beta_EUT_full[c]  ~ dnorm(mu_log_beta_EUT_full[c], tau_log_beta_EUT_full[c])
+
+    beta_EE_full[c]      = exp(log_beta_EE_full[c])
+    log_beta_EE_full[c]  ~ dnorm(mu_log_beta_EE_full[c], tau_log_beta_EE_full[c])
+
+    beta_EE2_full[c]      = exp(log_beta_EE2_full[c])
+    log_beta_EE2_full[c]  ~ dnorm(mu_log_beta_EE_full[c], tau_log_beta_EE2_full[c])
+}#end of conditions
+
+
+
+
+
+
+##HYPERPRIORS
+
+#no pooling
+for (i in 1:nSubjects){
+for (c in 1:nConditions){
+    #EUT
+    mu_log_beta_EUT_no[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT_no[i,c]    ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EUT_no[i,c]      = pow(sigma_log_beta_EUT_no[i,c],-2)
+
+    #EE
+    mu_log_beta_EE_no[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE_no[i,c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE_no[i,c]       = pow(sigma_log_beta_EE_no[i,c],-2)
+
+    #EE2
+    mu_log_beta_EE2_no[i,c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2_no[i,c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE2_no[i,c]       = pow(sigma_log_beta_EE2_no[i,c],-2)
+
+}#end of conditions
+
+#EUT
+mu_eta_EUT_no[i]    ~ dunif(muEtaL , muEtaH)
+sigma_eta_EUT_no[i] ~ dunif(sigmaL, sigmaH)
+tau_eta_EUT_no[i]   = pow(sigma_eta_EUT[i],-2)
+
+#EE
+mu_eta_EE_no[i,1] = muEtaEEAdd
+mu_eta_EE_no[i,2] = muEtaEEMul
+sigma_eta_EE_no[i] ~ dunif(sigmaL, sigmaH)
+tau_eta_EE_no[i]   = pow(sigma_eta_EE_no[i],-2)
+
+#EE2
+mu_eta_EE2_no[i,1]    ~ dunif(muEtaL, muEtaH)
+d_mu_eta_EE2_no[i] ~ dgamma(dMuAlpha, dMuBeta)
+mu_eta_EE2_no[i,2] = mu_eta_EE2_no[i,1]  + d_mu_eta_EE2_no[i]
+
+sigma_eta_EE2_no[i] ~ dunif(sigmaL,sigmaH)
+tau_eta_EE2_no[i]  = pow(sigma_eta_EE2_no[i],-2)
+}#end of subjects
+
+
+#partial pooling
+for (c in 1:nConditions){
+    #EUT
+    mu_log_beta_EUT_part[c]    ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT_part[c] ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EUT_part[c]   = pow(sigma_log_beta_EUT_part[c],-2)
+
+    #EE
+    mu_log_beta_EE_part[c]     ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE_part[c]  ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE_part[c]    = pow(sigma_log_beta_EE_part[c],-2)
+
+    #EE2
+    mu_log_beta_EE2_part[c]    ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2_part[c] ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE2_part[c]   = pow(sigma_log_beta_EE2_part[c],-2)
+}#end of conditions
+
+#EUT
+mu_eta_EUT_part    ~ dunif(muEtaL , muEtaH)
+sigma_eta_EUT_part ~ dunif(sigmaL, sigmaH)
+tau_eta_EUT_part   = pow(sigma_eta_EUT,-2)
+
+#EE
+mu_eta_EE_part[1] = muEtaEEAdd
+mu_eta_EE_part[2] = muEtaEEMul
+sigma_eta_EE_part ~ dunif(sigmaL, sigmaH)
+tau_eta_EE_part   = pow(sigma_eta_EE_part,-2)
+
+#EE2
+mu_eta_EE2_part[1] ~ dunif(muEtaL, muEtaH)
+d_mu_eta_EE2_part  ~ dgamma(dMuAlpha, dMuBeta)
+mu_eta_EE2_part[2] = mu_eta_EE2_part[1]  + d_mu_eta_EE2_part
+
+sigma_eta_EE2_part ~ dunif(sigmaL,sigmaH)
+tau_eta_EE2_part   = pow(sigma_eta_EE2_part,-2)
+
+
+#full pooling
+for (c in 1:nConditions){
+    #EUT
+    mu_log_beta_EUT_full[c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EUT_full[c]    ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EUT_full[c]      = pow(sigma_log_beta_EUT_full[c],-2)
+
+    #EE
+    mu_log_beta_EE_full[c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE_full[c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE_full[c]       = pow(sigma_log_beta_EE_full[c],-2)
+
+    #EE2
+    mu_log_beta_EE2_full[c]       ~ dunif(muLogBetaL, muLogBetaH)
+    sigma_log_beta_EE2_full[c]   ~ dunif(sigmaL,sigmaH)
+    tau_log_beta_EE2_full[c]       = pow(sigma_log_beta_EE2_full[c],-2)
+}#end of conditions
+
+#EUT
+mu_eta_EUT_full    ~ dunif(muEtaL , muEtaH)
+sigma_eta_EUT_full ~ dunif(sigmaL, sigmaH)
+tau_eta_EUT_full   = pow(sigma_eta_EUT_full,-2)
+
+#EE
+mu_eta_EE_full[1] = muEtaEEAdd
+mu_eta_EE_full[2] = muEtaEEMul
+sigma_eta_EE_full ~ dunif(sigmaL, sigmaH)
+tau_eta_EE_full   = pow(sigma_eta_EE_full,-2)
+
+#EE2
+mu_eta_EE2_full[1]    ~ dunif(muEtaL, muEtaH)
+d_mu_eta_EE2_full ~ dgamma(dMuAlpha, dMuBeta)
+mu_eta_EE2_full[2] = mu_eta_EE2_full[1]  + d_mu_eta_EE2_full
+
+sigma_eta_EE2_full ~ dunif(sigmaL,sigmaH)
+tau_eta_EE2_full  = pow(sigma_eta_EE2_full,-2)
+
+}
+
