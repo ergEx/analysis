@@ -56,13 +56,17 @@ switch inferenceMode
             case {3}, modelName = 'JAGS_parameter_estimation_full_pooling';
         end %switch dataPooling
     case {2}
-        switch dataPooling
-            case {1}, modelName = 'JAGS_model_selection_no_pooling';
-            case {2}, modelName = 'JAGS_model_selection_partial_pooling';
-            case {3}, modelName = 'JAGS_model_selection_full_pooling';
-        end %switch dataPooling
-    case {3}, modelName = 'JAGS_model_selection_data_pooling'
-    case {4}, modelName = 'JAGS_model_selection'
+        modelName = 'JAGS_model_selection_data_pooling'
+        pz = repmat([1/3, 1/3, 1/3], 1, 2);; %flat prior over all three data pooling methods
+    case {3}
+        switch model_selection_type
+            case {1}
+                modelName = 'JAGS_model_selection_EUT_EE'
+                pz = repmat([1/2, 1/2], 1, 2);
+            case {2}
+                modelName = 'JAGS_model_selection_EUT_EE2'
+                pz = repmat([1/2, 1/2], 1, 2);
+        end %switch model_selection_type
 end %switch inferenceMode
 
 %% Set key variables
@@ -85,28 +89,6 @@ mu_log_beta_h = 3;
 
 mu_eta_EE_add = 0.0000;
 mu_eta_EE_mul = 0.9999;
-
-
-
-%Model indicator
-switch inferenceMode
-    case{1}
-        %no model indicator used for parameter estimation
-    case {2}
-        switch model_selection_type
-            case {1}
-                modelName = 'JAGS_model_selection_no_pooling_EE';
-                pz = repmat([1/2, 1/2], 1, 4);   %test model 1 (EUT) v model 2 (EE)
-            case {2}
-                modelName = 'JAGS_model_selection_no_pooling_EE2';
-                pz = repmat([1/2, 1/2], 1, 4);   %test model 1 (EUT) v model 3 (Weak EE)
-
-        end
-    case {3}
-        pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
-    case {4}
-        pz = repmat([1/3, 1/3, 1/3], 1, 6);   %test model 1 (EUT) v model 2 (EE) v model 3 (weak EE) for all data pooling methods
-end
 
 
 %% Print information for user
@@ -178,22 +160,8 @@ switch inferenceMode
             monitorParameters = {'beta_i', 'beta_g','eta_i', 'eta_g'};
             S=struct; init0(i)=S;
         end %i
-    case {2} %model selection
-        dataStruct = struct(...
-            'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-            'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
-            'sigmaL',sigma_l,'sigmaH',sigma_h,...
-            'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
-            'muEtaEEAdd',mu_eta_EE_add,'muEtaEEMul',mu_eta_EE_mul,...
-            'dMuAlpha',d_mu_alpha,'dMuBeta',d_mu_beta,...
-            'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
-            'pz',pz);
 
-        for i = 1:nChains
-            monitorParameters = {'z'};
-            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-        end %i
-    case {3}
+    case {2} %model selection (data pooling)
         dataStruct = struct(...
             'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
             'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
@@ -204,13 +172,13 @@ switch inferenceMode
 
         for i = 1:nChains
             monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',... %no pooling
-                'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling
-                'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',... %full pooling
-                'z'};%model indicator
+                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling
+                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',... %full pooling
+                                 'z'};%model indicator
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
 
-    case {4} %model selection
+    case {3} %model selection (models)
         dataStruct = struct(...
             'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
             'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
@@ -222,13 +190,7 @@ switch inferenceMode
             'pz',pz);
 
         for i = 1:nChains
-            monitorParameters = {'z',...
-                                'eta_EUT_no',    'eta_EE_no',    'eta_EE2_no',...
-                                'eta_EUT_part',  'eta_EE_part',  'eta_EE2_part',...
-                                'eta_EUT_full',  'eta_EE_full',  'eta_EE2_full',...
-                                'beta_EUT_no',   'beta_EE_no',   'beta_EE2_no',...
-                                'beta_EUT_part', 'beta_EE_part', 'beta_EE2_part',...
-                                'beta_EUT_full', 'beta_EE_full', 'beta_EE2_full'};
+            monitorParameters = {'eta_EUT', 'eta_EE', 'beta_EUT', 'beta_EE','z'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
 end %switch
