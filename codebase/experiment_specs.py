@@ -77,7 +77,8 @@ def create_spec_dict(folder, ignore_no_brainer=False, exclusion_crit=[1,2]):
         warnings.warn("Using folder structure, not participants.tsv")
         exclusion = np.zeros(len(subs))
     else:
-        participants = pd.read_csv(participants_tsv, sep='\t')
+        participants = pd.read_csv(participants_tsv, sep='\t',
+                                   dtype={'participant_id': object})
         subs = participants['participant_id'].values
         exclusion = participants['exclusion'].values
 
