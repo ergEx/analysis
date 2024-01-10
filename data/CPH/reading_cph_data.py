@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy import io
 
+from ...codebase.utils import isoelastic_utility, wealth_change
 
 DATA_PATH = 'https://raw.githubusercontent.com/ollie-hulme/ergodicity-breaking-choice-experiment/master/data/'
 
@@ -14,8 +15,9 @@ dfs = []
 
 selected_columns = ['subjID', 'earnings', 'Gam1_1', 'Gam1_2', 'Gam2_1', 'Gam2_2', 'KP_Final', 'eta']
 renamed_columns = {'subjID': 'participant_id', 'earnings': 'wealth',
-                   'Gam1_1': 'x1_1', 'Gam1_2': 'x1_2', 'Gam2_1': 'x2_1', 'Gam2_2': 'x2_2', 'KP_Final': 'selected_side', 'eta': 'eta'}
+                   'Gam1_1': 'Gam1_1', 'Gam1_2': 'Gam1_2', 'Gam2_1': 'Gam2_1', 'Gam2_2': 'Gam2_2', 'KP_Final': 'selected_side', 'eta': 'eta'}
 value_mapping = {8.0: 0, 9.0: 1, np.nan: np.nan}
+redo = {0: 1.0, 1: 100.0}# The growth factors in the txt files are multiplied with a factor of 100 (e.g. 183.02 instead of 1.8302), this list will be used to correct for this
 datadict = {}
 
 condition_map = {'add': 'TxtFiles_additive', 'mul': 'TxtFiles_multiplicative'}
@@ -33,6 +35,17 @@ for condition in ['add', 'mul']:
         df = df[selected_columns].rename(columns=renamed_columns)
 
         df['choice'] = df['selected_side'].map(value_mapping)
+
+        df['gr1_1'] = isoelastic_utility(df['Gam1_1']/redo[1],1) if condition == 'mul' else df['Gam1_1']/redo[0]
+        df['gr1_2'] = isoelastic_utility(df['Gam1_2']/redo[1],1) if condition == 'mul' else df['Gam1_2']/redo[0]
+        df['gr2_1'] = isoelastic_utility(df['Gam2_1']/redo[1],1) if condition == 'mul' else df['Gam2_1']/redo[0]
+        df['gr2_2'] = isoelastic_utility(df['Gam2_2']/redo[1],1) if condition == 'mul' else df['Gam2_2']/redo[0]
+
+        df['x1_1'] = wealth_change(df['wealth'], df['gr1_1'], df['eta'][0]) - df['wealth']
+        df['x1_2'] = wealth_change(df['wealth'], df['gr1_2'], df['eta'][0]) - df['wealth']
+        df['x2_1'] = wealth_change(df['wealth'], df['gr2_1'], df['eta'][0]) - df['wealth']
+        df['x2_2'] = wealth_change(df['wealth'], df['gr2_2'], df['eta'][0]) - df['wealth']
+
         df = df[:min_n_trials]
 
         dfs.append(df)
