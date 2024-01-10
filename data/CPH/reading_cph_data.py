@@ -1,10 +1,12 @@
 import os
+import sys
+sys.path.append(os.path.abspath("../../"))
 
 import numpy as np
 import pandas as pd
 from scipy import io
 
-from ...codebase.utils import isoelastic_utility, wealth_change
+from codebase.utils import isoelastic_utility, wealth_change
 
 DATA_PATH = 'https://raw.githubusercontent.com/ollie-hulme/ergodicity-breaking-choice-experiment/master/data/'
 
