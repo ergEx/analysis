@@ -5,11 +5,10 @@ import pandas as pd
 from scipy import io
 
 
-DATA_PATH = ''
+DATA_PATH = 'https://raw.githubusercontent.com/ollie-hulme/ergodicity-breaking-choice-experiment/master/data/'
 
-PARTICIPANTS = ['Subj01', 'Subj02', 'Subj03', 'Subj05', 'Subj06', 'Subj07', 'Subj08', 'Subj09',
-                'Subj10', 'Subj11', 'Subj12' ,'Subj13', 'Subj14', 'Subj15', 'Subj16', 'Subj17',
-                'Subj18', 'Subj19', 'Subj20']
+PARTICIPANTS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11',
+                '12', '13', '14', '15', '16', '17', '18', '19']
 
 dfs = []
 
@@ -19,26 +18,16 @@ renamed_columns = {'subjID': 'participant_id', 'earnings': 'wealth',
 value_mapping = {8.0: 0, 9.0: 1, np.nan: np.nan}
 datadict = {}
 
-condition_map = {'add': 'Additive', 'mul': 'Mutiplicative'}
+condition_map = {'add': 'TxtFiles_additive', 'mul': 'TxtFiles_multiplicative'}
 
 min_n_trials = 299
 
 for condition in ['add', 'mul']:
     for sub in PARTICIPANTS:
 
-        file = os.path.join(DATA_PATH, sub, condition_map[condition],
-                            'Data_active', f'{sub[-2:]}_2.txt')
-
-        if not os.path.isfile(file) and condition == 'mul':
-            file = os.path.join(DATA_PATH, sub, 'Multiplicative',
-                            'Data_active', f'{sub[-2:]}_2.txt')
-
-        try:
-            df = pd.read_csv(file, delimiter='\t', header=0, error_bad_lines=True,
-                             usecols=range(0, 27))
-        except ValueError:
-            df = pd.read_csv(file, delimiter='\t', header=0, error_bad_lines=True,
-                             usecols=range(0, 25))
+        file = os.path.join(DATA_PATH, condition_map[condition], f'{sub}_2.txt')
+        print(file)
+        df = pd.read_csv(file, delimiter='\t')
 
         df['eta'] = 1 if condition == 'mul' else 0
         df = df[selected_columns].rename(columns=renamed_columns)
