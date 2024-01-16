@@ -297,9 +297,9 @@ def main(config_file):
 
         for m, typ in enumerate(model_specs):
             model = read_Bayesian_output(
-                    os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs[typ]['name']}{model_specs[typ]['model_selection_type']}.mat")
+                    os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs[typ]['name']}.mat")
                     )
-            z = model['samples']['z'][:,burn_in:,:]
+            z = model['z'][:,burn_in:,:]
 
             fig, ax = model_select_plot(z,model_specs[typ]['models'])
 
@@ -311,11 +311,11 @@ def main(config_file):
                             'models' : ['No pooling','Partial pooling','Full pooling']}}
 
         model = read_Bayesian_output(
-                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs['name']}{model_specs['model_selection_type']}_2.mat")
+                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs['data pooling']['name']}_2.mat")
                 )
-        z = model['samples']['z'][:,burn_in:,:]
+        z = model['z'][:,burn_in:,:]
 
-        fig, ax = model_select_plot(z,model_specs['models'], individual = False)
+        fig, ax = model_select_plot(z,model_specs['data pooling']['models'], individual = False)
 
         fig.savefig(os.path.join(fig_dir, f'08_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
     return

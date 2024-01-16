@@ -3,6 +3,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 import ptitprince as pt
+import pandas as pd
 import seaborn as sns
 from scipy.stats import gaussian_kde
 
