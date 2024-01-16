@@ -288,8 +288,6 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_model_selection']:
-        #Partial pooling
-        #EUT v EE
         model_specs = {'EUT v EE' :
                             {'name': 'EUT_EE',
                             'models' : ['EUT','EE']},
@@ -306,6 +304,20 @@ def main(config_file):
             fig, ax = model_select_plot(z,model_specs[typ]['models'])
 
             fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
+
+    if stages['plot_pooling_selection']:
+        model_specs = {'data pooling' :
+                            {'name': 'data_pooling',
+                            'models' : ['No pooling','Partial pooling','Full pooling']}}
+
+        model = read_Bayesian_output(
+                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs['name']}{model_specs['model_selection_type']}_2.mat")
+                )
+        z = model['samples']['z'][:,burn_in:,:]
+
+        fig, ax = model_select_plot(z,model_specs['models'], individual = False)
+
+        fig.savefig(os.path.join(fig_dir, f'08_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
     return
 
 # %%
