@@ -1,7 +1,6 @@
 #%% # -*- coding: utf-8 -*-
 import os
 
-import mat73
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,7 +8,7 @@ import seaborn as sns
 import yaml
 from tqdm.auto import tqdm
 
-from .plotting_functions import jasp_like_raincloud, posterior_dist_2dplot, posterior_dist_plot
+from .plotting_functions import jasp_like_raincloud, model_select_plot, posterior_dist_2dplot, posterior_dist_plot
 from .support_figures.plot_nobrainer_performance import plot_nobrainers
 from .utils import read_Bayesian_output
 
@@ -292,41 +291,19 @@ def main(config_file):
         #Partial pooling
         #EUT v EE
         model_specs = {'EUT v EE' :
-                        {'name': 'EUT_EE',
-                        'models' : ['EUT','EE']},
-                    'EUT v Weak EE' :
-                        {'name': 'EUT_EE2',
-                        'models' : ['EUT','Weak EE']}}
+                            {'name': 'EUT_EE',
+                            'models' : ['EUT','EE']},
+                        'EUT v Weak EE' :
+                            {'name': 'EUT_EE2',
+                            'models' : ['EUT','Weak EE']}}
 
         for m, typ in enumerate(model_specs):
-            model = mat73.loadmat(f"data/Bayesian_JAGS_model_selection_{model_specs[typ]['name']}{model_specs[typ]['model_selection_type']}.mat")
+            model = read_Bayesian_output(
+                    os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs[typ]['name']}{model_specs[typ]['model_selection_type']}.mat")
+                    )
             z = model['samples']['z'][:,burn_in:,:]
 
-            models = model_specs[typ]['models']
-
-            n_chains, n_samples, n_participants = z.shape
-
-            z_mod = np.mod(z, len(models))
-            z_mod[z_mod == 0] = len(models)
-
-            z_i_mod = z_mod.reshape((n_chains * n_samples, n_participants))
-
-            counts = np.zeros([len(models), n_participants])
-            bin_edges = np.arange(1, len(models) + 2)
-
-            for col in range(n_participants):
-                counts[:, col], _ = np.histogram(z_i_mod[:, col], bins=bin_edges)
-
-            counts += 1  # Add 1 to all counts to avoid division by zero
-
-            proportions = counts / np.sum(counts, axis=0)
-
-            df = pd.DataFrame(proportions.T, columns=models)
-
-            fig, ax = plt.subplots(1, 1, figsize = (15,5))
-
-            sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax)
-            ax.set_ylabel('Participants')
+            fig, ax = model_select_plot(z,model_specs[typ]['models'])
 
             fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
     return

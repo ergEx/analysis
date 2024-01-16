@@ -174,3 +174,30 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
 
     return fig, ax
 
+def model_select_plot(z, models):
+
+    n_chains, n_samples, n_participants = z.shape
+
+    z_mod = np.mod(z, len(models))
+    z_mod[z_mod == 0] = len(models)
+
+    z_i_mod = z_mod.reshape((n_chains * n_samples, n_participants))
+
+    counts = np.zeros([len(models), n_participants])
+    bin_edges = np.arange(1, len(models) + 2)
+
+    for col in range(n_participants):
+        counts[:, col], _ = np.histogram(z_i_mod[:, col], bins=bin_edges)
+
+    counts += 1  # Add 1 to all counts to avoid division by zero
+
+    proportions = counts / np.sum(counts, axis=0)
+
+    df = pd.DataFrame(proportions.T, columns=models)
+
+    fig, ax = plt.subplots(1, 1, figsize = (15,5))
+
+    sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax)
+    ax.set_ylabel('Participants')
+
+    return fig, ax
