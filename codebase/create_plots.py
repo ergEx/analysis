@@ -7,9 +7,10 @@ import pandas as pd
 import seaborn as sns
 import yaml
 from tqdm.auto import tqdm
-from .utils import read_Bayesian_output
-from .plotting_functions import posterior_dist_2dplot, posterior_dist_plot, jasp_like_raincloud
+
+from .plotting_functions import jasp_like_raincloud, posterior_dist_2dplot, posterior_dist_plot
 from .support_figures.plot_nobrainer_performance import plot_nobrainers
+from .utils import read_Bayesian_output
 
 plt.rcParams.update({
     "text.usetex": True})
@@ -287,51 +288,24 @@ def main(config_file):
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_model_selection']:
-        #no pooling
+        #Partial pooling
         #EUT v EE
-        df = pd.read_csv(os.path.join(data_dir, "proportions_no_pooling_1.csv"), sep=',')
-        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+        df = pd.read_csv(os.path.join(data_dir, "proportions_partial_pooling_1.csv"), sep=",")
+        fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
 
-        sns.heatmap(df[['EUT','EE']], cmap='gray_r', yticklabels=False, xticklabels=['EUT', 'EE'], cbar=False, ax=ax[0])
-        ax[0].set_ylabel('Participants')
-
-        ax[1].bar(['EUT', 'EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
+        sns.heatmap(df[['EUT','EE']], cmap='gray_r', yticklabels=False, xticklabels=['EUT', 'EE'], cbar=False, ax=ax)
+        ax.set_ylabel('Participants')
 
         fig.savefig(os.path.join(fig_dir, '07_model_selection_1.pdf'), dpi=600, bbox_inches='tight')
 
         #EUT v EE2
-        df = pd.read_csv(os.path.join(data_dir, "proportions_no_pooling_2.csv"), sep=",")
-        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
+        df = pd.read_csv(os.path.join(data_dir, "proportions_partial_pooling_2.csv"), sep=",")
+        fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
 
-        sns.heatmap(df[['EUT','Weak_EE']], cmap='gray_r', yticklabels=False, xticklabels=['EUT', 'Weak EE'], cbar=False, ax=ax[0])
-        ax[0].set_ylabel('Participants')
-
-        ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
+        sns.heatmap(df[['EUT','Weak_EE']], cmap='gray_r', yticklabels=False, xticklabels=['EUT', 'Weak EE'], cbar=False, ax=ax)
+        ax.set_ylabel('Participants')
 
         fig.savefig(os.path.join(fig_dir, '07_model_selection_2.pdf'), dpi=600, bbox_inches='tight')
-
-        #Partial pooling
-        #EUT v EE
-        df = pd.read_csv(os.path.join(data_dir, "proportions_partial_pooling_1.csv"), sep=",")
-        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
-
-        sns.heatmap(df[['EUT','EE']], cmap='gray_r', yticklabels=False, xticklabels=['EUT', 'EE'], cbar=False, ax=ax[0])
-        ax[0].set_ylabel('Participants')
-
-        ax[1].bar(['EUT', 'EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
-
-        fig.savefig(os.path.join(fig_dir, '07_model_selection_3.pdf'), dpi=600, bbox_inches='tight')
-
-        #EUT v EE2
-        df = pd.read_csv(os.path.join(data_dir, "proportions_partial_pooling_2.csv"), sep=",")
-        fig, ax = plt.subplots(1, 2, figsize=(23 * cm, 4.75 * cm), gridspec_kw={'width_ratios': [8, 2]})
-
-        sns.heatmap(df[['EUT','Weak_EE']], cmap='gray_r', yticklabels=False, xticklabels=['EUT', 'Weak EE'], cbar=False, ax=ax[0])
-        ax[0].set_ylabel('Participants')
-
-        ax[1].bar(['EUT', 'Weak_EE'], df[['EUT', 'EE']].sum() / df[['EUT', 'EE']].sum().sum(), color='black')
-
-        fig.savefig(os.path.join(fig_dir, '07_model_selection_4.pdf'), dpi=600, bbox_inches='tight')
 
     return
 
