@@ -2,6 +2,7 @@ import sys
 import time
 import os
 import yaml
+import traceback
 from codebase import bracketing_method, create_JASP_input, create_plots, utils, runBayesAnalysis
 
 
@@ -42,4 +43,5 @@ if __name__ == "__main__":
         write_provenance('executed successfully')
     except Exception as e:
         print(e)
+        traceback.print_exc()
         write_provenance('FAILED!!')

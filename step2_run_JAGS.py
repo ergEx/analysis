@@ -1,12 +1,14 @@
 import sys
 import time
 import os
+import subprocess
+import traceback
+import datetime
 import yaml
 from codebase import utils
 
 
 def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_type, dataPooling, whichJags):
-    import datetime
     now = datetime.datetime.now().isoformat()
 
     script_path = os.path.dirname(__file__)
@@ -18,6 +20,10 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
         dataSource = 1
     elif dataSource == '2_full_data':
         dataSource = 2
+    elif dataSource == '2_full_data_excl':
+        dataSource = 3
+    elif dataSource == "CPH":
+        dataSource = 4
 
     shellname = (f'runBayes_ds-{dataSource}_im-{inferenceMode}_' +
                  f'sv-{simVersion}_q-{quality}_mst-{model_selection_type}.sh')
@@ -42,7 +48,6 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
 
 
 def bayesian_method(config, inferenceMode, quality, model_selection_type, whichJags, dataPooling, executor='sbatch'):
-    import subprocess
 
     if config['bayesian method']['run']:
         try:
@@ -89,8 +94,10 @@ def main():
         inferenceMethod = 2
     elif sys.argv[2] == '3':
         inferenceMethod = 3
+    elif sys.argv[2] == '4':
+        inferenceMethod = 4
     else:
-        raise ValueError("Inference method, second argument has to be 1 or 2")
+        raise ValueError("Inference method, second argument has to be 1, 2, 3, or 4")
 
     if sys.argv[3] == '1':
         model_selection_type = '1'
@@ -137,7 +144,6 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     from codebase.utils import write_provenance
 
     command = '\t'.join(sys.argv)
@@ -146,5 +152,7 @@ if __name__ == "__main__":
     try:
         main()
         write_provenance('executed successfully')
-    except:
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
         write_provenance('FAILED!!')

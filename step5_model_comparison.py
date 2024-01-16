@@ -3,7 +3,7 @@ import subprocess
 import time
 import yaml
 from codebase import utils
-
+import traceback
 
 def main():
     config_file = utils.get_config_filename(sys.argv)
@@ -49,5 +49,7 @@ if __name__ == "__main__":
     try:
         main()
         write_provenance('executed successfully')
-    except:
+    except Exception as e:
+        print(e)
+        traceback.print_exc()
         write_provenance('FAILED!!')
