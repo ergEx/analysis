@@ -200,23 +200,23 @@ def main(config_file):
                                              sep='\t')
 
         # Hypothesis 1
-        main_comparison = config['bayesfactor_analysis']['target']
+        for main_comparison in ['partial_pooling', 'no_pooling']:
 
-        fig, axes = jasp_like_raincloud(jasp_data, f'd_h0_{main_comparison}',
-                                        f'd_h1_{main_comparison}', fig_size=np.array(fig_size) * 2)
+            fig, axes = jasp_like_raincloud(jasp_data, f'd_h0_{main_comparison}',
+                                            f'd_h1_{main_comparison}', fig_size=np.array(fig_size) * 2)
 
-        axes[0].set(ylabel='Distance', xticklabels=['EUT', 'EE'])
-        axes[2].set(xlabel='Distance EUT - EE')
-        fig.savefig(os.path.join(fig_dir, '08_q1_pairwise_diff.pdf'), dpi=600, bbox_inches='tight')
+            axes[0].set(ylabel='Distance', xticklabels=['EUT', 'EE'])
+            axes[2].set(xlabel='Distance EUT - EE')
+            fig.savefig(os.path.join(fig_dir, f'08_q1_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
-        fig, axes = jasp_like_raincloud(jasp_data, f'0.0_{main_comparison}',
-                                        f'1.0_{main_comparison}', fig_size=np.array(fig_size) * 2)
+            fig, axes = jasp_like_raincloud(jasp_data, f'0.0_{main_comparison}',
+                                            f'1.0_{main_comparison}', fig_size=np.array(fig_size) * 2)
 
-        axes[0].set(ylabel='Risk aversion parameter',
-                    xticklabels=['Additive', 'Multiplicative'])
-        axes[2].set(xlabel='$\eta$ Additive - Multiplicative')
+            axes[0].set(ylabel='Risk aversion parameter',
+                        xticklabels=['Additive', 'Multiplicative'])
+            axes[2].set(xlabel='$\eta$ Additive - Multiplicative')
 
-        fig.savefig(os.path.join(fig_dir, '08_q2_pairwise_diff.pdf'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, f'08_q2_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
 
     if stages['plot_mcmc_samples']:
