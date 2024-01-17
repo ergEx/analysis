@@ -1,9 +1,11 @@
-import sys
 import subprocess
+import sys
 import time
+import traceback
+
 import yaml
 from codebase import utils
-import traceback
+
 
 def main():
     config_file = utils.get_config_filename(sys.argv)
@@ -18,8 +20,10 @@ def main():
         model_selection_type = '1'
     elif sys.argv[2] == '2':
         model_selection_type = '2'
+    elif sys.argv[2] == '3':
+        model_selection_type = '3'
     else:
-        raise ValueError("Model selection type has to be 1 for source or 2 for sbatch.")
+        raise ValueError("Model selection type has to be 1 (EE v EUT), 2 (EE2 v EUT) or 3 (Data pooling).")
 
     start_time = time.time()
     print(f"\n--- {time.ctime(start_time)} --- ")

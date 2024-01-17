@@ -2,56 +2,32 @@ function modelComparison(data_source, model_selection_type)
 
 [startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
 
-data_poolings = {'no_pooling','partial_pooling','full_pooling'};
 dataDir=fullfile(getParentDir(startDir, 1),'/data',data_source);
 
 disp(startDir)
 disp(getParentDir(startDir, 1))
 
-
-for ii = 1 : length(data_poolings)
-    file = sprintf('Bayesian_JAGS_model_selection_%s_%d.mat', data_poolings{ii} ,model_selection_type);
-    BFFile = sprintf('model_selection_BF_%s_%d.txt', data_poolings{ii} ,model_selection_type);
-
-    jags_dat = load(fullfile(dataDir, file));
-
-    z = jags_dat.samples.z;
-    [n_chains, n_samples, n_participants] = size(z);
-    z_i = reshape(z, [n_chains * n_samples, n_participants]);
-    z_i = mod(z_i, 2) + 1; %note this changes the order such that m1=2, m2=1
-
-    n_models = max(z_i(:));
-
-    counts = zeros(n_models, n_participants);
-    bin_edges = 1:(n_models+1);
-
-    % Loop through each column and count occurrences
-    for col = 1:n_participants
-        counts(:, col) = histcounts(z_i(:, col), bin_edges);
-    end
-
-    counts = counts + 1; % Add 1 to all counts to avoid division by zero
-
-    total_counts = sum(counts, 1);
-    proportions = counts ./ repmat(total_counts, n_models, 1);
-    proportions_file = sprintf('proportions_%s_%d.csv', data_poolings{ii}, model_selection_type);
-
-    log_proportions = log10(proportions);
-
-    switch model_selection_type
-        case {1}, VariableNames = {'EE', 'EUT'};
-        case {2}, VariableNames = {'Weak EE', 'EUT'}
-    end
-
-    writetable(array2table(proportions', 'VariableNames', VariableNames), fullfile(dataDir, proportions_file));
-
-    BF = exp(sum(log_proportions(1, :)) - sum(log_proportions(2, :)));
-
-    fileID = fopen(fullfile(dataDir, BFFile), 'w');
-    fprintf(fileID, ['BF', num2str(BF)]);
-    fclose(fileID);
-
+switch model_selection_type
+    case {1}, name = 'EE_EUT';
+    case {2}, name = 'EE2_EUT';
+    case {3}, name = 'data_pooling';
 end
+
+file = sprintf('proportions_%d.txt',name);
+log_proportions = load(file);
+BFFile = sprintf('model_selection_BF_%d.txt', name);
+
+options.verbose = false;
+options.DisplayWin = 0;
+
+[p, o] = VBA_groupBMC (log_proportions, options);
+
+
+fileID = fopen(fullfile(dataDir, BFFile), 'w');
+fprintf(fileID, 'pxp %d\n', o.pxp);
+fprintf(fileID, 'ep %d\n', o.ep);
+fprintf(fileID, 'Ef %d\n', o.Ef);
+fclose(fileID);
 
 end
 
