@@ -86,20 +86,20 @@ def main(config_file, fig_dir=None):
     if fig_dir is None:
         fig_dir = config["figure directory"]
 
-    target = config['bayesfactor_analysis']['target']
+    for target in ['partial_pooling', 'no_pooling']:    # target = config['bayesfactor_analysis']['target']
 
-    subprocess.call(f'Rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
+        subprocess.call(f'Rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
 
-    if config["bayesfactor_analysis"]["plot"]:
+        if config["bayesfactor_analysis"]["plot"]:
 
-        # Q1 Sequential:
-        q1_sequential = pd.read_csv(os.path.join(data_dir, 'q1_sequential_' + target + '.csv'), sep='\t')
-        fig, ax = plot_sequential_bf(q1_sequential)
-        fig.savefig(os.path.join(fig_dir, 'q1_sequential_' + target + '.pdf'),
-                    bbox_inches='tight', dpi=600)
+            # Q1 Sequential:
+            q1_sequential = pd.read_csv(os.path.join(data_dir, 'q1_sequential_' + target + '.csv'), sep='\t')
+            fig, ax = plot_sequential_bf(q1_sequential)
+            fig.savefig(os.path.join(fig_dir, 'q1_sequential_' + target + '.pdf'),
+                        bbox_inches='tight', dpi=600)
 
-        # Q2 Sequential:
-        q2_sequential = pd.read_csv(os.path.join(data_dir, 'q2_sequential_' + target + '.csv'), sep='\t')
-        fig, ax = plot_sequential_bf(q2_sequential)
-        fig.savefig(os.path.join(fig_dir, 'q2_sequential_' + target + '.pdf'),
-                    bbox_inches='tight', dpi=600)
+            # Q2 Sequential:
+            q2_sequential = pd.read_csv(os.path.join(data_dir, 'q2_sequential_' + target + '.csv'), sep='\t')
+            fig, ax = plot_sequential_bf(q2_sequential)
+            fig.savefig(os.path.join(fig_dir, 'q2_sequential_' + target + '.pdf'),
+                        bbox_inches='tight', dpi=600)
