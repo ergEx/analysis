@@ -301,7 +301,7 @@ def main(config_file):
                     )
             z = model['z'][:,burn_in:,:]
 
-            fig, ax = model_select_plot(z,model_specs[typ]['models'])
+            fig, ax = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['models'])
 
             fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
 
@@ -315,7 +315,7 @@ def main(config_file):
                 )
         z = model['z'][:,burn_in:,:]
 
-        fig, ax = model_select_plot(z,model_specs['data pooling']['models'], individual = False)
+        fig, ax = model_select_plot(z,model_specs['data pooling']['models'],data_dir, 'data pooling', individual = False)
 
         fig.savefig(os.path.join(fig_dir, f'08_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
     return

@@ -1,9 +1,10 @@
+import os
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
-import ptitprince as pt
 import pandas as pd
+import ptitprince as pt
 import seaborn as sns
 from scipy.stats import gaussian_kde
 
@@ -177,7 +178,7 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
 
     return fig, ax
 
-def model_select_plot(z, models, individual= True):
+def model_select_plot(z, models, data_dir, name, individual= True):
 
     n_chains, n_samples, n_participants = z.shape
 
@@ -195,6 +196,8 @@ def model_select_plot(z, models, individual= True):
     counts += 1  # Add 1 to all counts to avoid division by zero
 
     proportions = counts / np.sum(counts, axis=0)
+
+    np.savetxt(os.path.join(data_dir,f'proportions_{name}.txt'), np.log(proportions))
 
     df = pd.DataFrame(proportions.T, columns=models)
 
