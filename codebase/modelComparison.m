@@ -8,19 +8,19 @@ disp(startDir)
 disp(getParentDir(startDir, 1))
 
 switch model_selection_type
-    case {1}, name = 'EE_EUT';
-    case {2}, name = 'EE2_EUT';
+    case {1}, name = 'EUT_EE';
+    case {2}, name = 'EUT_EE2';
     case {3}, name = 'data_pooling';
 end
 
-file = sprintf('proportions_%d.txt',name);
+file = fullfile(dataDir, sprintf('proportions_%s.txt',name));
 log_proportions = load(file);
-BFFile = sprintf('model_selection_BF_%d.txt', name);
+BFFile = sprintf('model_selection_BF_%s.txt', name);
 
 options.verbose = false;
 options.DisplayWin = 0;
 
-[p, o] = VBA_groupBMC (log_proportions, options);
+[p, o] = VBA_groupBMC(log_proportions, options);
 
 
 fileID = fopen(fullfile(dataDir, BFFile), 'w');

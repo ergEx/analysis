@@ -15,6 +15,7 @@ def main():
 
     data_type = config["data_type"]
     data_variant = config["data_variant"]
+    VBA_PATH = config['vba_path']
 
     if sys.argv[2] == '1':
         model_selection_type = '1'
@@ -29,12 +30,13 @@ def main():
     print(f"\n--- {time.ctime(start_time)} --- ")
     print(f"\Doing model comparison no:")
     print(f"Data: {data_type} \nVariant: {data_variant}")
-    shellparams = {'data_variant' : data_variant,
+    shellparams = {'VBA_PATH': VBA_PATH, 'data_variant' : data_variant,
                    'model_selection_type': model_selection_type}
     matlab_call = """
     module load matlab;
     matlab -nodesktop  -r\
     "addpath('codebase/');\
+     addpath(genpath('{VBA_PATH}'));\
     modelComparison('{data_variant}', {model_selection_type}); exit;"
     """.format(**shellparams)
 
