@@ -178,7 +178,7 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
 
     return fig, ax
 
-def model_select_plot(z, models, data_dir, name, individual= True):
+def model_select_plot(z, models, data_dir, name):
 
     n_chains, n_samples, n_participants = z.shape
 
@@ -202,15 +202,14 @@ def model_select_plot(z, models, data_dir, name, individual= True):
     df = pd.DataFrame(proportions.T, columns=models)
 
     fig, ax = plt.subplots(1, 1, figsize = (15,5))
+    sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax)
+    ax.set_ylabel('Participants')
 
-    if individual:
-        sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax)
-        ax.set_ylabel('Participants')
-    else:
-        D = dict(sorted(Counter(z_i_mod.ravel()).items()))
-        ax.bar(range(len(D)), list(D.values()), align='center')
-        ax.set_xticks(range(len(D)), models)
-        ax.set(yticks = [])
-        ax.spines[['left', 'top', 'right']].set_visible(False)
+    fig2, ax2 = plt.subplots(1, 1, figsize = (15,5))
+    D = dict(sorted(Counter(z_i_mod.ravel()).items()))
+    ax2.bar(range(len(D)), list(D.values()), align='center')
+    ax2.set_xticks(range(len(D)), models)
+    ax2.set(yticks = [])
+    ax2.spines[['left', 'top', 'right']].set_visible(False)
 
-    return fig, ax
+    return fig, ax, fig2, ax2

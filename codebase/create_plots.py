@@ -301,23 +301,20 @@ def main(config_file):
                     )
             z = model['z'][:,burn_in:,:]
 
-            fig, ax = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['name'])
+            fig, ax, fig2, ax2 = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['name'])
 
-            fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_1.pdf'), dpi=600, bbox_inches='tight')
+            fig2.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_pooling_selection']:
-        model_specs = {'data pooling' :
-                            {'name': 'data_pooling',
-                            'models' : ['No pooling','Partial pooling','Full pooling']}}
-
         model = read_Bayesian_output(
-                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs['data pooling']['name']}_2.mat")
+                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_data_pooling_2.mat")
                 )
         z = model['z'][:,burn_in:,:]
 
-        fig, ax = model_select_plot(z,model_specs['data pooling']['models'],data_dir, 'data_pooling', individual = False)
+        fig, ax, fig2, ax2 = model_select_plot(z,['No pooling','Partial pooling','Full pooling'],data_dir, 'data_pooling')
 
-        fig.savefig(os.path.join(fig_dir, f'08_model_selection_{m}.pdf'), dpi=600, bbox_inches='tight')
+        fig2.savefig(os.path.join(fig_dir, f'08_model_selection_data_pooling.pdf'), dpi=600, bbox_inches='tight')
     return
 
 # %%
