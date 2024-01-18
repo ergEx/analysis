@@ -205,16 +205,22 @@ def main(config_file):
             fig, axes = jasp_like_raincloud(jasp_data, f'd_h0_{main_comparison}',
                                             f'd_h1_{main_comparison}', fig_size=np.array(fig_size) * 2)
 
-            axes[0].set(ylabel='Distance', xticklabels=['EUT', 'EE'])
-            axes[2].set(xlabel='Distance EUT - EE')
+            axes[0].set(ylabel='Distance', xticklabels=['$d_{\mathrm{EUT}}$', '$d_{\mathrm{EE}}$'])
+            axes[2].set(xlabel='$d_{\mathrm{EUT}} - d_{\mathrm{EE}}$')
+            axes[0].set(ylim=[0,1])
+            axes[1].set(ylim=[0,1])
+            axes[2].set(xlim=[-0.5, 0.5])
             fig.savefig(os.path.join(fig_dir, f'08_q1_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
             fig, axes = jasp_like_raincloud(jasp_data, f'0.0_{main_comparison}',
                                             f'1.0_{main_comparison}', fig_size=np.array(fig_size) * 2)
 
             axes[0].set(ylabel='Risk aversion parameter',
-                        xticklabels=['Additive', 'Multiplicative'])
-            axes[2].set(xlabel='$\eta$ Additive - Multiplicative')
+                        xticklabels=['$\hat{\eta}^{\mathrm{add}}$', '$\hat{\eta}^{\mathrm{mul}}$'])
+            axes[2].set(xlabel='$\hat{\eta}^{\mathrm{add}} - \hat{\eta}^{\mathrm{mul}}$')
+            axes[0].set(ylim=[-1,2])
+            axes[1].set(ylim=[-1,2])
+            axes[2].set(xlim=[-1, 1])
 
             fig.savefig(os.path.join(fig_dir, f'08_q2_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 

@@ -41,7 +41,7 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     ax2.set(ylabel = '')
     ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
     ax2.spines[['left', 'top', 'right']].set_visible(False)
-    ax2.legend(loc='upper right')
+    ax2.legend(loc='upper left', fontsize=10)
     return fig, ax, ax2, maxi
 
 
@@ -125,7 +125,7 @@ def jasp_like_raincloud(data, col_name1, col_name2,
 
     axes[1].get_legend().remove()
     axes[1].set(ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
-    axes[1].invert_xaxis()
+    # axes[1].invert_xaxis()
     axes[1].spines[['right', 'top', 'left', 'bottom']].set_visible(False)
 
     for artist in axes[1].patches:
@@ -134,9 +134,10 @@ def jasp_like_raincloud(data, col_name1, col_name2,
     diff = d1 - d2
     pt.RainCloud(y=diff, x=None, axes=axes[2], orient='h')
     axes[2].spines[['right', 'top']].set_visible(False)
-    axes[2].set(title='Pairwise difference', xlabel='$\Delta$ Risk aversion parameter')
+    axes[2].set(xlabel='$\Delta$ Risk aversion parameter')
     axes[2].set_ylim([0.2, -0.7125])
     axes[2].set_xlim([np.min(diff) - 0.2, np.max(diff) + 0.2])
+    axes[2].axvline(x=0, color=[0.25, 0.25, 0.25, 0.25], linestyle='--')
     plt.tight_layout()
 
     return fig, axes
