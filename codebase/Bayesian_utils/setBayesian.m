@@ -47,7 +47,7 @@ switch dataSource
     case {1}, subjList = 1:11; nTrials = 160; folder = '1_pilot'; %Pilot data
     case {2}, subjList = 1:58; nTrials = 160; folder = '2_full_data';%Full experiment data
     case {3}, subjList = 1:58; nTrials = 160; folder = '2_full_data_excl';%Full experiment data
-    case {4}, subjList = 1:19; nTrials = 299; folder = 'CPH';%Full experiment data
+    case {4}, subjList = 1:18; nTrials = 299; folder = 'CPH';%Full experiment data
 end %dataSource
 
 %% Runs HLMs sequentially
