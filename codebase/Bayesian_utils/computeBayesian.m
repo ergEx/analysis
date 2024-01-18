@@ -219,11 +219,8 @@ toc % end clock
 %% Save stats and samples
 disp('saving samples...')
 
-if inferenceMode == 2
-    save(fullfile(dataDir, append('Bayesian','_',modelName,'_',num2str(model_selection_type))),'stats','samples','-v7.3')
-else
-    save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
-end
+save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
+
 %% Print readouts
 disp('stats:'),disp(stats)%print out structure of stats output
 disp('samples:'),disp(samples);%print out structure of samples output
