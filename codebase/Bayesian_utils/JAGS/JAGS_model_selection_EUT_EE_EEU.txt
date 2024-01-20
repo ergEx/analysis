@@ -93,9 +93,9 @@ z[i]        ~ dcat(pz[])
 for (i in 1:nSubjects){
     eta_EUT[i] ~ dnorm(mu_eta_EUT,tau_eta_EUT)
 
-    d_eta_i[i] ~ dnorm(mu_d_eta,tau_d_eta)
-    eta_i_EEU[i,1] ~ dnorm(0 + d_eta_g[i],tau_eta_EEU)
-    eta_i_EEU[i,2] ~ dnorm(1 + d_eta_g[i],tau_eta_EEU)
+    d_eta[i] ~ dnorm(mu_d_eta,tau_d_eta)
+    eta_EEU[i,1] ~ dnorm(0 + d_eta_g[i],tau_eta_EEU)
+    eta_EEU[i,2] ~ dnorm(1 + d_eta_g[i],tau_eta_EEU)
 
 for (c in 1:nConditions){
     eta_EE[i,c]       ~ dnorm(mu_eta_EE[c],tau_eta_EE)
