@@ -2,6 +2,8 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+from ..plotting_functions import draw_brace
 from ..utils import isoelastic_utility
 
 plt.rcParams.update({
@@ -12,34 +14,45 @@ fig_size = (13 * cm , (5.75*2) * cm)
 
 
 def EUT_figure(fig_dir):
-    etas = [-1.0,-0.5,0.0,0.5,1.0,1.5]
-    cmap = plt.get_cmap("Dark2")
-    colors = [cmap(i) for i in np.linspace(0, 1, len(etas))]
+    x_values = np.linspace(1, 1000, 1000)
+    vertical_lines_x = [200, 500, 800]
+    text = ['Tails','No wealth change', 'Heads']
+    colors = ['green','orange']
 
-    x = np.linspace(2,1000,1000)
+    #eta specific values (if other values of eta is plotted these needs to be changed manually)
+    ypos = [1500,4.5]
+    fac = [1.03,1.017]
 
-    fig_1, ax_1 = plt.subplots(1, 1, figsize=fig_size)
-    for i, eta in  enumerate(etas):
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        u = isoelastic_utility(x,eta)
-        rescaled_u = (u - u.min()) / (u.max() - u.min())
-        ax_1.plot(x,rescaled_u, label=f'$\eta: {eta}$', color = colors[i])
+    for j, eta in enumerate([-0.5,0.5]):
 
-        ax.plot(x,rescaled_u, label = f'$\eta: {eta}$', color = colors[i])
-        ax.set(title='Isoelastic utility with different risk aversion parameters',
-            xlabel=f'Wealth, $x$', ylabel=f'Scaled utility, $u(x;{eta})$')
-        #legend = ax.legend(loc='upper left')
-        if eta < 0:
-            ax.set_title(f'Risk seeking, $\eta = {eta}$')
-        elif eta == 0:
-            ax.set_title(f'Risk neutral, $\eta = {eta}$')
-        else:
-            ax.set_title(f'Risk averse, $\eta = {eta}$')
-        fig.savefig(os.path.join(fig_dir, f'utility_figure_eta_{eta}.png'), dpi=600, bbox_inches='tight')
+        fig, ax = plt.subplots(1,1, figsize = (10,10))
+        ax.plot(x_values, isoelastic_utility(x_values,eta), label=r'$f(x) = x$', color = colors[j])
 
-    ax_1.set(title='Isoelastic utility with different risk aversion parameters',
-            xlabel=f'Wealth, $x$',
-            ylabel='Scaled utility, $u(x;\eta)$')
-    legend = ax_1.legend(loc='lower right')
-    legend.set_bbox_to_anchor((0.8, 0.))
-    fig_1.savefig(os.path.join(fig_dir, 'utility_figure.png'), dpi=600, bbox_inches='tight')
+        for i, line_x in enumerate(vertical_lines_x):
+            ax.vlines(x=line_x, ymin=ypos[j], ymax=isoelastic_utility(line_x,eta), color='grey')
+            ax.hlines(y = isoelastic_utility(line_x,eta), color='grey', xmin = 0, xmax = line_x)
+            ax.scatter(x = line_x, y = isoelastic_utility(line_x,eta), color = 'grey')
+            ax.text(line_x,0, text[i], ha='center', va='bottom')
+
+
+        ax.set(ylabel = r"$u(x)$", xlabel = r"$x$", xticks = vertical_lines_x)
+
+        draw_brace(ax = ax,
+                span = (vertical_lines_x[0], vertical_lines_x[2]),
+                pos = 0,
+                text = '',
+                col = colors[j],
+                orientation = 'horizontal')
+
+        draw_brace(ax = ax,
+                span = (isoelastic_utility(vertical_lines_x[0],eta), isoelastic_utility(vertical_lines_x[2],eta)),
+                pos = 0.5,
+                text = 'Average utility accepting gamble',
+                col = colors[j],
+                orientation = 'vertical')
+
+        ax.text(75, isoelastic_utility(vertical_lines_x[1],eta)*fac[j], 'Average utility not accepting gamble', ha='left', va='center', color = 'grey')
+
+        ax.spines[['top','right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, f'utility_figure{eta}.png'), dpi=600, bbox_inches='tight')

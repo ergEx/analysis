@@ -214,3 +214,34 @@ def model_select_plot(z, models, data_dir, name):
     ax2.spines[['left', 'top', 'right']].set_visible(False)
 
     return fig, ax, fig2, ax2
+
+def draw_brace(ax, span, pos, text, col, orientation):
+    """Draws an annotated brace on the axes."""
+    ax_min, ax_max = ax.get_xlim() if orientation == 'horizontal' else ax.get_ylim()
+    _span = ax_max - ax_min
+
+    opp_min, opp_max = ax.get_ylim() if orientation == 'horizontal' else ax.get_xlim()
+    opp_span = opp_max - opp_min
+
+    beta_factor = 300.
+
+
+    resolution = int((span[1]-span[0])/_span*100)*2+1
+    beta = beta_factor/_span
+
+    x = np.linspace(span[0], span[1], resolution)
+    _half = x[:int(resolution/2)+1]
+    opp_half_brace = (1/(1.+np.exp(-beta*(_half-_half[0])))
+                    + 1/(1.+np.exp(-beta*(_half-_half[-1]))))
+    y = np.concatenate((opp_half_brace, opp_half_brace[-2::-1]))
+    y = pos + (.05*y - .01)*opp_span # adjust vertical position
+
+    ax.autoscale(False)
+
+
+    if orientation == 'horizontal':
+        ax.plot(x, y, color=col, lw=1)
+        ax.text((span[1]+span[0])/2., pos+.07*opp_span, text, ha='center', va='bottom', color = col)
+    else:
+        ax.plot(y, x, color=col, lw=1)
+        ax.text(pos + .07*opp_span, (span[1] + span[0])/2., text, ha='left', va='center', color = col)
