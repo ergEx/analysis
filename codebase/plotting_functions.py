@@ -41,7 +41,7 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     ax2.set(ylabel = '')
     ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
     ax2.spines[['left', 'top', 'right']].set_visible(False)
-    ax2.legend(loc='upper left', fontsize=10)
+    ax2.legend(loc='upper left', fontsize=7)
     return fig, ax, ax2, maxi
 
 
@@ -66,7 +66,7 @@ def posterior_dist_2dplot(fig, ax, data_no_pooling, colors_alpha, LIMITS, maxi):
 
 def jasp_like_raincloud(data, col_name1, col_name2,
                         palette=[[0, 0, 1, 0.25], [1, 0, 0, 0.25]],
-                        alpha=0.5, colors=None, fig_size=fig_size):
+                        alpha=0.5, colors=None, fig_size=fig_size, reverse_diff=False):
     """Recreates raincloud plots, similarly to the ones in JASP
 
     Args:
@@ -82,9 +82,9 @@ def jasp_like_raincloud(data, col_name1, col_name2,
 
     fig = plt.figure(figsize=fig_size) #, figsize=fig_size)
 
-    ax1 = plt.subplot2grid(shape=(6, 3), loc=(0, 0), rowspan=4, colspan=2)
-    ax2 = plt.subplot2grid(shape=(6, 3), loc=(0, 2), rowspan=4, colspan=1)
-    ax3 = plt.subplot2grid(shape=(6, 3), loc=(4, 0), rowspan=2, colspan=3)
+    ax1 = plt.subplot2grid(shape=(6, 4), loc=(0, 0), rowspan=4, colspan=2)
+    ax2 = plt.subplot2grid(shape=(6, 4), loc=(0, 2), rowspan=4, colspan=2)
+    ax3 = plt.subplot2grid(shape=(6, 4), loc=(4, 0), rowspan=2, colspan=4)
 
     axes = [ax1, ax2, ax3]
 
@@ -131,7 +131,11 @@ def jasp_like_raincloud(data, col_name1, col_name2,
     for artist in axes[1].patches:
         artist.set_alpha(alpha)
 
-    diff = d1 - d2
+    if not reverse_diff:
+        diff = d1 - d2
+    else:
+        diff = d2 - d1
+
     pt.RainCloud(y=diff, x=None, axes=axes[2], orient='h')
     axes[2].spines[['right', 'top']].set_visible(False)
     axes[2].set(xlabel='$\Delta$ Risk aversion parameter')
@@ -214,34 +218,3 @@ def model_select_plot(z, models, data_dir, name):
     ax2.spines[['left', 'top', 'right']].set_visible(False)
 
     return fig, ax, fig2, ax2
-
-def draw_brace(ax, span, pos, text, col, orientation):
-    """Draws an annotated brace on the axes."""
-    ax_min, ax_max = ax.get_xlim() if orientation == 'horizontal' else ax.get_ylim()
-    _span = ax_max - ax_min
-
-    opp_min, opp_max = ax.get_ylim() if orientation == 'horizontal' else ax.get_xlim()
-    opp_span = opp_max - opp_min
-
-    beta_factor = 300.
-
-
-    resolution = int((span[1]-span[0])/_span*100)*2+1
-    beta = beta_factor/_span
-
-    x = np.linspace(span[0], span[1], resolution)
-    _half = x[:int(resolution/2)+1]
-    opp_half_brace = (1/(1.+np.exp(-beta*(_half-_half[0])))
-                    + 1/(1.+np.exp(-beta*(_half-_half[-1]))))
-    y = np.concatenate((opp_half_brace, opp_half_brace[-2::-1]))
-    y = pos + (.05*y - .01)*opp_span # adjust vertical position
-
-    ax.autoscale(False)
-
-
-    if orientation == 'horizontal':
-        ax.plot(x, y, color=col, lw=1)
-        ax.text((span[1]+span[0])/2., pos+.07*opp_span, text, ha='center', va='bottom', color = col)
-    else:
-        ax.plot(y, x, color=col, lw=1)
-        ax.text(pos + .07*opp_span, (span[1] + span[0])/2., text, ha='left', va='center', color = col)

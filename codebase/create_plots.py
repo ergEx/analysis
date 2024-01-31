@@ -213,15 +213,16 @@ def main(config_file):
             fig.savefig(os.path.join(fig_dir, f'08_q1_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
             fig, axes = jasp_like_raincloud(jasp_data, f'0.0_{main_comparison}',
-                                            f'1.0_{main_comparison}', fig_size=np.array(fig_size) * 2)
+                                            f'1.0_{main_comparison}', fig_size=np.array(fig_size) * 2,
+                                            reverse_diff=True)
 
-            axes[0].set(ylabel='Risk aversion parameter',
+            axes[0].set(ylabel='$\eta$',
                         xticklabels=['$\hat{\eta}^{\mathrm{add}}$', '$\hat{\eta}^{\mathrm{mul}}$'])
-            axes[2].set(xlabel='$\hat{\eta}^{\mathrm{add}} - \hat{\eta}^{\mathrm{mul}}$')
+            #axes[2].set(xlabel='$\hat{\eta}^{\mathrm{add}} - \hat{\eta}^{\mathrm{mul}}$')
+            axes[2].set(xlabel='$\hat{\eta}^{\mathrm{mul}} - \hat{\eta}^{\mathrm{add}}$')
             axes[0].set(ylim=[-1,2])
             axes[1].set(ylim=[-1,2])
             axes[2].set(xlim=[-1, 1])
-
             fig.savefig(os.path.join(fig_dir, f'08_q2_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
 
