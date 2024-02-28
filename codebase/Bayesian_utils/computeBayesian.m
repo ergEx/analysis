@@ -1,4 +1,4 @@
-function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
+function computeBayesian(dataSource, dataPooling,inferenceMode,model_selection_type,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -57,7 +57,7 @@ switch inferenceMode
         end %switch dataPooling
     case {2}
         modelName = 'JAGS_model_selection_data_pooling'
-        pz = repmat([1/3, 1/3, 1/3], 1, 2);; %flat prior over all three data pooling methods
+        pz = repmat([1/3, 1/3, 1/3], 1, 2); %flat prior over all three data pooling methods
     case {3}
         switch model_selection_type
             case {1}
