@@ -8,7 +8,7 @@ import seaborn as sns
 import yaml
 from tqdm.auto import tqdm
 
-from .plotting_functions import jasp_like_raincloud, model_select_plot, posterior_dist_2dplot, posterior_dist_plot
+from .plotting_functions import jasp_like_raincloud, model_select_plot, posterior_dist_2dplot, posterior_dist_plot, jasp_like_correlation
 from .support_figures.plot_nobrainer_performance import plot_nobrainers
 from .utils import read_Bayesian_output
 
@@ -225,6 +225,9 @@ def main(config_file):
             axes[2].set(xlim=[-1, 1])
             fig.savefig(os.path.join(fig_dir, f'08_q2_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
+            fig, axes = jasp_like_correlation(jasp_data, f'0.0_{main_comparison}',
+                                              f'1.0_{main_comparison}', lim_offset=0.01, colors=True)
+            fig.savefig(os.path.join(fig_dir, f'08_q3_corelation_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_mcmc_samples']:
         # full pooling
@@ -308,20 +311,22 @@ def main(config_file):
                     )
             z = model['z'][:,burn_in:,:]
 
-            fig, ax, fig2, ax2 = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['name'])
+            fig, ax = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['name'],
+                                        figsize=(23 * cm, 4.75 * cm))
 
             fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_1.pdf'), dpi=600, bbox_inches='tight')
-            fig2.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_2.pdf'), dpi=600, bbox_inches='tight')
+            # fig2.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_pooling_selection']:
         model = read_Bayesian_output(
-                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_data_pooling_2.mat")
+                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_data_pooling.mat")
                 )
         z = model['z'][:,burn_in:,:]
 
-        fig, ax, fig2, ax2 = model_select_plot(z,['No pooling','Partial pooling','Full pooling'],data_dir, 'data_pooling')
+        fig, ax = model_select_plot(z,['No pooling','Partial pooling','Full pooling'],data_dir, 'data_pooling',
+                                    figsize=(23 * cm, 4.75 * cm))
 
-        fig2.savefig(os.path.join(fig_dir, f'08_model_selection_data_pooling.pdf'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, f'08_model_selection_data_pooling.pdf'), dpi=600, bbox_inches='tight')
     return
 
 # %%

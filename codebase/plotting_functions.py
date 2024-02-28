@@ -7,6 +7,7 @@ import pandas as pd
 import ptitprince as pt
 import seaborn as sns
 from scipy.stats import gaussian_kde
+from matplotlib.ticker import FormatStrFormatter
 
 sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
@@ -147,7 +148,8 @@ def jasp_like_raincloud(data, col_name1, col_name2,
     return fig, axes
 
 
-def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=None):
+
+def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.1, colors=None):
     """Correlation plot.
 
     Args:
@@ -163,7 +165,7 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
     fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
     if colors is not None:
-        ax.scatter(x=data[col_name1], y=data[col_name2], c=colors)
+        ax.scatter(x=data[col_name1], y=data[col_name2], color=[0.25, 0.25, 0.25, 0.5],marker='x')
         plot_dots = False
     else:
         plot_dots = True
@@ -183,7 +185,8 @@ def jasp_like_correlation(data, col_name1, col_name2, lim_offset=0.01, colors=No
 
     return fig, ax
 
-def model_select_plot(z, models, data_dir, name):
+
+def model_select_plot(z, models, data_dir, name, figsize):
 
     n_chains, n_samples, n_participants = z.shape
 
@@ -206,15 +209,15 @@ def model_select_plot(z, models, data_dir, name):
 
     df = pd.DataFrame(proportions.T, columns=models)
 
-    fig, ax = plt.subplots(1, 1, figsize = (15,5))
-    sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax)
-    ax.set_ylabel('Participants')
-
-    fig2, ax2 = plt.subplots(1, 1, figsize = (15,5))
+    fig, ax = plt.subplots(1, 2, figsize = figsize)
+    sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax[0])
+    ax[0].set_ylabel('Participants')
+    ax2 = ax[1]
+    # fig2, ax2 = plt.subplots(1, 1, figsize = (15,5))
     D = dict(sorted(Counter(z_i_mod.ravel()).items()))
-    ax2.bar(range(len(D)), list(D.values()), align='center')
+    ax2.bar(range(len(D)), [i / sum(D.values()) for i in list(D.values())], align='center')
     ax2.set_xticks(range(len(D)), models)
-    ax2.set(yticks = [])
-    ax2.spines[['left', 'top', 'right']].set_visible(False)
+    ax2.set(ylim=[0, 1]) #yticks = [])
+    ax2.spines[['top', 'right']].set_visible(False)
 
-    return fig, ax, fig2, ax2
+    return fig, ax  #, fig2, ax2
