@@ -19,16 +19,14 @@ def main(config_file):
     if not config["JASP input"]["run"]:
         return
 
-    print(f"\nCREATING JASP FILE")
+    print("\nCREATING JASP FILE")
 
     data_dir = config["data directory"]
-    try:
-        input_path = config['input_path']
-    except:
-        input_path = data_dir
 
-    SUBJECT_SPECS = sub_specs(config["data_type"], config["data_variant"], input_path)
-    subjects = SUBJECT_SPECS["id"]
+    all_data = pd.read_csv(os.path.join(data_dir, 'all_active_phase_data.csv'), sep='\t')
+
+    subjects = sorted([f'{ii}'.upper() for ii in np.unique(all_data['participant_id'])])
+
     CONDITION_SPECS = condition_specs()
 
     quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e3,2e4,4e4]}
