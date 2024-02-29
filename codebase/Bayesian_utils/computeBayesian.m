@@ -67,6 +67,10 @@ switch inferenceMode
                 modelName = 'JAGS_model_selection_EUT_EE2'
                 pz = repmat([1/2, 1/2], 1, 2);
         end %switch model_selection_type
+    case {4}, modelName = 'JAGS_parameter_estimation_partial_pooling_EEU';
+    case {5}
+        modelName = 'JAGS_model_selection_EUT_EE_EEU';
+        pz = repmat([1/3, 1/3, 1/3], 1, 2);
 end %switch inferenceMode
 
 %% Set key variables
@@ -191,6 +195,34 @@ switch inferenceMode
 
         for i = 1:nChains
             monitorParameters = {'eta_EUT', 'eta_EE', 'beta_EUT', 'beta_EE','z'};
+            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
+        end %i
+    case {4}
+        dataStruct = struct(...
+            'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+            'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+            'sigmaL',sigma_l,'sigmaH',sigma_h,...
+            'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
+            'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h);
+
+        for i = 1:nChains
+            monitorParameters = {'beta_i', 'beta_g','eta_i', 'eta_g', 'd_eta_g','d_eta_i'};
+            S=struct; init0(i)=S;
+        end %i
+
+    case {5}
+        dataStruct = struct(...
+            'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+            'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+            'sigmaL',sigma_l,'sigmaH',sigma_h,...
+            'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
+            'muEtaEEAdd',mu_eta_EE_add,'muEtaEEMul',mu_eta_EE_mul,...
+            'dMuAlpha',d_mu_alpha,'dMuBeta',d_mu_beta,...
+            'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
+            'pz',pz);
+
+        for i = 1:nChains
+            monitorParameters = {'eta_EUT', 'eta_EE', 'eta_EEU', 'd_eta', 'beta_EUT', 'beta_EE', 'beta_EEU' ,'z'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
 end %switch
