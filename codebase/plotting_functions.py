@@ -209,7 +209,7 @@ def model_select_plot(z, models, data_dir, name, figsize):
 
     df = pd.DataFrame(proportions.T, columns=models)
 
-    fig, ax = plt.subplots(1, 2, figsize = figsize)
+    fig, ax = plt.subplots(2, 1, figsize = figsize)
     sns.heatmap(df, cmap='gray_r', yticklabels=False, cbar=False, ax=ax[0])
     ax[0].set_ylabel('Participants')
     ax2 = ax[1]
