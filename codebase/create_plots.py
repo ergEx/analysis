@@ -94,7 +94,7 @@ def main(config_file):
         else:
             df_active = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
             participants_to_plot = df_active['participant_id'].unique()[:10]
-            fig, ax = plt.subplots(2,1, figsize=((23 * cm)/2, (4.75 * cm)*2))
+            fig, ax = plt.subplots(1,2, figsize=((23 * cm), (4.75 * cm)))
             ax = ax.flatten()
             for c, con in enumerate(set(df_active.eta)):
                 tmp_df = df_active.query("eta == @con")
@@ -312,7 +312,7 @@ def main(config_file):
             z = model['z'][:,burn_in:,:]
 
             fig, ax = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['name'],
-                                        figsize=(23 * cm, 4.75 * cm))
+                                        figsize= np.array(fig_size) * 2)
 
             fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_1.pdf'), dpi=600, bbox_inches='tight')
             # fig2.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_2.pdf'), dpi=600, bbox_inches='tight')
@@ -324,7 +324,7 @@ def main(config_file):
         z = model['z'][:,burn_in:,:]
 
         fig, ax = model_select_plot(z,['No pooling','Partial pooling','Full pooling'],data_dir, 'data_pooling',
-                                    figsize=(23 * cm, 4.75 * cm))
+                                    figsize=np.array(fig_size) * 2)
 
         fig.savefig(os.path.join(fig_dir, f'08_model_selection_data_pooling.pdf'), dpi=600, bbox_inches='tight')
     return
