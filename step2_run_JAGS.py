@@ -14,7 +14,7 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
     script_path = os.path.dirname(__file__)
 
     print(dataSource)
-    if dataSource == '0_simulation':
+    if (dataSource == '0_simulation') or dataSource == 'grid':
         dataSource = 0
     elif dataSource == '1_pilot':
         dataSource = 1
@@ -30,7 +30,7 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
 
     shellparams = {'date': now, 'dataSource': dataSource, 'simVersion': simVersion,
                    'inferenceMode': inferenceMode, 'quality': quality, 'dataPooling': dataPooling,
-                   'model_selection_type': model_selection_type, 'whichJags':whichJags,
+                   'model_selection_type': model_selection_type, 'whichJags': whichJags,
                 'runBayesPath': os.path.abspath(os.path.join(script_path, 'codebase/'))}
 
     tmp = """#!/bin/bash
