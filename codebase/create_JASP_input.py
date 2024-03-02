@@ -33,7 +33,8 @@ def main(config_file):
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
 
     data = {"0.0_partial_pooling": [None] * len(subjects), "1.0_partial_pooling": [None] * len(subjects),
-            "0.0_no_pooling": [None] * len(subjects), "1.0_no_pooling": [None] * len(subjects)}
+            "0.0_no_pooling": [None] * len(subjects), "1.0_no_pooling": [None] * len(subjects),
+            'participant_id': [None] * len(subjects)}
 
     #bayesian method
     for pool in ['no_pooling', 'partial_pooling']:
@@ -48,7 +49,10 @@ def main(config_file):
                     kde = gaussian_kde(eta_dist)
                     data[f"{c}.0_{pool}"][j] = eta_dist[np.argmax(kde.pdf(eta_dist))]
                 except Exception as e:
+                    print(e)
                     pass
+
+            data['participant_id'][j] = subject1
 
     df = pd.DataFrame.from_dict(data)
 
@@ -67,8 +71,8 @@ def main(config_file):
     try:
         #bracketing method
         bracketing_overview = pd.read_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep = '\t')
-        data['0.0_bracketing'] = bracketing_overview.query('participant != "all" and dynamic == 0.0').reset_index(drop=True).log_reg_decision_boundary
-        data['1.0_bracketing'] = bracketing_overview.query('participant != "all" and dynamic == 1.0').reset_index(drop=True).log_reg_decision_boundary
+        df['0.0_bracketing'] = bracketing_overview.query('participant != "all" and dynamic == 0.0').reset_index(drop=True).log_reg_decision_boundary
+        df['1.0_bracketing'] = bracketing_overview.query('participant != "all" and dynamic == 1.0').reset_index(drop=True).log_reg_decision_boundary
 
         d_h1 = np.sqrt((df['0.0_bracketing'] - 0) ** 2 + (df['1.0_bracketing'] - 1) ** 2)
         d_h0 = np.abs(df['0.0_bracketing'] - df['1.0_bracketing']) / np.sqrt(2)
