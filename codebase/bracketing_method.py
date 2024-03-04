@@ -73,7 +73,7 @@ def main(config_file):
     df = df.dropna(subset=["indif_eta"])
 
     participants = np.unique(df.participant_id)
-    participants_sort = np.argsort([i.upper() for i in participants])
+    participants_sort = np.argsort([f'{i}'.upper() for i in participants])
     participant_list = list(participants[participants_sort])
 
     index_logistic = pd.MultiIndex.from_product(

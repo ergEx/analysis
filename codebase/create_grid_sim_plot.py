@@ -6,8 +6,8 @@ import pandas as pd
 import seaborn as sns
 import yaml
 
-from .utils import posterior_dist_2dplot, read_Bayesian_output
-
+from .utils import read_Bayesian_output
+from .plotting_functions import posterior_dist_2dplot
 
 def create_grid_sim_plot(config_file):
     with open(f"{config_file}", "r") as f:
@@ -49,12 +49,12 @@ def create_grid_sim_plot(config_file):
         #Bracketing
         bracketing_overview = pd.read_csv(os.path.join(data_dir_tmp, "bracketing_overview.csv"), sep = '\t')
         df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
-        eta_i = np.zeros(n_chains, n_samples, n_agents, n_conditions)
+        eta_i = np.zeros((n_chains, n_samples, n_agents, n_conditions))
         for ch in range(n_chains):
             for c, con in enumerate(df_no_pooling['dynamic'].unique()):
                 for i, participant in enumerate(df_no_pooling['participant'].unique()):
                     tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
-                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples-burn_in)
+                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
 
         fig_bracketing, ax_bracketing = posterior_dist_2dplot(fig_bracketing, ax_bracketing, eta_i, colors_alpha, LIMITS, None)
 
@@ -73,6 +73,6 @@ def create_grid_sim_plot(config_file):
 
         fig_bayesian_partial_pooling, ax_bayesian_partial_pooling = posterior_dist_2dplot(fig_bayesian_partial_pooling, ax_bayesian_partial_pooling, eta_i, colors_alpha, LIMITS, None)
 
-    fig_bracketing.savefig(os.path.join(fig_dir, 'simulations_bracketing.png'), dpi=600, bbox_inches='tight')
-    fig_bayesian_no_pooling.savefig(os.path.join(fig_dir, 'simulations_bayesian_no_pooling.png'), dpi=600, bbox_inches='tight')
-    fig_bayesian_partial_pooling.savefig(os.path.join(fig_dir, 'simulations_bauesian_partial_pooling.png'), dpi=600, bbox_inches='tight')
+    fig_bracketing.savefig(os.path.join(fig_dir, 'simulations_bracketing.pdf'), dpi=600, bbox_inches='tight')
+    fig_bayesian_no_pooling.savefig(os.path.join(fig_dir, 'simulations_bayesian_no_pooling.pdf'), dpi=600, bbox_inches='tight')
+    fig_bayesian_partial_pooling.savefig(os.path.join(fig_dir, 'simulations_bauesian_partial_pooling.pdf'), dpi=600, bbox_inches='tight')

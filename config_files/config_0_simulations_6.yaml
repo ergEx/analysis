@@ -23,6 +23,10 @@ readingdata:
 bayesian method:
   run: True
 
+bayesfactor_analysis:
+  plot: false
+  run: false
+  target: partial_pooling
 # This section provides control over whether plot data needs to be re-calculated
 bracketing method:
   run: True
@@ -31,11 +35,11 @@ bracketing method:
 
 # This section provides control over whether user wants to re-compute the JASP input
 JASP input:
-  run: True
+  run: False
 
 # This section provides control over the various steps in the plotting pipeline
 plots:
-  run: True
+  run: False
   plot_passive: True
   plot_no_brainers: True
   plot_active: True

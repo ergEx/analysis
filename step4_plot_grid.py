@@ -1,5 +1,6 @@
 from codebase.create_grid_sim_plot import create_grid_sim_plot
 import traceback
+from codebase.utils import get_config_filename
 
 if __name__ == '__main__':
     import sys
@@ -9,7 +10,8 @@ if __name__ == '__main__':
     print(sys.argv)
     write_provenance(command)
     try:
-        create_grid_sim_plot()
+        config_file = get_config_filename(sys.argv)
+        create_grid_sim_plot(config_file=config_file)
         write_provenance('executed successfully')
     except Exception as e:
         print(e)
