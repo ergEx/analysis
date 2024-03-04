@@ -204,8 +204,8 @@ def logistic_regression(df: pd.DataFrame):
             idx_l (int): Index of the point where the lower bound of the prediction interval crosses 0.5.
             idx_h (int): Index of the point where the upper bound of the prediction interval crosses 0.5.
     """
-    model = statsmodels.api.Logit(np.array(df.min_max), add_constant(np.array(df.indif_eta))).fit(
-        disp=0
+    model = statsmodels.api.Logit(np.array(df.min_max), add_constant(np.array(df.indif_eta))).fit_regularized(
+        disp=0, trim_mode='off', alpha=0.1
     )
 
     x_test = np.linspace(-50, 50, 1_000)
