@@ -29,6 +29,7 @@ def main(dryrun):
     path_data = 'figs/2_full_data/'
     path_pilot = 'figs/1_pilot/'
     path_cph = 'figs/3_CPH/'
+    path_sims = 'figs/0_simulation/grid'
     path_r = 'r_analyses/'
 
     match_data = {
@@ -80,8 +81,13 @@ def main(dryrun):
         'plot_bfda_h1.pdf': 'figS1_bfdah1.pdf'
     }
 
-    dict_list = [match_data, match_support, match_cph, match_pilot, match_r]
-    path_list = [path_data, path_support, path_cph, path_pilot, path_r]
+    match_sims = {
+        'simulations_bauesian_partial_pooling.pdf': 'figS4_partial_pooling.pdf',
+        'simulations_bayesian_no_pooling.pdf': 'figS4_no_pooling.pdf',
+        'simulations_bracketing.pdf': 'figS4_bracketing.pdf'
+    }
+    dict_list = [match_data, match_support, match_cph, match_pilot, match_r, match_sims]
+    path_list = [path_data, path_support, path_cph, path_pilot, path_r, path_sims]
 
 
     for dl, pl in zip(dict_list, path_list):
