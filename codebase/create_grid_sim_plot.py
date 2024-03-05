@@ -46,33 +46,37 @@ def create_grid_sim_plot(config_file):
     for i, type in enumerate(types):
         data_dir_tmp = data_dir + type
 
-        #Bracketing
-        bracketing_overview = pd.read_csv(os.path.join(data_dir_tmp, "bracketing_overview.csv"), sep = '\t')
-        df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
-        eta_i = np.zeros((n_chains, n_samples, n_agents, n_conditions))
-        for ch in range(n_chains):
-            for c, con in enumerate(df_no_pooling['dynamic'].unique()):
-                for i, participant in enumerate(df_no_pooling['participant'].unique()):
-                    tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
-                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
+        if True:
+            #Bracketing
+            bracketing_overview = pd.read_csv(os.path.join(data_dir_tmp, "bracketing_overview.csv"), sep = '\t')
+            df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
+            eta_i = np.zeros((n_chains, n_samples, n_agents, n_conditions))
+            for ch in range(n_chains):
+                for c, con in enumerate(df_no_pooling['dynamic'].unique()):
+                    for i, participant in enumerate(df_no_pooling['participant'].unique()):
+                        tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
+                        eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
 
-        fig_bracketing, ax_bracketing = posterior_dist_2dplot(fig_bracketing, ax_bracketing, eta_i, colors_alpha, LIMITS, None)
+            fig_bracketing, ax_bracketing = posterior_dist_2dplot(fig_bracketing, ax_bracketing, eta_i, colors_alpha, LIMITS, None)
 
         #Bayesian
-        bayesian_samples_no_pooling = read_Bayesian_output(
-                        os.path.join(data_dir_tmp, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
-                        )
-        eta_i = bayesian_samples_no_pooling["eta_i"]
+        if True:
+            bayesian_samples_no_pooling = read_Bayesian_output(
+                            os.path.join(data_dir_tmp, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
+                            )
+            eta_i = bayesian_samples_no_pooling["eta_i"][:,burn_in:,:,:]
 
-        fig_bayesian_no_pooling, ax_bayesian_no_pooling = posterior_dist_2dplot(fig_bayesian_no_pooling, ax_bayesian_no_pooling, eta_i, colors_alpha, LIMITS, None)
+            fig_bayesian_no_pooling, ax_bayesian_no_pooling = posterior_dist_2dplot(fig_bayesian_no_pooling, ax_bayesian_no_pooling, eta_i, colors_alpha, LIMITS, None)
 
-        bayesian_samples_no_pooling = read_Bayesian_output(
+
+        bayesian_samples_partial_pooling = read_Bayesian_output(
                         os.path.join(data_dir_tmp, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
                         )
-        eta_i = bayesian_samples_no_pooling["eta_i"]
 
+        eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
+        print(f"plotting {type}")
         fig_bayesian_partial_pooling, ax_bayesian_partial_pooling = posterior_dist_2dplot(fig_bayesian_partial_pooling, ax_bayesian_partial_pooling, eta_i, colors_alpha, LIMITS, None)
 
     fig_bracketing.savefig(os.path.join(fig_dir, 'simulations_bracketing.pdf'), dpi=600, bbox_inches='tight')
     fig_bayesian_no_pooling.savefig(os.path.join(fig_dir, 'simulations_bayesian_no_pooling.pdf'), dpi=600, bbox_inches='tight')
-    fig_bayesian_partial_pooling.savefig(os.path.join(fig_dir, 'simulations_bauesian_partial_pooling.pdf'), dpi=600, bbox_inches='tight')
+    fig_bayesian_partial_pooling.savefig(os.path.join(fig_dir, 'simulations_bayesian_partial_pooling.pdf'), dpi=600, bbox_inches='tight')
