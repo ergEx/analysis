@@ -102,25 +102,8 @@ def reading_participant_active_data(
         )
 
         active_phase_data.loc[ii, "wealth_no_neg"] = (
-            active_phase_data.loc[ii, "wealth"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1
+            active_phase_data.loc[ii, "wealth"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1000
         )
-
-        active_phase_data.loc[ii, "x1_1"] = (
-            active_phase_data.loc[ii, "x1_1"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1
-        )
-
-        active_phase_data.loc[ii, "x1_2"] = (
-            active_phase_data.loc[ii, "x1_2"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1
-        )
-
-        active_phase_data.loc[ii, "x2_1"] = (
-            active_phase_data.loc[ii, "x2_1"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1
-        )
-
-        active_phase_data.loc[ii, "x2_2"] = (
-            active_phase_data.loc[ii, "x2_2"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1
-        )
-
     return active_phase_data
 
 
