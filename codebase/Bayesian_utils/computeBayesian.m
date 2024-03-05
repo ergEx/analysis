@@ -85,7 +85,7 @@ mu_eta_h = 5;
 d_mu_alpha = 2;
 d_mu_beta = 0.5;
 mu_log_beta_l = -2;
-mu_log_beta_h = 3;
+mu_log_beta_h = 4;
 
 mu_eta_EE_add = 0.0000;
 mu_eta_EE_mul = 0.9999;
