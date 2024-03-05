@@ -36,7 +36,7 @@ def make_shell(dataSource, inferenceMode, simVersion, quality, model_selection_t
     tmp = """#!/bin/bash
 #SBATCH --partition=HPC
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=4
     # Created {date}
     module load matlab/R2022b
     matlab -nodesktop -nosplash -r "addpath('{runBayesPath}');\
