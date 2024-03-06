@@ -276,11 +276,14 @@ def main(config_file):
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
-        beta_i = bayesian_samples_no_pooling["beta_i"][:,burn_in:,:,:]
+        beta_i = np.log(bayesian_samples_no_pooling["beta_i"][:,burn_in:,:,:])
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors,
+                                                 colors_alpha, n_conditions,
+                                                 n_agents, labels, LIMITS,
+                                                 r"log $\beta$")
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
@@ -288,12 +291,15 @@ def main(config_file):
         bayesian_samples_partial_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
                     )
-        beta_g = bayesian_samples_partial_pooling["beta_g"][:,burn_in:,:]
-        beta_i = bayesian_samples_partial_pooling["beta_i"][:,burn_in:,:,:]
+        beta_g = np.log(bayesian_samples_partial_pooling["beta_g"][:, burn_in:, :])
+        beta_i = np.log(bayesian_samples_partial_pooling["beta_i"][:, burn_in:, :, :])
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\beta$")
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g,
+                                                 colors, colors_alpha, n_conditions,
+                                                 n_agents, labels, LIMITS,
+                                                 r"log $\beta$")
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
