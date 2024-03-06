@@ -8,6 +8,7 @@ import ptitprince as pt
 import seaborn as sns
 from scipy.stats import gaussian_kde
 from matplotlib.ticker import FormatStrFormatter
+from tqdm.auto import tqdm
 
 sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
@@ -22,7 +23,7 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     ax2 = ax.twinx()
     maxi = np.zeros([n_conditions,n_agents,2])
     for c in range(n_conditions):
-        for i in range(n_agents):
+        for i in tqdm(range(n_agents), total=n_agents, desc='Running KDE'):
             data_tmp = data_no_pooling[:,:,i,c].flatten()
             sns.kdeplot(data_tmp, ax = ax, color = colors_alpha[c], linewidth=0.5)
             kde = gaussian_kde(data_tmp)
