@@ -18,11 +18,11 @@ def plot_sequential_bf(data, scale='medium', target='bf10'):
     sns.set_context('paper', font_scale=1.0)
 
     fig, ax = plt.subplots(figsize=(5.5,5.5))
-
+    bfs = sub_data[['bf10', 'bf01']].values.ravel()
     ax2 = plt.subplot2grid((8, 8), (0, 0), colspan=2, rowspan=2)
-    ax2.pie(sub_data[['bf10', 'bf01']].values.ravel(), explode=[0.1, 0], labels=['$\mathrm{data}|\mathrm{H}_{1}$',
-                                                                            '$\mathrm{data}|\mathrm{H}_{0}$'],
-            wedgeprops = {'linewidth': 1, "edgecolor": 'white'}, startangle=0)
+    ax2.pie(bfs / np.sum(bfs), explode=[0.1, 0], labels=['$\mathrm{data}|\mathrm{H}_{1}$',
+                                                                                '$\mathrm{data}|\mathrm{H}_{0}$'],
+                wedgeprops = {'linewidth': 1, "edgecolor": 'white'}, startangle=0)
 
     BF10_text = '{:.2E}'.format(sub_data["bf10"].values[0])
     BF01_text = '{:.2E}'.format(sub_data["bf01"].values[0])
