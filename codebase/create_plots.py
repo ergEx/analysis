@@ -209,7 +209,7 @@ def main(config_file):
             axes[2].set(xlabel='$d_{\mathrm{EUT}} - d_{\mathrm{EE}}$')
             axes[0].set(ylim=[0,1])
             axes[1].set(ylim=[0,1])
-            axes[2].set(xlim=[-0.5, 0.5])
+            axes[2].set(xlim=[-0.5, 1.5])
             fig.savefig(os.path.join(fig_dir, f'08_q1_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
             fig, axes = jasp_like_raincloud(jasp_data, f'0.0_{main_comparison}',
@@ -222,7 +222,7 @@ def main(config_file):
             axes[2].set(xlabel='$\hat{\eta}^{\mathrm{mul}} - \hat{\eta}^{\mathrm{add}}$')
             axes[0].set(ylim=[-1,2])
             axes[1].set(ylim=[-1,2])
-            axes[2].set(xlim=[-1, 1])
+            axes[2].set(xlim=[-1, 2])
             fig.savefig(os.path.join(fig_dir, f'08_q2_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
             fig, axes = jasp_like_correlation(jasp_data, f'0.0_{main_comparison}',
@@ -271,7 +271,7 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        beta_g = bayesian_samples_full_pooling["beta_g"][:,burn_in:,:]
+        beta_g = np.log(bayesian_samples_full_pooling["beta_g"][:,burn_in:,:])
 
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
@@ -282,7 +282,7 @@ def main(config_file):
 
         fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors,
                                                  colors_alpha, n_conditions,
-                                                 n_agents, labels, LIMITS,
+                                                 n_agents, labels, [-6, 8],
                                                  r"log $\beta$")
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
@@ -298,12 +298,14 @@ def main(config_file):
 
         fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g,
                                                  colors, colors_alpha, n_conditions,
-                                                 n_agents, labels, LIMITS,
+                                                 n_agents, labels, [-6, 8],
                                                  r"log $\beta$")
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_model_selection']:
+        sns.set_context(font_scale=1.25)
+
         model_specs = {'EUT v EE' :
                             {'name': 'EUT_EE',
                             'models' : ['EUT','EE']},

@@ -82,7 +82,7 @@ def main(dryrun):
     }
 
     match_sims = {
-        'simulations_bauesian_partial_pooling.pdf': 'figS4_partial_pooling.pdf',
+        'simulations_bayesian_partial_pooling.pdf': 'figS4_partial_pooling.pdf',
         'simulations_bayesian_no_pooling.pdf': 'figS4_no_pooling.pdf',
         'simulations_bracketing.pdf': 'figS4_bracketing.pdf'
     }
