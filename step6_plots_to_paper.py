@@ -48,6 +48,7 @@ def main(dryrun):
         '06_sensitivity_bayesian_2.pdf': 'figS6_sensitivity2.pdf',
         '05_riskaversion_mcmc_samples_1.pdf': 'figS5_mcmc1.pdf',
         '05_riskaversion_mcmc_samples_2.pdf': 'figS5_mcmc2.pdf',
+        '08_model_selection_data_pooling.pdf': 'figS7_data_pooling.pdf'
 
         }
 
