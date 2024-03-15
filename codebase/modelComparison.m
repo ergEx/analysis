@@ -20,13 +20,27 @@ BFFile = sprintf('model_selection_BF_%s.txt', name);
 options.verbose = false;
 options.DisplayWin = 0;
 
-[p, o] = VBA_groupBMC(log_proportions, options);
+comparisons = nchoosek(1 : size(log_proportions, 1), 2);
+n_comps = size(comparisons, 1);
+BFs = zeros(n_comps, 1);
 
+for ii = 1 : n_comps
+    BFs(ii) = exp(sum(log_proportions(comparisons(ii, 1), :) - log_proportions(comparisons(ii, 2), :)));
+end
+
+
+[p, o] = VBA_groupBMC(log_proportions, options);
 
 fileID = fopen(fullfile(dataDir, BFFile), 'w');
 fprintf(fileID, 'pxp %d\n', o.pxp);
 fprintf(fileID, 'ep %d\n', o.ep);
 fprintf(fileID, 'Ef %d\n', o.Ef);
+fprintf(fileID, 'FFX %d\n', o.Fffx);
+
+for ii = 1 : n_comps
+    fprintf(fileID, 'BF_%d_%d %d\n', comparisons(ii, 1), comparisons(ii, 2), BFs(ii));
+end
+
 fclose(fileID);
 
 end
