@@ -48,9 +48,12 @@ def main(dryrun):
         '06_sensitivity_bayesian_2.pdf': 'figS6_sensitivity2.pdf',
         '05_riskaversion_mcmc_samples_1.pdf': 'figS5_mcmc1.pdf',
         '05_riskaversion_mcmc_samples_2.pdf': 'figS5_mcmc2.pdf',
-        '08_model_selection_data_pooling.pdf': 'figS7_data_pooling.pdf'
-
-        }
+        '08_model_selection_data_pooling.pdf': 'figS7_data_pooling.pdf',
+        '09_model_comparison_0.pdf':  'figS8_gbf_h1.pdf',
+        '09_model_comparison_1.pdf':  'figS8_gbf_h2.pdf',
+        '09_model_comparison_pooling_pf.pdf':  'figS9_gbf_pf.pdf',
+        '09_model_comparison_pooling_pn.pdf':  'figS9_gbf_pn.pdf'
+                                        }
 
     match_pilot = {
         '04_riskaversion_bayesian_3.pdf': 'fig11_pilot_riskaversion_partial_1d.pdf',

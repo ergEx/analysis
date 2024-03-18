@@ -8,7 +8,9 @@ import seaborn as sns
 import yaml
 from tqdm.auto import tqdm
 
-from .plotting_functions import jasp_like_raincloud, model_select_plot, posterior_dist_2dplot, posterior_dist_plot, jasp_like_correlation
+from .plotting_functions import (jasp_like_raincloud, model_select_plot,
+                                 posterior_dist_2dplot, posterior_dist_plot,
+                                 jasp_like_correlation, plot_individual_log_bf)
 from .support_figures.plot_nobrainer_performance import plot_nobrainers
 from .utils import read_Bayesian_output
 
@@ -325,6 +327,13 @@ def main(config_file):
             fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_1.pdf'), dpi=600, bbox_inches='tight')
             # fig2.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_2.pdf'), dpi=600, bbox_inches='tight')
 
+            fig, ax = plot_individual_log_bf(os.path.join(data_dir,
+                                                          f'proportions_{model_specs[typ]["name"]}.txt'),
+                                                          idx1=1, m1=model_specs[typ]['models'][1],
+                                                          idx2=0, m2=model_specs[typ]['models'][0])
+
+            fig.savefig(os.path.join(fig_dir, f'09_model_comparison_{m}.pdf'), dpi=600, bbox_inches='tight')
+
     if stages['plot_pooling_selection']:
         model = read_Bayesian_output(
                 os.path.join(data_dir, f"Bayesian_JAGS_model_selection_data_pooling.mat")
@@ -335,6 +344,25 @@ def main(config_file):
                                     figsize=np.array(fig_size) * 2)
 
         fig.savefig(os.path.join(fig_dir, f'08_model_selection_data_pooling.pdf'), dpi=600, bbox_inches='tight')
+
+        fig, ax = plot_individual_log_bf(os.path.join(data_dir,
+                                                      'proportions_data_pooling.txt'),
+                                                    idx1=1, m1='partial~pooling',
+                                                    idx2=0, m2='no~pooling')
+
+        fig.savefig(os.path.join(fig_dir, '09_model_comparison_pooling_pn.pdf'),
+                    dpi=600, bbox_inches='tight')
+
+        fig, ax = plot_individual_log_bf(os.path.join(data_dir,
+                                                      'proportions_data_pooling.txt'),
+                                                    idx1=1, m1='partial~pooling',
+                                                    idx2=2, m2='full~pooling')
+
+        fig.savefig(os.path.join(fig_dir, '09_model_comparison_pooling_pf.pdf'),
+                    dpi=600, bbox_inches='tight')
+
+
+
     return
 
 # %%

@@ -222,3 +222,37 @@ def model_select_plot(z, models, data_dir, name, figsize):
     ax2.spines[['top', 'right']].set_visible(False)
 
     return fig, ax  #, fig2, ax2
+
+
+def plot_individual_log_bf(path, idx1, m1, idx2, m2):
+    """Function for individual log bayes factor as diagnostic
+
+    Parameters
+    ----------
+    path : _type_
+        data path
+    idx1 : _type_
+        index of first model in file
+    m1 : _type_
+       model name 1
+    idx2 : _type_
+        index of second model in file
+    m2 : _type_
+        model name 2
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    data = np.loadtxt(path)
+    gbf = data[idx1] - data[idx2]
+    fig, ax = plt.subplots(1, 1)
+    ax.bar(np.arange(len(gbf)), (gbf))
+    ax.axhline(0)
+    ax.set(xlim=[-0.5, len(gbf) -0.5],
+           ylabel=r'$log(\mathrm{BF}_' + r'{\mathrm{' + m1 + r'},\mathrm{' + m2 + r'}})$',
+           xlabel='participant number')
+    ax.spines[['top', 'right']].set_visible(False)
+
+    return fig, ax
