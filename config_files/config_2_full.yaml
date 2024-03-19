@@ -7,6 +7,7 @@ input_path:
 exclusion_criteria: [1, 2]
 n_agents: 58
 n_conditions: 2
+vba_path:
 qual: 3
 readingdata:
   run: true
@@ -15,21 +16,22 @@ bayesian method:
 bracketing method:
   calculate_indif_eta: true
   log_reg: true
-  run: false
+  run: true
 JASP input:
-  run: false
+  run: true
 bayesfactor_analysis:
-  run: false
+  run: true
   plot: true
-  target: no_pooling
+  target: partial_pooling
 plots:
   run: true
-  plot_passive: false
+  plot_passive: true
   plot_nobrainers: true
-  plot_active: false
-  plot_risk_aversion_bracketing: false
-  plot_riskaversion_bayesian: false
+  plot_active: true
+  plot_risk_aversion_bracketing: true
+  plot_riskaversion_bayesian: true
   plot_pairwise: true
-  plot_mcmc_samples: false
-  plot_sensitivity_bayesian: false
-  plot_model_selection: false
+  plot_mcmc_samples: true
+  plot_sensitivity_bayesian: true
+  plot_model_selection: true
+  plot_pooling_selection: true

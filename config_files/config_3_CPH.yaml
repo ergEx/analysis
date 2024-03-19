@@ -1,0 +1,34 @@
+data directory: data/CPH
+data_type: real_data
+data_variant: CPH
+figure directory: figs/3_CPH
+vba_path:
+n_agents: 18
+n_conditions: 2
+qual: 3
+readingdata:
+  run: false
+bayesian method:
+  run: true
+bracketing method:
+  calculate_indif_eta: true
+  log_reg: true
+  run: true
+JASP input:
+  run: true
+bayesfactor_analysis:
+  run: true
+  plot: true
+  target: partial_pooling
+plots:
+  run: true
+  plot_passive: false
+  plot_nobrainers: false
+  plot_active: false
+  plot_risk_aversion_bracketing: false
+  plot_riskaversion_bayesian: true
+  plot_pairwise: true
+  plot_mcmc_samples: false
+  plot_sensitivity_bayesian: false
+  plot_model_selection: true
+  plot_pooling_selection: false
