@@ -9,6 +9,8 @@ dependencies:
   - r-lsr=0.5.2
   - r-ggplot2=3.4.2
   - r-devtools=2.4.5
+  - r-stargazer=5.2.3
+  - r-bas=1.7.1
   - pip
   - pip:
     - -r requirements.txt
