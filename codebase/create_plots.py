@@ -73,7 +73,7 @@ def main(config_file):
                 tmp_df = df_passive.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
                 for i, participant in enumerate(participants_to_plot):
-                    ax[c].plot(pivoted_df.index, pivoted_df[participant],  color = 'black', alpha = 0.8)
+                    ax[c].plot(pivoted_df.index, pivoted_df[participant], alpha = 0.8)
                 ax[c].set(title = title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
                     ax[c].set(yscale="log", ylabel="Wealth")
@@ -102,7 +102,7 @@ def main(config_file):
                 tmp_df = df_active.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
                 for i, participant in enumerate(participants_to_plot):
-                    ax[c].plot(pivoted_df.index, pivoted_df[participant], color = 'black', alpha = 0.8)
+                    ax[c].plot(pivoted_df.index, pivoted_df[participant], alpha = 0.8)
                 ax[c].set(title=title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
                     ax[c].set(yscale="log", ylabel="Wealth")
