@@ -44,6 +44,9 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
     ax2.spines[['left', 'top', 'right']].set_visible(False)
     ax2.legend(loc='upper left', fontsize=7)
+    ax2.axvline(0, color=colors_alpha[0], linestyle='--')
+    ax2.axvline(1, color=colors_alpha[1], linestyle='--')
+
     return fig, ax, ax2, maxi
 
 
@@ -126,7 +129,8 @@ def jasp_like_raincloud(data, col_name1, col_name2,
                  palette=palette, alpha=alpha)
 
     axes[1].get_legend().remove()
-    axes[1].set(ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[])
+    axes[1].set(ylabel='', xlabel='', xticklabels=[], xticks=[], yticks=[],
+                xlim=[-0.75, 0.25])
     # axes[1].invert_xaxis()
     axes[1].spines[['right', 'top', 'left', 'bottom']].set_visible(False)
 
