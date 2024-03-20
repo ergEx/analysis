@@ -13,7 +13,7 @@ bayesian method:
 bracketing method:
   calculate_indif_eta: true
   log_reg: true
-  run: true
+  run: false
 JASP input:
   run: true
 bayesfactor_analysis:
