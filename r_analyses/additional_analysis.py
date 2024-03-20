@@ -21,7 +21,7 @@ log_wealth_var = all_data[np.isfinite(all_data.log_wealth)].groupby(['participan
 final_wealth = all_data.query('trial==159')[['wealth', 'participant_id', 'eta']]
 
 jasp_input = pd.read_csv('../data/2_full_data/jasp_input.csv', sep='\t')
-
+jasp_input.participant_id = jasp_input.participant_id.str.lower()
 jasp_input['var_wealth_eta0.0'] = wealth_var.query('eta == 0.0').wealth.values
 jasp_input['var_wealth_eta1.0'] = wealth_var.query('eta == 1.0').wealth.values
 jasp_input['log_var_wealth_eta0.0'] = log_wealth_var.query('eta == 0.0').log_wealth.values
