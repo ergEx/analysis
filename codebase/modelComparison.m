@@ -8,9 +8,9 @@ disp(startDir)
 disp(getParentDir(startDir, 1))
 
 switch model_selection_type
-    case {1}, name = 'EUT_EE';
-    case {2}, name = 'EUT_EE2';
-    case {3}, name = 'data_pooling';
+    case {1}, name = 'EUT_EE'; comparisons = [2, 1];
+    case {2}, name = 'EUT_EE2'; comparisons = [2, 1];
+    case {3}, name = 'data_pooling'; comparisons = [2, 1; 2, 3; 1, 3];
 end
 
 file = fullfile(dataDir, sprintf('proportions_%s.txt',name));
@@ -20,8 +20,8 @@ BFFile = sprintf('model_selection_BF_%s.txt', name);
 options.verbose = false;
 options.DisplayWin = 0;
 
-comparisons = nchoosek(1 : size(log_proportions, 1), 2);
 n_comps = size(comparisons, 1);
+
 BFs = zeros(n_comps, 1);
 
 for ii = 1 : n_comps
