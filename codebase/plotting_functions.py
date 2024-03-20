@@ -19,7 +19,7 @@ plt.rcParams.update({
 
 
 def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_alpha,
-                        n_conditions, n_agents, labels, LIMITS, x_label):
+                        n_conditions, n_agents, labels, LIMITS, x_label, fiducials=True):
     ax2 = ax.twinx()
     maxi = np.zeros([n_conditions,n_agents,2])
     for c in range(n_conditions):
@@ -44,8 +44,10 @@ def posterior_dist_plot(fig, ax, data_no_pooling, data_pooling, colors, colors_a
     ax2.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
     ax2.spines[['left', 'top', 'right']].set_visible(False)
     ax2.legend(loc='upper left', fontsize=7)
-    ax2.axvline(0, color=colors_alpha[0], linestyle='--')
-    ax2.axvline(1, color=colors_alpha[1], linestyle='--')
+
+    if fiducials:
+        ax2.axvline(0, color=colors_alpha[0], linestyle='--')
+        ax2.axvline(1, color=colors_alpha[1], linestyle='--')
 
     return fig, ax, ax2, maxi
 

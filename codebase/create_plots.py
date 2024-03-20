@@ -285,7 +285,7 @@ def main(config_file):
         fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors,
                                                  colors_alpha, n_conditions,
                                                  n_agents, labels, [-6, 8],
-                                                 r"log $\beta$")
+                                                 r"log $\beta$", fiducials=False)
 
         fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 

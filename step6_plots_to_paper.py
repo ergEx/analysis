@@ -3,13 +3,14 @@ import shutil
 
 
 
-def copy_file(path_in, file_in, path_out, file_out, dryrun=False):
+def copy_file(path_in, file_in, path_out, file_out, dryrun=False, skip=False):
 
-    if not os.path.isfile(os.path.join(path_in, file_in)):
-        raise FileNotFoundError(f'File {file_in} does not exist!')
+    if not skip:
+        if not os.path.isfile(os.path.join(path_in, file_in)):
+            raise FileNotFoundError(f'File {file_in} does not exist!')
 
-    if not os.path.isdir(path_out):
-        raise FileNotFoundError('Out folder does not exist!')
+        if not os.path.isdir(path_out):
+            raise FileNotFoundError('Out folder does not exist!')
 
     file_source = os.path.join(path_in, file_in)
     file_target = os.path.join(path_out, file_out)
@@ -19,7 +20,7 @@ def copy_file(path_in, file_in, path_out, file_out, dryrun=False):
 
 
 
-def main(dryrun):
+def main(dryrun, skip):
     path_out = 'paper_figures'
 
     if not os.path.isdir(path_out):
@@ -52,14 +53,15 @@ def main(dryrun):
         '09_model_comparison_0.pdf':  'figS8_gbf_h1.pdf',
         '09_model_comparison_1.pdf':  'figS8_gbf_h2.pdf',
         '09_model_comparison_pooling_pf.pdf':  'figS9_gbf_pf.pdf',
-        '09_model_comparison_pooling_pn.pdf':  'figS9_gbf_pn.pdf'
-                                        }
+        '09_model_comparison_pooling_pn.pdf':  'figS9_gbf_pn.pdf',
+        '03_riskaversion_bracketing_1.pdf': 'figS10_bracketing1.pdf',
+        '03_riskaversion_bracketing_2.pdf': 'figS10_bracketing2.pdf'}
 
     match_pilot = {
         '04_riskaversion_bayesian_3.pdf': 'fig11_pilot_riskaversion_partial_1d.pdf',
         '04_riskaversion_bayesian_4.pdf': 'fig11_pilot_riskaversion_partial_2d.pdf',
         '08_q2_pairwise_diff_partial_pooling.pdf' : 'fig11_pilot_pairwise_add_mult.pdf',
-        '07_model_selection_0_1.pdf' : 'fig11_pilot_selection_weakee_eut.pdf',
+        '07_model_selection_0_1.pdf' : 'fig11_pilot_selection_ee_eut.pdf',
 
     }
 
@@ -67,7 +69,7 @@ def main(dryrun):
         '04_riskaversion_bayesian_3.pdf': 'fig11_cph_riskaversion_partial_1d.pdf',
         '04_riskaversion_bayesian_4.pdf': 'fig11_cph_riskaversion_partial_2d.pdf',
         '08_q2_pairwise_diff_partial_pooling.pdf' : 'fig11_cph_pairwise_add_mult.pdf',
-        '07_model_selection_0_1.pdf' : 'fig11_cph_selection_weakee_eut.pdf',
+        '07_model_selection_0_1.pdf' : 'fig11_cph_selection_ee_eut.pdf',
 
     }
     match_support = {
@@ -97,7 +99,7 @@ def main(dryrun):
     for dl, pl in zip(dict_list, path_list):
 
         for sf, tf in dl.items():
-            copy_file(pl, sf, path_out, tf, dryrun=dryrun)
+            copy_file(pl, sf, path_out, tf, dryrun=dryrun, skip=skip)
 
 if __name__ == '__main__':
     import sys
@@ -112,8 +114,13 @@ if __name__ == '__main__':
     else:
         dr = sys.argv[1]
 
+    if len(sys.argv) <= 2:
+        skip = 0
+    else:
+        skip = sys.argv[2]
+
     try:
-        main(dr)
+        main(dr, skip)
         write_provenance('executed successfully')
     except Exception as e:
         print(e)
