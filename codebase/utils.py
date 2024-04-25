@@ -210,33 +210,27 @@ def logistic_regression(df: pd.DataFrame):
 
     x_test = np.linspace(-50, 50, 1_000)
     X_test = add_constant(x_test)
-    pred = model.predict(X_test)
-    cov = model.cov_params()
-    gradient = (pred * (1 - pred) * X_test.T).T
-    std_errors = np.array([np.sqrt(np.dot(np.dot(g, cov), g)) for g in gradient])
-    c = 1.96
-    upper = np.maximum(0, np.minimum(1, pred + std_errors * c))
-    lower = np.maximum(0, np.minimum(1, pred - std_errors * c))
 
-    idx = np.argmin(np.abs(pred - 0.5))
-    slope = np.gradient(pred)[idx]
-    decision_boundary = x_test[idx] if slope > 0 else np.nan
+    pred = model.get_prediction(add_constant(X_test))
+    pred_summary = pred.summary_frame()
 
-    std_dev = (
-        (x_test[np.argmin(np.abs(lower - 0.5))] - decision_boundary) / c if slope > 0 else np.nan
-    )
+    pred_mean = pred_summary['predicted']
+    ci_lower = pred_summary['ci_lower']
+    ci_upper = pred_summary['ci_upper']
 
-    # Replacing std_deviations of 0 with a small number, to prevent downstream effects
-    if std_dev == 0:
-        std_dev = 1e-10
+    idx = pred_summary[pred_summary['predicted'] > 0.5].index
+
+    mu = x_test[idx[0]]
+    std = pred_summary.loc[idx[0]]['se'] * np.sqrt(len(df))
+    std = std if std > 0 else 1e-10
 
     return (
         x_test,
-        pred,
-        lower,
-        upper,
-        decision_boundary,
-        std_dev,
+        pred_mean,
+        ci_lower,
+        ci_upper,
+        mu,
+        std,
     )
 
 

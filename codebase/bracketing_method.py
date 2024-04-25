@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import yaml
 from tqdm.auto import tqdm
-from .utils import (calculate_min_v_max, get_config_filename, indiference_eta,
-                    logistic_regression, wealth_change)
+
+from .utils import calculate_min_v_max, get_config_filename, indiference_eta, logistic_regression, wealth_change
 
 
 def add_indif_eta(df):
@@ -96,17 +96,17 @@ def main(config_file):
     for con in set(df.eta):
         # GROUP LEVEL DATA
         df_tmp = df.query("eta == @con").reset_index(drop=True)
-        (x_test, pred, lower, upper, decision_boundary, std_dev,) = logistic_regression(df_tmp)
+        (x_test, pred_mean, ci_lower, ci_upper, mu, std,) = logistic_regression(df_tmp)
         idx = pd.IndexSlice
         df_logistic.loc[idx["all", con, :], "x_test"] = x_test
-        df_logistic.loc[idx["all", con, :], "pred"] = pred
-        df_logistic.loc[idx["all", con, :], "lower"] = lower
-        df_logistic.loc[idx["all", con, :], "upper"] = upper
+        df_logistic.loc[idx["all", con, :], "pred"] = pred_mean
+        df_logistic.loc[idx["all", con, :], "lower"] = ci_lower
+        df_logistic.loc[idx["all", con, :], "upper"] = ci_upper
 
         df_bracketing_overview.loc[
             idx["all", con], "log_reg_decision_boundary"
-        ] = decision_boundary
-        df_bracketing_overview.loc[idx["all", con], "log_reg_std_dev"] = std_dev
+        ] = mu
+        df_bracketing_overview.loc[idx["all", con], "log_reg_std_dev"] = std
 
         for i, participant in tqdm(enumerate(participant_list),
                                    desc='Calculating logistic regression',
@@ -116,18 +116,18 @@ def main(config_file):
                 "participant_id == @participant and eta == @con"
             ).reset_index(drop=True)
 
-            (x_test, pred, lower, upper, decision_boundary, std_dev) = logistic_regression(df_tmp)
+            (x_test, pred_mean, ci_lower, ci_upper, mu, std) = logistic_regression(df_tmp)
 
             idx = pd.IndexSlice
             df_logistic.loc[idx[participant, con, :], "x_test"] = x_test
-            df_logistic.loc[idx[participant, con, :], "pred"] = pred
-            df_logistic.loc[idx[participant, con, :], "lower"] = lower
-            df_logistic.loc[idx[participant, con, :], "upper"] = upper
+            df_logistic.loc[idx[participant, con, :], "pred"] = pred_mean
+            df_logistic.loc[idx[participant, con, :], "lower"] = ci_lower
+            df_logistic.loc[idx[participant, con, :], "upper"] = ci_upper
 
             df_bracketing_overview.loc[
                 idx[participant, con], "log_reg_decision_boundary"
-            ] = decision_boundary
-            df_bracketing_overview.loc[idx[participant, con], "log_reg_std_dev"] = std_dev
+            ] = mu
+            df_bracketing_overview.loc[idx[participant, con], "log_reg_std_dev"] = std
 
     df_logistic.to_csv(os.path.join(data_dir, "logistic.csv"), sep="\t")
     df_logistic.to_pickle(os.path.join(data_dir, "logistic.pkl"))

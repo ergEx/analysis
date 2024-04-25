@@ -8,9 +8,8 @@ import seaborn as sns
 import yaml
 from tqdm.auto import tqdm
 
-from .plotting_functions import (jasp_like_raincloud, model_select_plot,
-                                 posterior_dist_2dplot, posterior_dist_plot,
-                                 jasp_like_correlation, plot_individual_log_bf)
+from .plotting_functions import jasp_like_correlation, jasp_like_raincloud, model_select_plot, plot_individual_log_bf, \
+    posterior_dist_2dplot, posterior_dist_plot
 from .support_figures.plot_nobrainer_performance import plot_nobrainers
 from .utils import read_Bayesian_output
 
