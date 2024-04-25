@@ -139,14 +139,14 @@ def main(config_file):
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
         labels = ['Additive','Multiplicative']
 
-        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, [-5,6], r"$\eta$")
 
         fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, LIMITS, maxi)
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, [-5,6], maxi)
 
         fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
