@@ -17,7 +17,7 @@ def bracketing_fig(fig_dir):
     ax1.set_yticks([])
     ax1.set_xlim(-3, 4)
     ax1.set_ylim(-0.2, 1.2)
-    ax1.set_xlabel('$\eta$')
+    ax1.set_xlabel('$\eta^{\text{ind}}$')
 
     x1, y1 = -1, 0.5
     x2, y2 = 3, 0.5
@@ -37,14 +37,14 @@ def bracketing_fig(fig_dir):
     ax2.set_yticks([])
     ax2.set_xlim(-3, 4)
     ax2.set_ylim(-0.2, 1.2)
-    ax2.set_xlabel('$\eta$')
+    ax2.set_xlabel('$\eta^{\text{ind}}$')
 
     ax3.spines[['left', 'right']].set_visible(False)
     ax3.spines[['top']].set_visible(False)
     ax3.set_yticks([])
     ax3.set_xlim(-3, 4)
     ax3.set_ylim(-0.2, 1.2)
-    ax3.set_xlabel('$\eta$')
+    ax3.set_xlabel('$\eta^{\text{ind}}$')
 
     for _ in range(30):
         x1, y1 = np.random.uniform(-3, 0.5, 1), 0.0
