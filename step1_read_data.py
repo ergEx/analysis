@@ -1,5 +1,6 @@
 import sys
 import time
+import traceback
 import yaml
 from codebase import readingdata, utils
 
@@ -29,7 +30,7 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
+
     from codebase.utils import write_provenance
 
     command = '\t'.join(sys.argv)
@@ -40,4 +41,5 @@ if __name__ == "__main__":
         write_provenance('executed successfully')
     except Exception as e:
         print(e)
+        traceback.print_exc()
         write_provenance('FAILED!!')

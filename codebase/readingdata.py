@@ -1,6 +1,7 @@
 import os
 import sys
 
+from typing import List
 import numpy as np
 import pandas as pd
 import scipy.io
@@ -103,9 +104,6 @@ def reading_participant_active_data(
         active_phase_data.loc[ii, "wealth_no_neg"] = (
             active_phase_data.loc[ii, "wealth"] if active_phase_data.loc[ii, "wealth"] > 0 and min(x_updates) > 0 else 1000
         )
-
-
-
     return active_phase_data
 
 
@@ -115,7 +113,8 @@ def reading_data(
     data_folder: str,
     n_passive_runs: int = 3,
     input_path: str = None,
-    extension: str = 'beh.csv'
+    extension: str = 'beh.csv',
+    exclusion_crit: List = [1, 2]
 ) -> None:
     """
     Reads in passive and active phase data for a given design variant, simulation status, and number of passive runs. It stores a tuple of two dataframes, one for passive phase data and one for active phase data. It also stores .mat and .npz versions of the active phase data in a subdirectory within the data directory.
@@ -133,7 +132,8 @@ def reading_data(
         input_path = data_folder
 
     CONDITION_SPECS = condition_specs()
-    SUBJECT_SPECS = sub_specs(data_type, data_variant, input_path)
+    SUBJECT_SPECS = sub_specs(data_type, data_variant, input_path,
+                              exclusion_crit=exclusion_crit)
 
     passive_phase_df = pd.DataFrame()
     no_brainer_df = pd.DataFrame()
@@ -227,8 +227,9 @@ def reading_data(
 
 
 def main(config_file):
-    with open(f"{config_file}", "r") as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
+
+    with open(f"{config_file}", "r") as file:
+        config = yaml.load(file, Loader=yaml.SafeLoader)
 
     if not config["readingdata"]["run"]:
         return
@@ -242,25 +243,26 @@ def main(config_file):
 
     try:
         input_path = config['input_path']
-    except:
+    except KeyError:
         input_path = data_dir
 
     try:
         extension = config['extension']
-    except:
+    except KeyError:
         extension = 'beh.csv'
 
-    print(f"\nREADING DATA")
+    try:
+        exclusion_criteria = config['exclusion_criteria']
+    except KeyError:
+        exclusion_criteria = [1, 2]
+
+    print("\nREADING DATA")
     reading_data(data_type, data_variant, data_dir, input_path=input_path,
-                 extension=extension)
+                 extension=extension, exclusion_crit=exclusion_criteria)
     print("\nDATA READ SUCCESFULLY\n")
 
 
 if __name__ == "__main__":
     config_file = get_config_filename(sys.argv)
 
-    with open(f"{config_file}", "r") as f:
-        config = yaml.load(f, Loader=yaml.SafeLoader)
-
     main(config_file)
-

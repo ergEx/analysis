@@ -39,7 +39,18 @@ sequential_bayes_x_larger_y <- function(x_data, y_data, hypo){
         # Our test here is: is the effect size in the range (0 < d < Inf). Against the null hypothesis d=0
         # See:
         bf <- ttestBF(x=x_data[1 : x], y=y_data[1 : x], paired=TRUE, nullInterval = c(0, Inf), rscale=sc)
-        tmpbf <- extractBF(bf, onlybf = TRUE)
+
+        if (hypo=='Q1'){
+          dir_bf1 <- bf[1] / bf[2]
+          tmpbf1 <- extractBF(dir_bf1, onlybf = TRUE)[1]
+          dir_bf2 <- bf[2] / bf[1]
+          tmpbf2 <- extractBF(dir_bf2, onlybf = TRUE)[1]
+        } else{
+          tmpbf1 <- extractBF(bf, onlybf = TRUE)[1]
+          tmpbf2 <- extractBF(1 / bf[1], onlybf = TRUE)[1]
+        }
+
+       tmpbf <- c(tmpbf1, tmpbf2)
 
         # Packaging
         out[cc, 1 : 2] <- tmpbf
@@ -86,6 +97,10 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
   diff <- x - y # Calculating mean difference
   test <- ttestBF(x=x, y=y, paired=TRUE, nullInterval = c(0, Inf), rscale='medium')
 
+  if (hypo == 'Q1'){
+    test <- test[1] / test[2] # In Q1 we test if (Inf > d > 0) > !(Inf > d > 0)
+    # https://cran.r-project.org/web/packages/BayesFactor/vignettes/manual.html#onesample
+  }
   # Getting samples from posterior for comparison Inf > d > 0, i.e. index 1.
   post <- posterior(test, index=1, iterations=iterations)
 
@@ -95,8 +110,14 @@ reporting_ttest_x_larger_y <- function(x, y, estim, hypo, iterations=100000){
   out[1,3] <- extractBF(test, onlybf=TRUE)[1] # Getting BayesFactor from index 1
   out[1,4] <- mean(diff) # classic descriptives of paired difference
   out[1,5] <- sd(diff)
+  if (sum(is.na(post)) == 0){
   out[1,6:8] <- quantile(post[, 1], probs=c(0.5, 0.025,  0.975)) # Getting quantiles of posterior samples for mu (mean difference)
   out[1,9:11] <- quantile(post[, 3], probs=c(0.5, 0.025,  0.975)) # Getting quantiles of posterior sampels for delta (effect size)
+  } else{
+    print("Posterior estimation failed!")
+    out[1,6:8] <- NaN
+    out[1,9:11] <- NaN
+  }
   out[1, 12] <- cohensD(x=x, y=y, method='paired')
 
   return(out)

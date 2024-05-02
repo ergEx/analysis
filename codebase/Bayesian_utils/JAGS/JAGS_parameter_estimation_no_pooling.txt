@@ -31,7 +31,6 @@ for (t in 1:nTrials){
 }# end of conditions
 }# end of subjects
 
-
 ## PRIORS
 for (c in 1:nConditions){
 eta_g[c]       ~ dnorm(0,1)   # Not used

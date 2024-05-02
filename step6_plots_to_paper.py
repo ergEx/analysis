@@ -3,13 +3,14 @@ import shutil
 
 
 
-def copy_file(path_in, file_in, path_out, file_out, dryrun=False):
+def copy_file(path_in, file_in, path_out, file_out, dryrun=False, skip=False):
 
-    if not os.path.isfile(os.path.join(path_in, file_in)):
-        raise FileNotFoundError(f'File {file_in} does not exist!')
+    if not skip:
+        if not os.path.isfile(os.path.join(path_in, file_in)):
+            raise FileNotFoundError(f'File {file_in} does not exist!')
 
-    if not os.path.isdir(path_out):
-        raise FileNotFoundError('Out folder does not exist!')
+        if not os.path.isdir(path_out):
+            raise FileNotFoundError('Out folder does not exist!')
 
     file_source = os.path.join(path_in, file_in)
     file_target = os.path.join(path_out, file_out)
@@ -19,62 +20,86 @@ def copy_file(path_in, file_in, path_out, file_out, dryrun=False):
 
 
 
-def main(dryrun):
+def main(dryrun, skip):
     path_out = 'paper_figures'
 
     if not os.path.isdir(path_out):
         os.makedirs(path_out)
 
     path_support = 'figs/support'
-    path_pilot = 'figs/1_pilot'
-    path_sim_grid = 'figs/0_simulation/grid'
-    path_r_analysis = 'r_analyses'
+    path_data = 'figs/2_full_data/'
+    path_pilot = 'figs/1_pilot/'
+    path_cph = 'figs/3_CPH/'
+    path_sims = 'figs/0_simulation/grid'
+    path_r = 'r_analyses/'
 
-    match_support = {
-        'Fig2_a_h1.pdf' : 'h_1.pdf',
-        'Fig2_b_h2.pdf' : 'h_2.pdf',
-        'Fig2_c_h0.pdf' : 'h_0.pdf',
-        'FigC1_a_eut_fig.png': 'utility_figure.png',
-        'FigC1_b_eut_eta_m1.png': 'utility_figure_eta_-1.0.png',
-        'FigC1_c_eut_eta_1.png': 'utility_figure_eta_1.0.png',
-        'FigD1_a_bracketing1.pdf' : 'bracketing_1.pdf',
-        'FigD1_b_bracketing2.pdf' : 'bracketing_2.pdf',
-        'FigD1_c_bracketing3.pdf' : 'bracketing_3.pdf',
-        }
+    match_data = {
+        '01_passive_trajectories.pdf': 'fig2_passive_trajectories.pdf',
+        '02_active_trajectories.pdf': 'fig5_active_trajectories.pdf',
+        '04_riskaversion_bayesian_1.pdf': 'fig7_riskaversion_nofull_1d.pdf',
+        '04_riskaversion_bayesian_2.pdf': 'fig7_riskaversion_nofull_2d.pdf',
+        '04_riskaversion_bayesian_3.pdf': 'fig7_riskaversion_partial_1d.pdf',
+        '04_riskaversion_bayesian_4.pdf': 'fig7_riskaversion_partial_2d.pdf',
+        '08_q2_pairwise_diff_partial_pooling.pdf' : 'fig8_pairwise_add_mult.pdf',
+        '07_model_selection_1_1.pdf' : 'fig8_selection_weakee_eut.pdf',
+        '08_q1_pairwise_diff_partial_pooling.pdf' : 'fig9_pairwise_ee_eut.pdf',
+        '07_model_selection_0_1.pdf' : 'fig9_selection_ee_eut.pdf',
+        '08_q3_corelation_partial_pooling.pdf' : 'fig10_correlation.pdf',
+        '06_sensitivity_bayesian_1.pdf': 'figS6_sensitivity1.pdf',
+        '06_sensitivity_bayesian_2.pdf': 'figS6_sensitivity2.pdf',
+        '05_riskaversion_mcmc_samples_1.pdf': 'figS5_mcmc1.pdf',
+        '05_riskaversion_mcmc_samples_2.pdf': 'figS5_mcmc2.pdf',
+        '08_model_selection_data_pooling.pdf': 'figS7_data_pooling.pdf',
+        '09_model_comparison_0.pdf':  'figS8_gbf_h1.pdf',
+        '09_model_comparison_1.pdf':  'figS8_gbf_h2.pdf',
+        '09_model_comparison_pooling_pf.pdf':  'figS9_gbf_pf.pdf',
+        '09_model_comparison_pooling_pn.pdf':  'figS9_gbf_pn.pdf',
+        '03_riskaversion_bracketing_1.pdf': 'figS10_bracketing1.pdf',
+        '03_riskaversion_bracketing_2.pdf': 'figS10_bracketing2.pdf'}
 
     match_pilot = {
-        'Fig3_a_riskaversion_partial_pooling_group_bayesian.pdf'  : '05a_riskaversion_partial_pooling_group_bayesian.pdf',
-        'Fig3_b_riskaversion_partial_pooling_individual_bayesian.pdf' : '05b_riskaversion_partial_pooling_individual_bayesian.pdf',
-        'Fig3_c_raincloud_distance_partial_pooling.pdf' : '05f_raincloud_distance_partial_pooling.pdf',
-        'Fig3_d_q1_sequential_partial_pooling.pdf' : 'q1_sequential_partial_pooling.pdf',
-        'Fig3_e_q2_sequential_partial_pooling.pdf' : 'q2_sequential_partial_pooling.pdf',
-        'Fig3_f_correlation_riskaversion_partial_pooling.pdf' : '05d_correlation_riskaversion_partial_pooling.pdf',
-        'FigF1_a_riskaversion_full_pooling_group_bayesian.pdf' : '04a_riskaversion_full_pooling_group_bayesian.pdf',
-        'FigF1_b_riskaversion_full_pooling_group_bracketing.pdf' : '02a_riskaversion_full_pooling_group_bracketing.pdf',
-        'FigF1_c_riskaversion_no_pooling_individual_bayesian.pdf' : '06b_riskaversion_no_pooling_individual_bayesian.pdf',
-        'FigF1_d_riskaversion_no_pooling_individual_bracketing.pdf' : '03b_riskaversion_no_pooling_individual_bracketing.pdf'
+        '04_riskaversion_bayesian_3.pdf': 'fig11_pilot_riskaversion_partial_1d.pdf',
+        '04_riskaversion_bayesian_4.pdf': 'fig11_pilot_riskaversion_partial_2d.pdf',
+        '08_q2_pairwise_diff_partial_pooling.pdf' : 'fig11_pilot_pairwise_add_mult.pdf',
+        '07_model_selection_0_1.pdf' : 'fig11_pilot_selection_ee_eut.pdf',
+
     }
 
-    match_simulation_grid = {
-        'FigC2_a_grid_simulation_riskaversion_partial_pooling.pdf' : 'grid_simulation_riskaversion_partial_pooling.pdf',
-        'FigC2_b_grid_simulation_riskaversion_no_pooling.pdf' : 'grid_simulation_riskaversion_no_pooling.pdf',
-        'FigC2_c_grid_simulation_riskaversion_bracketing.pdf' : 'grid_simulation_riskaversion_bracketing.pdf'
+    match_cph = {
+        '04_riskaversion_bayesian_3.pdf': 'fig11_cph_riskaversion_partial_1d.pdf',
+        '04_riskaversion_bayesian_4.pdf': 'fig11_cph_riskaversion_partial_2d.pdf',
+        '08_q2_pairwise_diff_partial_pooling.pdf' : 'fig11_cph_pairwise_add_mult.pdf',
+        '07_model_selection_0_1.pdf' : 'fig11_cph_selection_ee_eut.pdf',
+
+    }
+    match_support = {
+        'EE_pred.pdf' : 'fig6_ee.pdf',
+        'EE2_pred.pdf' : 'fig6_weakee.pdf',
+        'EUT_pred.pdf' : 'fig6_eut.pdf',
+        'bracketing_1.pdf': 'figS3_bracketing_1.pdf',
+        'bracketing_2.pdf': 'figS3_bracketing_2.pdf',
+        'bracketing_3.pdf': 'figS3_bracketing_3.pdf',
+        'utility_figure-0.5.png': 'figS2_utility_1.png',
+        'utility_figure0.5.png': 'figS2_utility_2.png',}
+
+    match_r = {
+        'plot_bfda_h0.pdf': 'figS1_bfdah0.pdf',
+        'plot_bfda_h1.pdf': 'figS1_bfdah1.pdf'
     }
 
-    match_r_analyses = {
-        'FigE1_a_bfdah0.pdf' : 'plot_bfda_h0.pdf',
-        'FigE1_b_bfdah1.pdf' : 'plot_bfda_h1.pdf',
+    match_sims = {
+        'simulations_bayesian_partial_pooling.pdf': 'figS4_partial_pooling.pdf',
+        'simulations_bayesian_no_pooling.pdf': 'figS4_no_pooling.pdf',
+        'simulations_bracketing.pdf': 'figS4_bracketing.pdf'
     }
-
-
-    dict_list = [match_support, match_simulation_grid, match_r_analyses, match_pilot]
-    path_list = [path_support, path_sim_grid, path_r_analysis, path_pilot]
+    dict_list = [match_data, match_support, match_cph, match_pilot, match_r, match_sims]
+    path_list = [path_data, path_support, path_cph, path_pilot, path_r, path_sims]
 
 
     for dl, pl in zip(dict_list, path_list):
 
-        for tf, sf in dl.items():
-            copy_file(pl, sf, path_out, tf, dryrun=dryrun)
+        for sf, tf in dl.items():
+            copy_file(pl, sf, path_out, tf, dryrun=dryrun, skip=skip)
 
 if __name__ == '__main__':
     import sys
@@ -89,8 +114,13 @@ if __name__ == '__main__':
     else:
         dr = sys.argv[1]
 
+    if len(sys.argv) <= 2:
+        skip = 0
+    else:
+        skip = sys.argv[2]
+
     try:
-        main(dr)
+        main(dr, skip)
         write_provenance('executed successfully')
     except Exception as e:
         print(e)

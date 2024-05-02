@@ -2,6 +2,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 from ..utils import isoelastic_utility
 
 plt.rcParams.update({
@@ -11,35 +12,76 @@ cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (13 * cm , (5.75*2) * cm)
 
 
+def draw_brace(ax, span, pos, text, col, orientation):
+    """Draws an annotated brace on the axes."""
+    ax_min, ax_max = ax.get_xlim() if orientation == 'horizontal' else ax.get_ylim()
+    _span = ax_max - ax_min
+
+    opp_min, opp_max = ax.get_ylim() if orientation == 'horizontal' else ax.get_xlim()
+    opp_span = opp_max - opp_min
+
+    beta_factor = 300.
+
+    resolution = int((span[1]-span[0])/_span*100)*2+1
+    beta = beta_factor/_span
+
+    x = np.linspace(span[0], span[1], resolution)
+    _half = x[:int(resolution/2)+1]
+    opp_half_brace = (1/(1.+np.exp(-beta*(_half-_half[0])))
+                    + 1/(1.+np.exp(-beta*(_half-_half[-1]))))
+    y = np.concatenate((opp_half_brace, opp_half_brace[-2::-1]))
+    y = pos + (.05*y - .01)*opp_span # adjust vertical position
+
+    ax.autoscale(False)
+
+    if orientation == 'horizontal':
+        ax.plot(x, y, color=col, lw=1)
+        ax.text((span[1]+span[0])/2., pos+.07*opp_span, text, ha='center', va='bottom', color = col)
+    else:
+        ax.plot(y, x, color=col, lw=1)
+        ax.text(pos + .07*opp_span, (span[1] + span[0])/2., text, ha='left', va='center', color = col)
+
+
 def EUT_figure(fig_dir):
-    etas = [-1.0,-0.5,0.0,0.5,1.0,1.5]
-    cmap = plt.get_cmap("Dark2")
-    colors = [cmap(i) for i in np.linspace(0, 1, len(etas))]
+    x_values = np.linspace(1, 1000, 1000)
+    vertical_lines_x = [200, 500, 800]
+    text = ['Tails','No wealth change', 'Heads']
+    colors = ['green','orange']
 
-    x = np.linspace(2,1000,1000)
+    #eta specific values (if other values of eta is plotted these needs to be changed manually)
+    ypos = [1500,4.5]
+    fac = [1.03,1.017]
 
-    fig_1, ax_1 = plt.subplots(1, 1, figsize=fig_size)
-    for i, eta in  enumerate(etas):
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        u = isoelastic_utility(x,eta)
-        rescaled_u = (u - u.min()) / (u.max() - u.min())
-        ax_1.plot(x,rescaled_u, label=f'$\eta: {eta}$', color = colors[i])
+    for j, eta in enumerate([-0.5,0.5]):
 
-        ax.plot(x,rescaled_u, label = f'$\eta: {eta}$', color = colors[i])
-        ax.set(title='Isoelastic utility with different risk aversion parameters',
-            xlabel=f'Wealth, $x$', ylabel=f'Scaled utility, $u(x;{eta})$')
-        #legend = ax.legend(loc='upper left')
-        if eta < 0:
-            ax.set_title(f'Risk seeking, $\eta = {eta}$')
-        elif eta == 0:
-            ax.set_title(f'Risk neutral, $\eta = {eta}$')
-        else:
-            ax.set_title(f'Risk averse, $\eta = {eta}$')
-        fig.savefig(os.path.join(fig_dir, f'utility_figure_eta_{eta}.png'), dpi=600, bbox_inches='tight')
+        fig, ax = plt.subplots(1,1, figsize = (10,10))
+        ax.plot(x_values, isoelastic_utility(x_values,eta), label=r'$f(x) = x$', color = colors[j])
 
-    ax_1.set(title='Isoelastic utility with different risk aversion parameters',
-            xlabel=f'Wealth, $x$',
-            ylabel='Scaled utility, $u(x;\eta)$')
-    legend = ax_1.legend(loc='lower right')
-    legend.set_bbox_to_anchor((0.8, 0.))
-    fig_1.savefig(os.path.join(fig_dir, 'utility_figure.png'), dpi=600, bbox_inches='tight')
+        for i, line_x in enumerate(vertical_lines_x):
+            ax.vlines(x=line_x, ymin=ypos[j], ymax=isoelastic_utility(line_x,eta), color='grey')
+            ax.hlines(y = isoelastic_utility(line_x,eta), color='grey', xmin = 0, xmax = line_x)
+            ax.scatter(x = line_x, y = isoelastic_utility(line_x,eta), color = 'grey')
+            ax.text(line_x,0, text[i], ha='center', va='bottom')
+
+
+        ax.set(ylabel = r"$u(x)$", xlabel = r"$x$", xticks = vertical_lines_x)
+
+        draw_brace(ax = ax,
+                span = (vertical_lines_x[0], vertical_lines_x[2]),
+                pos = 0,
+                text = '',
+                col = colors[j],
+                orientation = 'horizontal')
+
+        draw_brace(ax = ax,
+                span = (isoelastic_utility(vertical_lines_x[0],eta), isoelastic_utility(vertical_lines_x[2],eta)),
+                pos = 0.5,
+                text = 'Average utility accepting gamble',
+                col = colors[j],
+                orientation = 'vertical')
+
+        ax.text(75, isoelastic_utility(vertical_lines_x[1],eta)*fac[j], 'Average utility not accepting gamble', ha='left', va='center', color = 'grey')
+
+        ax.spines[['top','right']].set_visible(False)
+
+        fig.savefig(os.path.join(fig_dir, f'utility_figure{eta}.png'), dpi=600, bbox_inches='tight')

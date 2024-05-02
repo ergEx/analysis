@@ -18,11 +18,11 @@ def plot_sequential_bf(data, scale='medium', target='bf10'):
     sns.set_context('paper', font_scale=1.0)
 
     fig, ax = plt.subplots(figsize=(5.5,5.5))
-
+    bfs = sub_data[['bf10', 'bf01']].values.ravel()
     ax2 = plt.subplot2grid((8, 8), (0, 0), colspan=2, rowspan=2)
-    ax2.pie(sub_data[['bf10', 'bf01']].values.ravel(), explode=[0.1, 0], labels=['$\mathrm{data}|\mathrm{H}_{1}$',
-                                                                            '$\mathrm{data}|\mathrm{H}_{0}$'],
-            wedgeprops = {'linewidth': 1, "edgecolor": 'white'}, startangle=0)
+    ax2.pie(bfs / np.sum(bfs), explode=[0.1, 0], labels=['$\mathrm{data}|\mathrm{H}_{1}$',
+                                                                                '$\mathrm{data}|\mathrm{H}_{0}$'],
+                wedgeprops = {'linewidth': 1, "edgecolor": 'white'}, startangle=0)
 
     BF10_text = '{:.2E}'.format(sub_data["bf10"].values[0])
     BF01_text = '{:.2E}'.format(sub_data["bf01"].values[0])
@@ -86,20 +86,20 @@ def main(config_file, fig_dir=None):
     if fig_dir is None:
         fig_dir = config["figure directory"]
 
-    target = config['bayesfactor_analysis']['target']
+    for target in ['partial_pooling', 'no_pooling']:    # target = config['bayesfactor_analysis']['target']
 
-    subprocess.call(f'Rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
+        subprocess.call(f'Rscript r_analyses/bayesian_t_test.R --path {data_dir}/ --mode {target}', shell=True)
 
-    if config["bayesfactor_analysis"]["plot"]:
+        if config["bayesfactor_analysis"]["plot"]:
 
-        # Q1 Sequential:
-        q1_sequential = pd.read_csv(os.path.join(data_dir, 'q1_sequential_' + target + '.csv'), sep='\t')
-        fig, ax = plot_sequential_bf(q1_sequential)
-        fig.savefig(os.path.join(fig_dir, 'q1_sequential_' + target + '.pdf'),
-                    bbox_inches='tight', dpi=600)
+            # Q1 Sequential:
+            q1_sequential = pd.read_csv(os.path.join(data_dir, 'q1_sequential_' + target + '.csv'), sep='\t')
+            fig, ax = plot_sequential_bf(q1_sequential)
+            fig.savefig(os.path.join(fig_dir, 'q1_sequential_' + target + '.pdf'),
+                        bbox_inches='tight', dpi=600)
 
-        # Q2 Sequential:
-        q2_sequential = pd.read_csv(os.path.join(data_dir, 'q2_sequential_' + target + '.csv'), sep='\t')
-        fig, ax = plot_sequential_bf(q2_sequential)
-        fig.savefig(os.path.join(fig_dir, 'q2_sequential_' + target + '.pdf'),
-                    bbox_inches='tight', dpi=600)
+            # Q2 Sequential:
+            q2_sequential = pd.read_csv(os.path.join(data_dir, 'q2_sequential_' + target + '.csv'), sep='\t')
+            fig, ax = plot_sequential_bf(q2_sequential)
+            fig.savefig(os.path.join(fig_dir, 'q2_sequential_' + target + '.pdf'),
+                        bbox_inches='tight', dpi=600)

@@ -6,16 +6,18 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import yaml
-from matplotlib import rcParamsDefault
+from tqdm.auto import tqdm
+
+from .plotting_functions import jasp_like_correlation, jasp_like_raincloud, model_select_plot, plot_individual_log_bf, \
+    posterior_dist_2dplot, posterior_dist_plot
+from .support_figures.plot_nobrainer_performance import plot_nobrainers
+from .utils import read_Bayesian_output
 
 plt.rcParams.update({
     "text.usetex": True})
 
 cm = 1/2.54  # centimeters in inches (for plot size conversion)
 fig_size = (6.5 * cm , 5.75 * cm)
-
-from .utils import jasp_like_correlation, paired_swarm_plot, plot_individual_heatmaps, plot_single_kde, \
-    read_Bayesian_output
 
 
 def main(config_file):
@@ -35,10 +37,10 @@ def main(config_file):
         os.makedirs(fig_dir)
 
     data_type = config["data_type"]
-    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e4,2e4,4e4]}
+    quality_dictionary = {'chains': [2,4,4,4], 'samples': [5e1,5e2,5e3,1e4,2e4], 'manual_burnin': [1e1,1e3,1e3,2e4,4e4]}
     n_agents = config["n_agents"]
     burn_in = int(quality_dictionary['manual_burnin'][config['qual'] - 1])
-    n_samples = int(quality_dictionary['samples'][config['qual'] - 1] - burn_in)
+    n_samples = int(quality_dictionary['samples'][config['qual'] - 1])
     n_chains = int(quality_dictionary['chains'][config['qual'] - 1])
     n_conditions = config["n_conditions"]
 
@@ -47,26 +49,30 @@ def main(config_file):
     title_dict={0: "Additive", 1: "Multiplicative"}
     soft_limits = {0.0: [-500, 2_500], 1.0: [64 , 15_589]}
 
-    cmap = plt.get_cmap("tab20")
-    colors = [cmap(i) for i in np.linspace(0, 1, n_agents)]
+    colors    = [np.array([0, 0, 1, 1], dtype=float), np.array([1, 0, 0, 1], dtype=float)]
+    colors_alpha = [np.array([0, 0, 1, 0.2], dtype=float), np.array([1, 0, 0, 0.2], dtype=float)]
+
     # Set slightly larger fontscale throughout, but keeping matplotlib settings
     sns.set_context('paper', font_scale=1.0) #, rc=rcParamsDefault)
     # params = {"font.family" : "serif", If the need occurs to set fonts
     #          "font.serif" : ["Computer Modern Serif"]}
     # plt.rcParams.update(params)
 
+    LIMITS = [-1,2]
+
     if stages['plot_passive']:
         if data_type != 'real_data':
             print('There is no passive trajectories for simulated data')
         else:
             df_passive = pd.read_csv(os.path.join(data_dir, "all_passive_phase_data.csv"), sep="\t")
+            participants_to_plot = df_passive['participant_id'].unique()[:10]
             fig, ax = plt.subplots(1,2, figsize=(23 * cm, 4.75 * cm))
             ax = ax.flatten()
             for c, con in enumerate(set(df_passive.eta)):
                 tmp_df = df_passive.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
-                for i, participant in enumerate(pivoted_df.columns):
-                    ax[c].plot(pivoted_df.index, pivoted_df[participant],  color = colors[i])
+                for i, participant in enumerate(participants_to_plot):
+                    ax[c].plot(pivoted_df.index, pivoted_df[participant], alpha = 0.8)
                 ax[c].set(title = title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
                     ax[c].set(yscale="log", ylabel="Wealth")
@@ -77,67 +83,25 @@ def main(config_file):
                 ax[c].legend(loc="upper left")
 
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01a_passive_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
-    if stages['plot_no_brainers']:
-        if data_type != "real_data":
-            print('There is no no-brainer data for simulated data')
-        else:
-            # Slightly increase font size for nobrainer plots
-            sns.set_context('paper', font_scale=1.2)
-            df_no_brainer = pd.read_csv(os.path.join(data_dir, "all_no_brainer_data.csv"), sep="\t")
-            fig, ax = plt.subplots(1,2, figsize=(12 * cm, 7 * cm))
-            ax = ax.flatten()
-            for c, con in enumerate(set(df_no_brainer.eta)):
-                df_rankings_copy = df_no_brainer.copy()
-                if config['data_variant'] == '1_pilot':
-                    df_rankings_copy["trial_bins"] = pd.cut(
-                        df_rankings_copy["trial"], bins=[40, 70, 110, 160], labels=["First", "Second", "Third"]
-                    )
-                else:
-                    df_rankings_copy['trial_bins'] = df_rankings_copy['run']
-                    df_rankings_copy['trial_bins'].replace({1: 'First', 2: 'Second',
-                                                            3: 'Third'},
-                                                            inplace=True)
-                df_prop = (
-                    df_rankings_copy.groupby(["participant_id", "trial_bins"])
-                    .mean()["response_correct"]
-                    .reset_index()
-                )
-                sns.stripplot(
-                    x="trial_bins",
-                    y="response_correct",
-                    hue="participant_id",
-                    palette=colors,
-                    data=df_prop,
-                    ax=ax[c],
-                    s=7
-                )
-                ax[c].set(
-                    ylim=(0, 1), ylabel="No-brainers: Proportion correct", xlabel=""
-                )
-                ax[c].set_title(title_dict[c], fontsize=17)
-                if c == 1:
-                    ax[c].set(ylabel='', yticks=[], yticklabels=[])
+    if stages['plot_nobrainers']:
+        fig, axes = plot_nobrainers(config, fig_size=fig_size)
+        fig.savefig(os.path.join(fig_dir, '01_nobrainer_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
-                #ax[c].collections[0].set_sizes([75])
-                ax[c].legend().remove()
-                ax[c].axhline(y=0.8, color="black", linestyle="--")
-            fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01b_no_brainers.png'), dpi=600, bbox_inches='tight')
-            sns.set_context('paper', font_scale=1.2)
     if stages['plot_active']:
         if data_type != 'real_data':
             print('There is no passive trajectories for simulated data')
         else:
             df_active = pd.read_csv(os.path.join(data_dir, "all_active_phase_data.csv"), sep="\t")
-            fig, ax = plt.subplots(1,2, figsize=(23 * cm, 4.75 * cm))
+            participants_to_plot = df_active['participant_id'].unique()[:10]
+            fig, ax = plt.subplots(1,2, figsize=((23 * cm), (4.75 * cm)))
             ax = ax.flatten()
             for c, con in enumerate(set(df_active.eta)):
                 tmp_df = df_active.query("eta == @con")
                 pivoted_df = tmp_df.pivot(index='trial', columns='participant_id', values='wealth')
-                for i, participant in enumerate(pivoted_df.columns):
-                    ax[c].plot(pivoted_df.index, pivoted_df[participant], color = colors[i])
+                for i, participant in enumerate(participants_to_plot):
+                    ax[c].plot(pivoted_df.index, pivoted_df[participant], alpha = 0.8)
                 ax[c].set(title=title_dict[c],xlabel="Trial", ylabel="Wealth")
                 if c == 1:
                     ax[c].set(yscale="log", ylabel="Wealth")
@@ -146,135 +110,129 @@ def main(config_file):
                 ax[c].axhline(soft_limits[c][0], linestyle="--", color="grey", label='lower limit')
                 #ax[c].legend(loc="upper left")
             fig.tight_layout()
-            fig.savefig(os.path.join(fig_dir, '01c_active_trajectories.png'), dpi=600, bbox_inches='tight')
+            fig.savefig(os.path.join(fig_dir, '02_active_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
     #sns.set(font_scale=1.75, rc=rcParamsDefault) # Increasing scale again.
     sns.set_context('paper', font_scale=1.1) #, rc=rcParamsDefault)
 
-    if stages['plot_riskaversion_bracketing']:
-        #Full pooling
+    if stages['plot_risk_aversion_bracketing']:
+
         bracketing_overview = pd.read_csv(os.path.join(data_dir, "bracketing_overview.csv"), sep = '\t')
 
-        df_tmp = bracketing_overview[bracketing_overview.participant == 'all']
-        add = np.random.normal(df_tmp[df_tmp.dynamic == 0.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 0.0].log_reg_std_dev, n_samples * n_conditions)
-        mul = np.random.normal(df_tmp[df_tmp.dynamic == 1.0].log_reg_decision_boundary, df_tmp[df_tmp.dynamic == 1.0].log_reg_std_dev, n_samples * n_chains)
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax = plot_single_kde([add,mul], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir, '02a_riskaversion_full_pooling_group_bracketing.pdf'), dpi=600, bbox_inches='tight')
+        df_full_pooling = bracketing_overview[bracketing_overview.participant == 'all']
+        df_no_pooling = bracketing_overview[bracketing_overview.participant != 'all']
 
-        #No pooling
-        df_tmp = bracketing_overview[bracketing_overview.participant != 'all']
-        etas = np.empty([n_agents,n_samples*n_chains,n_conditions])
-        for i, participant in enumerate(list(set(df_tmp.participant))):
-            for c, con in enumerate(list(set(df_tmp.dynamic))):
-                tmp_df = df_tmp.query('participant == @participant and dynamic == @con')
-                if float(tmp_df.log_reg_std_dev) <= 0:
-                    continue
-                etas[i,:,c] = np.random.normal(tmp_df.log_reg_decision_boundary, tmp_df.log_reg_std_dev, n_samples*n_chains)
-        etas_log_r = np.reshape(etas, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(etas_log_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, '03b_riskaversion_no_pooling_individual_bracketing.pdf'), dpi=600, bbox_inches='tight')
+        eta_g = np.zeros((n_chains, n_samples, n_conditions))
+        eta_i = np.zeros((n_chains, n_samples, n_agents, n_conditions))
+
+        for ch in range(n_chains):
+            for c, con in enumerate(df_no_pooling['dynamic'].unique()):
+                tmp_df_g = df_full_pooling.query('dynamic == @con')
+                eta_g[ch,:,c] = np.random.normal(tmp_df_g.log_reg_decision_boundary, tmp_df_g.log_reg_std_dev, n_samples)
+
+                for i, participant in tqdm(enumerate(df_no_pooling['participant'].unique()),
+                                           total=len(df_no_pooling['participant'].unique()),
+                                           desc='Approximating eta for bracketing'):
+                    tmp_df_i = df_no_pooling.query('participant == @participant and dynamic == @con')
+                    eta_i[ch,:,i,c] = np.random.normal(tmp_df_i.log_reg_decision_boundary, tmp_df_i.log_reg_std_dev, n_samples)
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+        labels = ['Additive','Multiplicative']
+
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, [-5,6], r"$\eta$")
+
+        ax.set_xticks(np.linspace(-5,6,12))
+
+        fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_1.pdf'), dpi=600, bbox_inches='tight')
+
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, [-5,6], maxi)
+        ax.set_xticks(np.linspace(-5,6,12))
+        ax.set_yticks(np.linspace(-5,6,12))
+
+        fig.savefig(os.path.join(fig_dir, '03_riskaversion_bracketing_2.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_riskaversion_bayesian']:
-        # full pooling
-        # group
+        labels = ['Additive','Multiplicative']
+        #no pooling and full pooling
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1])
-        fig.savefig(os.path.join(fig_dir,'04a_riskaversion_full_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
+        eta_g = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
 
-        # partial pooling
-        # group
-        bayesian_samples_partial_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
-                )
-        eta_group = bayesian_samples_partial_pooling["eta_g"][:,burn_in:,:]
-        fig, ax = plt.subplots(1, 1, figsize=fig_size)
-        ax = plot_single_kde([eta_group[:,:,0].flatten(),eta_group[:,:,1].flatten()], ax, x_fiducials=[0, 1], limits=[-0.5, 1.5])
-        ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
-        ax.set(xticks=ticks, xticklabels=ticks)
-        fig.savefig(os.path.join(fig_dir,'05a_riskaversion_partial_pooling_group_bayesian.pdf'), dpi=600, bbox_inches='tight')
-
-        #individual
-        eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
-        eta_i_part_t = eta_i.transpose((2, 0, 1, 3))
-        eta_i_part_t_r = np.reshape(eta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_part_t_r, colors, hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1], limits=[-0.5, 1.5])
-        ticks = np.arange(-0.5, 1.5 + 0.5, 0.5)
-        h1.ax_joint.set(xticks=ticks, xticklabels=ticks)
-        h1.ax_joint.set(yticks=ticks, yticklabels=ticks)
-
-        h1.savefig(os.path.join(fig_dir, f"05b_riskaversion_partial_pooling_individual_bayesian.pdf"), dpi=600, bbox_inches='tight')
-
-        # no pooling
-        # individual
         bayesian_samples_no_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
                 )
         eta_i = bayesian_samples_no_pooling["eta_i"][:,burn_in:,:,:]
-        eta_i_t = eta_i.transpose((2, 0, 1, 3))
-        eta_i_t_r = np.reshape(eta_i_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(eta_i_t_r, colors,  hue = np.repeat(np.arange(n_agents), n_chains * n_samples),
-                                      x_fiducial=[0], y_fiducial=[1])
-        h1.savefig(os.path.join(fig_dir, f"06b_riskaversion_no_pooling_individual_bayesian.pdf"), dpi=600, bbox_inches='tight')
 
-    if stages['plot_jasp_like']:
-        y_offset = np.array([-0.1, 0.1])
-        dist_colors = [np.array([187, 216, 84]) / 255, np.array([255, 217, 47]) / 255]
-        jasp_data = pd.read_csv(os.path.join(data_dir, "jasp_input.csv"), sep = '\t')
-        # Plotting partial_pooling
-        # Estimate ylims:
-        risk_ylim = jasp_data[['0.0_partial_pooling', '1.0_partial_pooling',
-                               '0.0_no_pooling', '1.0_no_pooling',
-                               '0.0_bracketing', '1.0_bracketing']].values.ravel()
-        risk_ylim = np.array([risk_ylim.min(), risk_ylim.max()]) + y_offset
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        dist_ylim = jasp_data[['d_h0_partial_pooling', 'd_h1_partial_pooling',
-                               'd_h0_no_pooling', 'd_h1_no_pooling',
-                               'd_h0_bracketing', 'd_h1_bracketing']].values.ravel()
-        dist_ylim = np.array([dist_ylim.min(), dist_ylim.max()]) + y_offset
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
+
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
 
 
-        fig, ax = paired_swarm_plot(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', ylimits=[0, 1.1], colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"05c_raincloud_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax = paired_swarm_plot(jasp_data, 'd_h0_partial_pooling', 'd_h1_partial_pooling', ylimits=[0, 0.6],
-                                      palette=dist_colors, colors=colors)
-        ax.set(ylabel='Distance', xticklabels=['EUT', 'EE'])
-        fig.savefig(os.path.join(fig_dir, f"05f_raincloud_distance_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, LIMITS, maxi)
 
-        fig, ax = jasp_like_correlation(jasp_data, '0.0_partial_pooling', '1.0_partial_pooling', colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"05d_correlation_riskaversion_partial_pooling.pdf"), dpi=600, bbox_inches='tight')
-        # Plotting no_pooling
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
 
-        fig, ax = paired_swarm_plot(jasp_data, '0.0_no_pooling', '1.0_no_pooling', ylimits=risk_ylim, colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"06c_raincloud_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        #Partial pooling
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                    )
+        eta_g = bayesian_samples_partial_pooling["eta_g"][:,burn_in:,:]
+        eta_i = bayesian_samples_partial_pooling["eta_i"][:,burn_in:,:,:]
 
-        fig, ax = paired_swarm_plot(jasp_data, 'd_h0_no_pooling', 'd_h1_no_pooling', ylimits=dist_ylim,
-                                      palette=dist_colors, colors=colors)
-        ax.set(ylabel='Distance', xticklabels=['EUT', 'EE'])
-        fig.savefig(os.path.join(fig_dir, f"06f_raincloud_distance_no_pooling.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax = jasp_like_correlation(jasp_data, '0.0_no_pooling', '1.0_no_pooling', colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"06d_correlation_riskaversion_no_pooling.pdf"), dpi=600, bbox_inches='tight')
-        # Plotting bracketing
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, eta_i, eta_g, colors, colors_alpha, n_conditions, n_agents, labels, LIMITS, r"$\eta$")
+
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_3.pdf'), dpi=600, bbox_inches='tight')
 
 
-        fig, ax = paired_swarm_plot(jasp_data, '0.0_bracketing', '1.0_bracketing', ylimits=risk_ylim, colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"03c_raincloud_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
-        fig, ax = paired_swarm_plot(jasp_data, 'd_h0_bracketing', 'd_h1_bracketing', ylimits=dist_ylim,
-                                      palette=dist_colors, colors=colors)
-        ax.set(ylabel='Distance', xticklabels=['EUT', 'EE'])
-        fig.savefig(os.path.join(fig_dir, f"03f_raincloud_distance_bracketing.pdf"), dpi=600, bbox_inches='tight')
+        fig, ax = posterior_dist_2dplot(fig, ax, eta_i, colors_alpha, LIMITS, maxi)
 
-        fig, ax = jasp_like_correlation(jasp_data, '0.0_bracketing', '1.0_bracketing', colors=colors)
-        fig.savefig(os.path.join(fig_dir, f"03d_correlation_riskaversion_bracketing.pdf"), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '04_riskaversion_bayesian_4.pdf'), dpi=600, bbox_inches='tight')
+
+    if stages['plot_pairwise']:
+        jasp_data = pd.read_csv(os.path.join(data_dir, 'jasp_input.csv'),
+                                             sep='\t')
+
+        # Hypothesis 1
+        for main_comparison in ['partial_pooling', 'no_pooling']:
+
+            fig, axes = jasp_like_raincloud(jasp_data, f'd_h0_{main_comparison}',
+                                            f'd_h1_{main_comparison}', fig_size=np.array(fig_size) * 2)
+
+            axes[0].set(ylabel='Distance', xticklabels=['$d_{\mathrm{EUT}}$', '$d_{\mathrm{EE}}$'])
+            axes[2].set(xlabel='$d_{\mathrm{EUT}} - d_{\mathrm{EE}}$')
+            axes[0].set(ylim=[0,1])
+            axes[1].set(ylim=[0,1])
+            axes[2].set(xlim=[-0.5, 1.5])
+            fig.savefig(os.path.join(fig_dir, f'08_q1_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
+
+            fig, axes = jasp_like_raincloud(jasp_data, f'0.0_{main_comparison}',
+                                            f'1.0_{main_comparison}', fig_size=np.array(fig_size) * 2,
+                                            reverse_diff=True)
+
+            axes[0].set(ylabel='$\eta$',
+                        xticklabels=['$\hat{\eta}^{\mathrm{add}}$', '$\hat{\eta}^{\mathrm{mul}}$'])
+            #axes[2].set(xlabel='$\hat{\eta}^{\mathrm{add}} - \hat{\eta}^{\mathrm{mul}}$')
+            axes[2].set(xlabel='$\hat{\eta}^{\mathrm{mul}} - \hat{\eta}^{\mathrm{add}}$')
+            axes[0].set(ylim=[-1,2])
+            axes[1].set(ylim=[-1,2])
+            axes[2].set(xlim=[-1, 2])
+            fig.savefig(os.path.join(fig_dir, f'08_q2_pairwise_diff_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
+
+            fig, axes = jasp_like_correlation(jasp_data, f'0.0_{main_comparison}',
+                                              f'1.0_{main_comparison}', lim_offset=0.01, colors=True)
+            fig.savefig(os.path.join(fig_dir, f'08_q3_corelation_{main_comparison}.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_mcmc_samples']:
         # full pooling
@@ -282,17 +240,17 @@ def main(config_file):
         bayesian_samples_full_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
                     )
-        eta_group = bayesian_samples_full_pooling["eta_g"][:,burn_in:,:]
+        eta_g = bayesian_samples_full_pooling["eta_g"]
 
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey')
         for c in range(n_chains):
-            ax.plot(range(len(eta_group[c,:,0].flatten())), eta_group[c,:,0].flatten(), alpha = (c+1)/n_chains, color = 'blue')
-            ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red',)
+            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), color = colors_alpha[0])
+            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), color = colors_alpha[1])
         ax.set_xlim(left = 0)
         ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
         ax.set(xlabel="Samples", ylabel=f"$\eta$")
-        fig.savefig(os.path.join(fig_dir, '07b_riskaversion_full_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
+        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_1.pdf'), dpi=600, bbox_inches='tight')
 
 
         # partial pooling
@@ -300,105 +258,114 @@ def main(config_file):
         bayesian_samples_partial_pooling = read_Bayesian_output(
                     os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
                 )
-        eta_group = bayesian_samples_partial_pooling["eta_g"]
+        eta_g = bayesian_samples_partial_pooling["eta_g"]
 
         fig, ax = plt.subplots(1, 1, figsize=(23 * cm, 4.75 * cm))
         ax.axvspan(0, burn_in, alpha=0.2, color='grey', label = 'Burn in')
         for c in range(n_chains):
-            ax.plot(range(len(eta_group[c,:,0].flatten())), eta_group[c,:,0].flatten(), alpha = (c+1)/n_chains, color = 'blue', label = 'Additive')
-            ax.plot(range(len(eta_group[c,:,1].flatten())), eta_group[c,:,1].flatten(), alpha = (c+1)/n_chains, color = 'red', label = 'Multiplicative')
-        ax.legend(['burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+            ax.plot(range(len(eta_g[c,:,0].ravel())), eta_g[c,:,0].ravel(), color = colors_alpha[0])
+            ax.plot(range(len(eta_g[c,:,1].ravel())), eta_g[c,:,1].ravel(), color = colors_alpha[1])
         ax.set_xlim(left = 0)
-        fig.savefig(os.path.join(fig_dir, '07b_riskaversion_partial_pooling_mcmc_samples.png'), dpi=600, bbox_inches='tight')
+        ax.legend(['Burn in', 'Additive', 'Multiplicative'], loc = 'upper right')
+        ax.set(xlabel="Samples", ylabel=f"$\eta$")
+        fig.savefig(os.path.join(fig_dir, '05_riskaversion_mcmc_samples_2.pdf'), dpi=600, bbox_inches='tight')
+
+    if stages['plot_sensitivity_bayesian']:
+        labels = ['Additive','Multiplicative']
+        #no pooling and full pooling
+        bayesian_samples_full_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
+                    )
+        beta_g = np.log(bayesian_samples_full_pooling["beta_g"][:,burn_in:,:])
+
+        bayesian_samples_no_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
+                )
+        beta_i = np.log(bayesian_samples_no_pooling["beta_i"][:,burn_in:,:,:])
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g, colors,
+                                                 colors_alpha, n_conditions,
+                                                 n_agents, labels, [-6, 8],
+                                                 r"log $\beta$", fiducials=False)
+
+        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_1.pdf'), dpi=600, bbox_inches='tight')
+
+        #partial pooling
+        bayesian_samples_partial_pooling = read_Bayesian_output(
+                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
+                    )
+        beta_g = np.log(bayesian_samples_partial_pooling["beta_g"][:, burn_in:, :])
+        beta_i = np.log(bayesian_samples_partial_pooling["beta_i"][:, burn_in:, :, :])
+
+        fig, ax = plt.subplots(1, 1, figsize=fig_size)
+
+        fig, ax, ax2, maxi = posterior_dist_plot(fig, ax, beta_i, beta_g,
+                                                 colors, colors_alpha, n_conditions,
+                                                 n_agents, labels, [-6, 8],
+                                                 r"log $\beta$")
+
+        fig.savefig(os.path.join(fig_dir, '06_sensitivity_bayesian_2.pdf'), dpi=600, bbox_inches='tight')
+
+    if stages['plot_model_selection']:
+        sns.set_context(font_scale=1.25)
+
+        model_specs = {'EUT v EE' :
+                            {'name': 'EUT_EE',
+                            'models' : ['EUT','EE']},
+                        'EUT v Weak EE' :
+                            {'name': 'EUT_EE2',
+                            'models' : ['EUT','Weak EE']}}
+
+        for m, typ in enumerate(model_specs):
+            model = read_Bayesian_output(
+                    os.path.join(data_dir, f"Bayesian_JAGS_model_selection_{model_specs[typ]['name']}.mat")
+                    )
+            z = model['z'][:,burn_in:,:]
+
+            fig, ax = model_select_plot(z,model_specs[typ]['models'],data_dir,model_specs[typ]['name'],
+                                        figsize= np.array(fig_size) * 2)
+
+            fig.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_1.pdf'), dpi=600, bbox_inches='tight')
+            # fig2.savefig(os.path.join(fig_dir, f'07_model_selection_{m}_2.pdf'), dpi=600, bbox_inches='tight')
+
+            fig, ax = plot_individual_log_bf(os.path.join(data_dir,
+                                                          f'proportions_{model_specs[typ]["name"]}.txt'),
+                                                          idx1=1, m1=model_specs[typ]['models'][1],
+                                                          idx2=0, m2=model_specs[typ]['models'][0])
+
+            fig.savefig(os.path.join(fig_dir, f'09_model_comparison_{m}.pdf'), dpi=600, bbox_inches='tight')
+
+    if stages['plot_pooling_selection']:
+        model = read_Bayesian_output(
+                os.path.join(data_dir, f"Bayesian_JAGS_model_selection_data_pooling.mat")
+                )
+        z = model['z'][:,burn_in:,:]
+
+        fig, ax = model_select_plot(z,['No pooling','Partial pooling','Full pooling'],data_dir, 'data_pooling',
+                                    figsize=np.array(fig_size) * 2)
+
+        fig.savefig(os.path.join(fig_dir, f'08_model_selection_data_pooling.pdf'), dpi=600, bbox_inches='tight')
+
+        fig, ax = plot_individual_log_bf(os.path.join(data_dir,
+                                                      'proportions_data_pooling.txt'),
+                                                    idx1=1, m1='partial~pooling',
+                                                    idx2=0, m2='no~pooling')
+
+        fig.savefig(os.path.join(fig_dir, '09_model_comparison_pooling_pn.pdf'),
+                    dpi=600, bbox_inches='tight')
+
+        fig, ax = plot_individual_log_bf(os.path.join(data_dir,
+                                                      'proportions_data_pooling.txt'),
+                                                    idx1=1, m1='partial~pooling',
+                                                    idx2=2, m2='full~pooling')
+
+        fig.savefig(os.path.join(fig_dir, '09_model_comparison_pooling_pf.pdf'),
+                    dpi=600, bbox_inches='tight')
+
+
 
     return
 
-    if stages['plot_sensitivity_bayesian']:
-        # full pooling
-        # group
-        bayesian_samples_full_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
-                    )
-        beta_group = bayesian_samples_full_pooling["beta_g"]
-        fig, ax = plt.subplots(1, 1)
-        ax = plot_single_kde([beta_group[:,:,0].flatten(),beta_group[:,:,1].flatten()], ax)
-        fig.savefig(os.path.join(fig_dir,'10_sensitivity_full_pooling_group_bayesian.png'))
-
-        # partial pooling
-        # group
-        bayesian_samples_partial_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
-                )
-        beta_group = bayesian_samples_partial_pooling["beta_g"]
-        fig, ax = plt.subplots(1, 1)
-        ax = plot_single_kde([beta_group[:,:,0].flatten(),beta_group[:,:,1].flatten()], ax)
-        fig.savefig(os.path.join(fig_dir,'11_sensitivity_partial_pooling_group_bayesian.png'))
-
-        #individual
-        beta_i = bayesian_samples_partial_pooling["beta_i"]
-        beta_i_part_t = beta_i.transpose((2, 0, 1, 3))
-        beta_i_part_t_r = np.reshape(beta_i_part_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(beta_i_part_t_r, colors)
-        h1.savefig(os.path.join(fig_dir, f"12_sensitivity_partial_pooling_individual_bayesian.png"))
-
-        # no pooling
-        # individual
-        bayesian_samples_no_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
-                )
-        beta_i = bayesian_samples_no_pooling["beta_i"]
-        beta_i_t = beta_i.transpose((2, 0, 1, 3))
-        beta_i_t_r = np.reshape(beta_i_t, (n_agents * n_samples * n_chains, n_conditions))
-        h1 = plot_individual_heatmaps(beta_i_t_r, colors)
-        h1.savefig(os.path.join(fig_dir, f"13_sensitivity_no_pooling_individual_bayesian.png"))
-
-    if stages['plot_model_checks']:
-        ## eta
-        # full pooling
-        # group
-        bayesian_samples_full_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_full_pooling.mat")
-                    )
-        eta_group = bayesian_samples_full_pooling["eta_g"]
-        fig, ax = plt.subplots(1, 1)
-        for c in range(n_conditions):
-            for chain in range(n_chains):
-                plt.plot(range(len(eta_group[chain,:,c].flatten()), eta_group[chain,:,c].flatten()), label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
-        fig.savefig(os.path.join(fig_dir,'14_riskaversion_modelchecks_full_pooling_group_bayesian.png'))
-
-        # partial pooling
-        # group
-        bayesian_samples_partial_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_partial_pooling.mat")
-                )
-        eta_group = bayesian_samples_partial_pooling["eta_g"]
-        fig, ax = plt.subplots(1, 1)
-        for c in range(n_conditions):
-            for chain in range(n_chains):
-                ax.plot(range(len(eta_group[chain,:,c])), eta_group[chain,:,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
-        fig.legend()
-        fig.savefig(os.path.join(fig_dir,'15_riskaversion_modelchecks_partial_pooling_group_bayesian.png'))
-
-        #individual
-        eta_i = bayesian_samples_partial_pooling["eta_i"]
-        for i in range(n_agents):
-            fig, ax = plt.subplots(1,1)
-            for c in range(n_conditions):
-                for chain in range(n_chains):
-                    ax.plot(range(len(eta_i[chain,:,i,c])), eta_i[chain,:,i,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
-            fig.legend()
-            fig.savefig(os.path.join(fig_dir, f"16_{i}_riskaversion_modelchecks_partial_pooling_individual_bayesian.png"))
-
-        # no pooling
-        # individual
-        bayesian_samples_no_pooling = read_Bayesian_output(
-                    os.path.join(data_dir, "Bayesian_JAGS_parameter_estimation_no_pooling.mat")
-                )
-        eta_i = bayesian_samples_no_pooling["eta"]
-        for i in range(n_agents):
-            fig, ax = plt.subplots(1,1)
-            for c in range(n_conditions):
-                for chain in range(n_chains):
-                    ax.plot(range(len(eta_i[chain,:,i,c])), eta_i[chain,:,i,c], label = f'Chain: {chain}, condition: {c}', alpha = 0.5)
-            fig.legend()
-            fig.savefig(os.path.join(fig_dir, f"17_{i}_riskaversion_modelchecks_no_pooling_individual_bayesian.png"))
+# %%

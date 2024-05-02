@@ -1,4 +1,4 @@
-function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
+function computeBayesian(dataSource, dataPooling,inferenceMode,model_selection_type,nBurnin,nSamples,nThin,nChains,subjList,whichJAGS,doParallel,startDir,nTrials,folder,seedChoice)
 %% Hiercharchical Latent Mixture (HLM) model
 % This is a general script for running several types of hierarchical
 % bayesian model via JAGS. It can run hiearchical latent mixture models in
@@ -7,12 +7,18 @@ function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurni
 % instance in order to estimate parameters of a given utility model. It
 % takes as input the following:
 
-% DataSource  - set which data source is used; Simualtion (0)
+% DataSource (unsuded)  - set which data source is used; Simualtion (0)
 %                                              Pilot (1)
 %                                              Full experiment (2)
 % dataPooling - set whether to do No pooling (1)
 %                                 Partial pooling (individual estimates from group level distributions) (2)
 %                                 Full pooling (super individual) (3)
+% model_selection_type - set which type of model selection to perform (only used for inferencemode == 2):
+%                                 - test model 1 (EUT) v model 2 (EE) (1)
+%                                 - test model 1 (EUT) v model 2 (Weak EE) (2)
+%                                 - Parameter estimation for EUT model (3)
+%                                 - Parameter estimation for EE model (4)
+%                                 - Parameter estimation for EE2 model (5)
 % inferenceMode - set whether to do parameter estimation (1)
 %                                   Bayesian model comparison of three different models (2)
 %                                   Bayesian model comparison of data pooling (2)
@@ -27,6 +33,7 @@ function computeBayesian(~,dataPooling,inferenceMode,model_selection_type,nBurni
 % startDir      - root directory for the repo
 % nTrials       - number of trials in experiment
 % folder        - folder within the datafolder the relevant data is stored
+% seedChoice - specifies whether to run on manually set seed (1) or random seed (2)
 
 %% Set paths
 disp(startDir)
@@ -49,12 +56,17 @@ switch inferenceMode
             case {3}, modelName = 'JAGS_parameter_estimation_full_pooling';
         end %switch dataPooling
     case {2}
-        switch dataPooling
-            case {1}, modelName = 'JAGS_model_selection_no_pooling';
-            case {2}, modelName = 'JAGS_model_selection_partial_pooling';
-            case {3}, modelName = 'JAGS_model_selection_full_pooling';
-        end %switch dataPooling
-    case {3}, modelName = 'JAGS_model_selection_data_pooling'
+        modelName = 'JAGS_model_selection_data_pooling'
+        pz = repmat([1/3, 1/3, 1/3], 1, 2); %flat prior over all three data pooling methods
+    case {3}
+        switch model_selection_type
+            case {1}
+                modelName = 'JAGS_model_selection_EUT_EE'
+                pz = repmat([1/2, 1/2], 1, 2);
+            case {2}
+                modelName = 'JAGS_model_selection_EUT_EE2'
+                pz = repmat([1/2, 1/2], 1, 2);
+        end %switch model_selection_type
 end %switch inferenceMode
 
 %% Set key variables
@@ -67,28 +79,16 @@ nSubjects=length(subjList);%number of subjects
 %distributed in log space. These values will be imported to JAGS.
 
 sigma_l = 0.01;
-sigma_h =1.61;
+sigma_h = sqrt(2);
 mu_eta_l = -4;
 mu_eta_h = 5;
 d_mu_alpha = 2;
 d_mu_beta = 0.5;
-mu_log_beta_l = -2.3;
-mu_log_beta_h = 3.4;
+mu_log_beta_l = -6;
+mu_log_beta_h = 8;
+
 mu_eta_EE_add = 0.0000;
 mu_eta_EE_mul = 0.9999;
-
-%Model indicator
-switch inferenceMode
-    case{1}
-        %no model indicator used for parameter estimation
-    case {2}
-        switch model_selection_type
-            case {1}, pz = [1/2, 1/2, 0];   %only test model 1 v model 2
-            case {2}, pz = [1/3, 1/3, 1/3]; %flat prior over all three models
-        end
-    case {3}
-        pz = [1/3, 1/3, 1/3]; %flat prior over all three data pooling methods
-end
 
 
 %% Print information for user
@@ -125,7 +125,7 @@ for c = 1:nConditions
             dwRU(:,c,trialInds)=x2_1_add(:,trialInds);
             dwRL(:,c,trialInds)=x2_2_add(:,trialInds);
             w(:,c,trialInds)=wealth_add(:,trialInds);
-            
+
         case {2}% eta=1
             choice(:,c,trialInds)=choice_mul(:,trialInds);
             dwLU(:,c,trialInds)=x1_1_mul(:,trialInds);
@@ -148,21 +148,37 @@ disp([num2str(length(find(isnan(w)))),'_nans in wealth matrix'])
 %everything you want jags to use
 
 switch inferenceMode
-    case {1}
+    case {1} %parameter estimation
         dataStruct = struct(...
             'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
             'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
             'sigmaL',sigma_l,'sigmaH',sigma_h,...
             'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
             'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h);
-        
+
         for i = 1:nChains
-            monitorParameters = {'mu_eta','tau_eta','sigma_eta',...
-                'mu_log_beta','tau_log_beta','sigma_log_beta',...
-                'beta_i', 'beta_g','eta_i', 'eta_g'};
+            monitorParameters = {'beta_i', 'beta_g','eta_i', 'eta_g'};
             S=struct; init0(i)=S;
         end %i
-    case {2}
+
+    case {2} %model selection (data pooling)
+        dataStruct = struct(...
+            'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
+            'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
+            'sigmaL',sigma_l,'sigmaH',sigma_h,...
+            'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
+            'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
+            'pz',pz);
+
+        for i = 1:nChains
+            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',... %no pooling
+                                 'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling
+                                 'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',... %full pooling
+                                 'z'};%model indicator
+            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
+        end %i
+
+    case {3} %model selection (models)
         dataStruct = struct(...
             'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
             'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
@@ -172,27 +188,9 @@ switch inferenceMode
             'dMuAlpha',d_mu_alpha,'dMuBeta',d_mu_beta,...
             'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
             'pz',pz);
-        
+
         for i = 1:nChains
-            monitorParameters = {'beta_i_EUT', 'beta_i_EE','beta_i_EE2',...
-                'eta_i_EUT', 'eta_i_EE', 'eta_i_EE2',...
-                'z'};
-            S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
-        end %i
-    case {3}
-        dataStruct = struct(...
-            'nSubjects', nSubjects,'nConditions',nConditions,'nTrials',nTrials,...
-            'w',w,'dwLU',dwLU,'dwLL',dwLL,'dwRU',dwRU,'dwRL',dwRL,'y',choice,...
-            'sigmaL',sigma_l,'sigmaH',sigma_h,...
-            'muEtaL',mu_eta_l,'muEtaH',mu_eta_h,...
-            'muLogBetaL',mu_log_beta_l,'muLogBetaH',mu_log_beta_h,...
-            'pz',pz);
-        
-        for i = 1:nChains
-            monitorParameters = {'beta_i_1', 'beta_g_1','eta_i_1', 'eta_g_1',... %no pooling
-                'beta_i_2', 'beta_g_2','eta_i_2', 'eta_g_2',... %partial pooling
-                'beta_i_3', 'beta_g_3','eta_i_3', 'eta_g_3',... %full pooling
-                'z'};%model indicator
+            monitorParameters = {'eta_EUT', 'eta_EE', 'beta_EUT', 'beta_EE','z'};
             S=struct; init0(i)=S; %sets initial values as empty so randomly seeded
         end %i
 end %switch
@@ -212,7 +210,7 @@ tic;fprintf( 'Running JAGS ...\n' ); % start clock to time % display
     'dic', doDIC, ...                         % Do the DIC?
     'monitorparams', monitorParameters, ...   % List of latent variables to monitor
     'savejagsoutput' , 1 , ...                % Save command line output produced by JAGS?
-    'verbosity' , 1 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
+    'verbosity' , 2 , ...                     % 0=do not produce any output; 1=minimal text output; 2=maximum text output
     'cleanup' , 0 ,...                        % clean up of temporary files?
     'rndseed',seedChoice);                    % Randomise seed; 1=no; 2=yes
 
@@ -221,11 +219,8 @@ toc % end clock
 %% Save stats and samples
 disp('saving samples...')
 
-if inferenceMode == 2
-    save(fullfile(dataDir, append('Bayesian','_',modelName,'_',num2str(model_selection_type))),'stats','samples','-v7.3')
-else
-    save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
-end
+save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
+
 %% Print readouts
 disp('stats:'),disp(stats)%print out structure of stats output
 disp('samples:'),disp(samples);%print out structure of samples output

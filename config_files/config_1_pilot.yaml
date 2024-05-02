@@ -13,21 +13,24 @@ bracketing method:
 data directory: data/1_pilot
 data_type: real_data
 data_variant: 1_pilot
-extension: beh.tsv
+extension: beh.csv
 figure directory: figs/1_pilot
 input_path:
-n_agents: 60
+vba_path:
+n_agents: 11
 n_conditions: 2
 qual: 3
 plots:
-  plot_active: true
-  plot_bayes: true
-  plot_jasp_like: true
-  plot_no_brainers: true
-  plot_passive: true
-  plot_riskaversion_bayesian: true
-  plot_riskaversion_bracketing: true
-  plot_mcmc_samples: true
   run: true
+  plot_passive: true
+  plot_nobrainers: true
+  plot_active: true
+  plot_risk_aversion_bracketing: true
+  plot_riskaversion_bayesian: true
+  plot_pairwise: true
+  plot_mcmc_samples: true
+  plot_sensitivity_bayesian: true
+  plot_model_selection: true
+  plot_pooling_selection: true
 readingdata:
   run: true

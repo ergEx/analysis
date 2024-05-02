@@ -1,127 +1,90 @@
 function modelComparison(data_source, model_selection_type)
 
-
-%data_source = '/1_pilot';
-%model_selection_type = 1;
-
 [startDir,~] = fileparts(mfilename('fullpath'));  %specify your starting directory here (where this script runs from)
-%addpath(genpath(fullfile(startDir,'/VBA-toolbox')));
 
-base = pwd;
-[vba_dir, ~ ] = fileparts(which('VBA_setup'));
-cd(vba_dir)
-VBA_setup;
-cd(base)
-
-data_poolings = {'no_pooling','partial_pooling','full_pooling'};
 dataDir=fullfile(getParentDir(startDir, 1),'/data',data_source);
-figDir = fullfile(getParentDir(startDir,1), '/figs', data_source);
 
 disp(startDir)
 disp(getParentDir(startDir, 1))
 
-
-for ii = 1 : length(data_poolings)
-    file = sprintf('Bayesian_JAGS_model_selection_%s_%d.mat', data_poolings{ii} ,model_selection_type);
-    BFFile = sprintf('model_selection_BF_%s_%d.txt', data_poolings{ii} ,model_selection_type);
-    
-    jags_dat = load(fullfile(dataDir, file))
-    
-    z = jags_dat.samples.z;
-    [n_chains, n_samples, n_participants] = size(z);
-    z_i = reshape(z, [n_chains * n_samples, n_participants]);
-    
-    n_models = max(z(:));
-    
-    counts = zeros(n_models, n_participants);
-    bin_edges = 1:(n_models+1);
-    
-    % Loop through each column and count occurrences
-    for col = 1:n_participants
-        disp(col)
-        counts(:, col) = histcounts(z_i(:, col), bin_edges);
-    end
-    
-    counts = counts + 1; % Add 1 to all counts to avoid division by zero
-    
-    total_counts = sum(counts, 1);
-    proportions = counts ./ repmat(total_counts, n_models, 1);
-    
-    log_proportions = log10(proportions);
-    
-    BF10 = exp(sum(log_proportions(2, :)) - sum(log_proportions(1, :)));
-    fprintf(num2str(sum(log_proportions(2, :))))
-    fprintf(num2str(sum(log_proportions(1, :))))
-    fprintf(num2str(exp(sum(log_proportions(2, :)))))
-    fprintf(num2str(exp(sum(log_proportions(1, :)))))
-    BF = ['BF10 ', num2str(BF10)];
-    
-    if n_models == 3
-        BF20 = exp(sum(log_proportions(3, :)) - sum(log_proportions(1, :)));
-        BF21 = exp(sum(log_proportions(3, :)) - sum(log_proportions(2, :)));
-        BF = [BF, '\n', 'BF20 ', num2str(BF20), '\n', 'BF21 ', num2str(BF21)];
-    end
-    
-    if exist(fullfile(dataDir, BFFile), 'file')
-        fileID = fopen(fullfile(dataDir, BFFile), 'w');
-        fprintf(fileID, BF);
-        fclose(fileID);
-    else
-        fileID = fopen(fullfile(dataDir, BFFile), 'w');
-        fprintf(fileID, BF);
-        fclose(fileID);
-    end
-    
-    
-    options = {};
-    % perform group-BMS on data
-    [p1, o1] = VBA_groupBMC (log_proportions, options);
-    set (o1.options.handles.hf, 'name', 'group BMS: y_1')
-    saveas(gcf, fullfile(figDir, sprintf('model_selection_%s_%i.pdf', data_poolings{ii}, model_selection_type)));
+switch model_selection_type
+    case {1}, name = 'EUT_EE'; comparisons = [2, 1];
+    case {2}, name = 'EUT_EE2'; comparisons = [2, 1];
+    case {3}, name = 'data_pooling'; comparisons = [2, 1; 2, 3; 1, 3];
 end
+
+file = fullfile(dataDir, sprintf('proportions_%s.txt',name));
+log_proportions = load(file);
+BFFile = sprintf('model_selection_BF_%s.txt', name);
+
+options.verbose = false;
+options.DisplayWin = 0;
+
+n_comps = size(comparisons, 1);
+
+BFs = zeros(n_comps, 1);
+
+for ii = 1 : n_comps
+    BFs(ii) = exp(sum(log_proportions(comparisons(ii, 1), :) - log_proportions(comparisons(ii, 2), :)));
+end
+
+
+[p, o] = VBA_groupBMC(log_proportions, options);
+
+fileID = fopen(fullfile(dataDir, BFFile), 'w');
+fprintf(fileID, 'pxp %d\n', o.pxp);
+fprintf(fileID, 'ep %d\n', o.ep);
+fprintf(fileID, 'Ef %d\n', o.Ef);
+fprintf(fileID, 'FFX %d\n', o.Fffx);
+
+for ii = 1 : n_comps
+    fprintf(fileID, 'BF_%d_%d %d\n', comparisons(ii, 1), comparisons(ii, 2), BFs(ii));
+end
+
+fclose(fileID);
 
 end
 
 function newDir = getParentDir(dir,numUpDirs)
-%   Function to get parent dir from either a file or a directory, going up
-%   the number of directories indicated by numUpDirs. 
-%
-%   dir = string (filepath or pwd)
-%   numUpDirs = positive integer
-%   
-%   Written by: Walter Adame Gonzalez
-%   McGill University
-%   walter.adamegonzalez@mail.mcgill.ca
-%   slightly updated by SRSteinkamp
+    %   Function to get parent dir from either a file or a directory, going up
+    %   the number of directories indicated by numUpDirs.
+    %
+    %   dir = string (filepath or pwd)
+    %   numUpDirs = positive integer
+    %
+    %   Written by: Walter Adame Gonzalez
+    %   McGill University
+    %   walter.adamegonzalez@mail.mcgill.ca
+    %   slightly updated by SRSteinkamp
 
-if nargin < 2
-    numUpDirs = 1;
-end
-
-
-pre = '';
-if ispc
-
-    if dir(1) == '\'
-        pre = '\';
+    if nargin < 2
+        numUpDirs = 1;
     end
-    parts = strsplit(dir, '\');
-    
-else
-    if dir(1) == '/'
-        pre = '/';
-    end
-    parts = strsplit(dir, '/');
-end
 
-newDir = '';
-if numUpDirs<length(parts)
-    for i=1:(length(parts)-numUpDirs)
-    newDir = fullfile(newDir,string(parts(i)));
+
+    pre = '';
+    if ispc
+
+        if dir(1) == '\'
+            pre = '\';
+        end
+        parts = strsplit(dir, '\');
+
+    else
+        if dir(1) == '/'
+            pre = '/';
+        end
+        parts = strsplit(dir, '/');
     end
-else
-    disp("numUpDirs indicated is larger than the number of possible parent directories. Returning the unchanged dir")
-    newDir = dir;
-end
-newDir = [char(pre) char(newDir)];
+
+    newDir = '';
+    if numUpDirs<length(parts)
+        for i=1:(length(parts)-numUpDirs)
+        newDir = fullfile(newDir,string(parts(i)));
+        end
+    else
+        disp("numUpDirs indicated is larger than the number of possible parent directories. Returning the unchanged dir")
+        newDir = dir;
+    end
+    newDir = [char(pre) char(newDir)];
 end

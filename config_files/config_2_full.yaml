@@ -1,33 +1,37 @@
-JASP input:
-  run: true
-bayesfactor_analysis:
-  plot: true
-  run: true
-  target: partial_pooling
-bayesian method:
-  run: true
-bracketing method:
-  calculate_indif_eta: true
-  log_reg: true
-  run: true
 data directory: data/2_full_data
 data_type: real_data
 data_variant: 2_full_data
 extension: beh.tsv
 figure directory: figs/2_full_data
 input_path:
-n_agents: 60
+exclusion_criteria: [1, 2]
+n_agents: 58
 n_conditions: 2
+vba_path:
 qual: 3
-plots:
-  plot_active: true
-  plot_bayes: true
-  plot_jasp_like: true
-  plot_no_brainers: true
-  plot_passive: true
-  plot_riskaversion_bayesian: true
-  plot_riskaversion_bracketing: true
-  plot_mcmc_samples: true
-  run: true
 readingdata:
   run: true
+bayesian method:
+  run: true
+bracketing method:
+  calculate_indif_eta: true
+  log_reg: true
+  run: true
+JASP input:
+  run: true
+bayesfactor_analysis:
+  run: true
+  plot: true
+  target: partial_pooling
+plots:
+  run: true
+  plot_passive: true
+  plot_nobrainers: true
+  plot_active: true
+  plot_risk_aversion_bracketing: true
+  plot_riskaversion_bayesian: true
+  plot_pairwise: true
+  plot_mcmc_samples: true
+  plot_sensitivity_bayesian: true
+  plot_model_selection: true
+  plot_pooling_selection: true
