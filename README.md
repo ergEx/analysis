@@ -15,8 +15,8 @@ Install and check if environment already exists:
 
 # Analysis
 
-
 ## Bayes Factor Design Analysis
+
 To run the Bayes Factor Design Analysis after installing the environment use in the main folder:
 `rscript r_analyses/ergEx_rr_nhb_bfda.R`. When run the first time the BFDA package will be installed.
 The figures referred to in the paper will be created inside the `r_analyses` folder.
@@ -28,7 +28,7 @@ These do not need any data, and can be created by running `python step0_create_s
 
 ## Step 1 Accessing data
 
-We already provide you with the data format that we use for our analysis (`all_data.csv` and `all_data.mat`) on OSF __HERE URL__.
+We already provide you with the data format that we use for our analysis (`all_data.csv` and `all_data.mat`) on OSF **[HERE](https://osf.io/mwe7k/)**.
 
 So it should not be necessary to rerun the following.
 
@@ -49,25 +49,26 @@ execute the `simulate_agents.py` script in the experiment repository (https://gi
 This step requires to be run with Matlab and matjags. Again, we provide you with the output data, so you can conduct the
 main analysis, without re-running the JAGS analysis.
 
-The second stage of the pipeline uses the 'all_data.mat' file and estimates the parameters via JAGS software (detailed information on JAGS installation can be found _HERE_).
-The results of the Bayesian model are saved either as 'JAGS_parameter_estimation_{pooling}.mat', or as 'JAGS_model_model_selection_{MODELS}.mat' files.
+The second stage of the pipeline uses the 'all*data.mat' file and estimates the parameters via JAGS software (detailed information on JAGS installation can be found \_HERE*).
+The results of the Bayesian model are saved either as 'JAGS*parameter_estimation*{pooling}.mat', or as 'JAGS*model_model_selection*{MODELS}.mat' files.
 
 For each dataset (pilot, full, CPH, or the simulations) step 2 needs to be called a number of times. The steps are:
 
-* `python step2_run_JAGS.py config_files/config_2_full.yaml 1 1 1 2 1` # (parameter estimation, no pooling)
-* `python step2_run_JAGS.py config_files/config_2_full.yaml 1 1 2 2 2` # (parameter estimation, partial pooling)
-* `python step2_run_JAGS.py config_files/config_2_full.yaml 1 1 3 2 3` # (parameter estimation, full pooling)
-* `python step2_run_JAGS.py config_files/config_2_full.yaml 2 1 1 2 4` # (model comparison - data pooling)
-* `python step2_run_JAGS.py config_files/config_2_full.yaml 3 1 1 2 5` # (model comparison - EE vs EUT)
-* `python step2_run_JAGS.py config_files/config_2_full.yaml 3 2 1 2 6` # (model comparison - weak EE vs EUT)
+- `python step2_run_JAGS.py config_files/config_2_full.yaml 1 1 1 2 1` # (parameter estimation, no pooling)
+- `python step2_run_JAGS.py config_files/config_2_full.yaml 1 1 2 2 2` # (parameter estimation, partial pooling)
+- `python step2_run_JAGS.py config_files/config_2_full.yaml 1 1 3 2 3` # (parameter estimation, full pooling)
+- `python step2_run_JAGS.py config_files/config_2_full.yaml 2 1 1 2 4` # (model comparison - data pooling)
+- `python step2_run_JAGS.py config_files/config_2_full.yaml 3 1 1 2 5` # (model comparison - EE vs EUT)
+- `python step2_run_JAGS.py config_files/config_2_full.yaml 3 2 1 2 6` # (model comparison - weak EE vs EUT)
 
 The arguments in order:
+
 1. the config file to be used
 2. Sets the `inferenceMode`, it can be `1`, `2` or `3` and decides if to perform model inversion for parameter estimation or model selection. In mode `2` it is doing model selection between pooling methods.
 3. Sets the `model_selection_type`, it can be `1` for EE vs EUT or `2`, for weakEE vs EUT, ignored in other modes.
 4. This sets the data pooling: 1 - no pooling, 2 partial pooling, 3 full pooling and is ignored in other modes.
-4. This sets the submission method. It can be `1` for simply sourcing the shell script or `2` for commiting the script via SLURM.
-5. Which JAGS, set this to run multiple JAGS models at the same time.
+5. This sets the submission method. It can be `1` for simply sourcing the shell script or `2` for commiting the script via SLURM.
+6. Which JAGS, set this to run multiple JAGS models at the same time.
 
 The `step_2_runJ_JAGS.py` script creates a shell script in `sh_scripts` which will then be run by the program. The following `configs[data_type]`, `configs[data variant]` and `configs[qual]` are important.
 
@@ -106,7 +107,7 @@ This stage of the pipeline uses the 'all_data.csv' file and estimate the paramet
 
 We are not using JASP anymore, but it is here for posterity and we call an
 Rscript on the outputs.
-This step uses the 'JAGS_parameter_estimation_{pooling}.mat' and the 'bracketing_overview.csv' files and creates a new file called 'jasp_input.csv'.
+This step uses the 'JAGS*parameter_estimation*{pooling}.mat' and the 'bracketing_overview.csv' files and creates a new file called 'jasp_input.csv'.
 
 **Creating Plots**
 
