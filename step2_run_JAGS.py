@@ -110,6 +110,10 @@ def main():
         dataPooling = '1'
     elif sys.argv[4] == '2':
         dataPooling = '2'
+    elif sys.argv[4] == '2.1':
+        dataPooling = '2.1'
+    elif sys.argv[4] == '2.2':
+        dataPooling = '2.2'
     elif sys.argv[4] == '3':
         dataPooling = '3'
     else:
