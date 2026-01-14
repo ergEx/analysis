@@ -57,6 +57,11 @@ confounds <- read.delim2(paste(path, 'full_data_anova.tsv', sep=''), sep='\t', h
 explanation <- read.delim2(paste(path, 'full_data_regression.tsv', sep=''), sep='\t', header=TRUE, dec='.')
 explanation$Sex <- as.factor(explanation$Sex)
 
+explanation2 <- explanation
+explanation2['delta_X'] <- explanation2["X1.0_partial_pooling"] - explanation2["X0.0_partial_pooling"]
+explanation2 <- subset(explanation2, select = -c(X1.0_partial_pooling, X0.0_partial_pooling))
+
 bas_analysis('d_eta', confounds, 'regression of confounding variables', '../paper_figures/regression1.tex')
 bas_analysis('X0.0_partial_pooling', explanation, 'regression on additive risk-preferences', '../paper_figures/regression2.tex')
 bas_analysis('X1.0_partial_pooling', explanation, 'regression on multiplicative risk-preferences', '../paper_figures/regression3.tex')
+bas_analysis('delta_X', explanation2, 'regression on delta of risk-preferences', '../paper_figures/regression4.tex')
