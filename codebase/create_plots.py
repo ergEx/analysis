@@ -86,7 +86,7 @@ def main(config_file):
             fig.savefig(os.path.join(fig_dir, '01_passive_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_nobrainers']:
-        fig, axes = plot_nobrainers(config, fig_size=fig_size)
+        fig, axes, _ = plot_nobrainers(config, fig_size=fig_size)
         fig.savefig(os.path.join(fig_dir, '01_nobrainer_trajectories.pdf'), dpi=600, bbox_inches='tight')
 
     if stages['plot_active']:
