@@ -48,11 +48,14 @@ dataDir=fullfile('..','data',folder);
 load(fullfile(dataDir, 'all_active_phase_data.mat'))
 
 %% Choose JAGS file
+out_extension = '';
 switch inferenceMode
     case {1}
         switch dataPooling
             case {1}, modelName = 'JAGS_parameter_estimation_no_pooling';
             case {2}, modelName = 'JAGS_parameter_estimation_partial_pooling';
+            case {2.1}, modelName = 'JAGS_parameter_estimation_partial_pooling'; out_extension='_split1';
+            case {2.2}, modelName = 'JAGS_parameter_estimation_partial_pooling'; out_extension='_split2';
             case {3}, modelName = 'JAGS_parameter_estimation_full_pooling';
         end %switch dataPooling
     case {2}
@@ -90,7 +93,15 @@ mu_log_beta_h = 8;
 mu_eta_EE_add = 0.0000;
 mu_eta_EE_mul = 0.9999;
 
+if strcmp(out_extension, '_split1')
+    trialInds = 1 : round(nTrials / 2);
+elseif strcmp(out_extension, '_split2')
+    trialInds = round(nTrials / 2) + 1 : nTrials;
+else
+    trialInds = 1 : nTrials;
+end
 
+nTrials = length(trialInds);
 %% Print information for user
 disp('**************');
 disp(['Mode: ', modelName])
@@ -115,26 +126,26 @@ w=dim;%initialise wealth
 %allows jags to work since doesn't work for partial observation. This does not affect
 %parameter estimation. nans in the choice data are allowed as long as all covariates are not nan.
 
-trialInds = 1:nTrials;
 for c = 1:nConditions
     switch c
         case {1} %eta = 0
-            choice(:,c,trialInds)=choice_add(:,trialInds);
-            dwLU(:,c,trialInds)=x1_1_add(:,trialInds);
-            dwLL(:,c,trialInds)=x1_2_add(:,trialInds);
-            dwRU(:,c,trialInds)=x2_1_add(:,trialInds);
-            dwRL(:,c,trialInds)=x2_2_add(:,trialInds);
-            w(:,c,trialInds)=wealth_add(:,trialInds);
+            choice(:,c, 1 : nTrials)=choice_add(:,trialInds);
+            dwLU(:,c,1 : nTrials)=x1_1_add(:,trialInds);
+            dwLL(:,c,1 : nTrials)=x1_2_add(:,trialInds);
+            dwRU(:,c,1 : nTrials)=x2_1_add(:,trialInds);
+            dwRL(:,c,1 : nTrials)=x2_2_add(:,trialInds);
+            w(:,c,1 : nTrials)=wealth_add(:,trialInds);
 
         case {2}% eta=1
-            choice(:,c,trialInds)=choice_mul(:,trialInds);
-            dwLU(:,c,trialInds)=x1_1_mul(:,trialInds);
-            dwLL(:,c,trialInds)=x1_2_mul(:,trialInds);
-            dwRU(:,c,trialInds)=x2_1_mul(:,trialInds);
-            dwRL(:,c,trialInds)=x2_2_mul(:,trialInds);
-            w(:,c,trialInds)=wealth_mul(:,trialInds);
+            choice(:,c,1 : nTrials)=choice_mul(:,trialInds);
+            dwLU(:,c,1 : nTrials)=x1_1_mul(:,trialInds);
+            dwLL(:,c,1 : nTrials)=x1_2_mul(:,trialInds);
+            dwRU(:,c,1 : nTrials)=x2_1_mul(:,trialInds);
+            dwRL(:,c,1 : nTrials)=x2_2_mul(:,trialInds);
+            w(:,c,1 : nTrials)=wealth_mul(:,trialInds);
     end %switch
 end %c
+
 
 %% Nan check
 disp([num2str(length(find(isnan(choice)))),'_nans in choice data']);%nans in choice data do not matter
@@ -219,7 +230,7 @@ toc % end clock
 %% Save stats and samples
 disp('saving samples...')
 
-save(fullfile(dataDir, append('Bayesian','_',modelName)),'stats','samples','-v7.3')
+save(fullfile(dataDir, append('Bayesian','_',modelName, out_extension)),'stats','samples','-v7.3')
 
 %% Print readouts
 disp('stats:'),disp(stats)%print out structure of stats output
