@@ -93,4 +93,4 @@ def plot_nobrainers(config, fig_size):
     axes[0].set(title='Additive condition', ylabel='proportion correct', xlabel='run')
     axes[1].set(title='Multiplicative Condition', xlabel='run')
 
-    return fig, axes
+    return fig, axes, no_brainer_df
