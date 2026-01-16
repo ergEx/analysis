@@ -65,7 +65,7 @@ The arguments in order:
 1. the config file to be used
 2. Sets the `inferenceMode`, it can be `1`, `2` or `3` and decides if to perform model inversion for parameter estimation or model selection. In mode `2` it is doing model selection between pooling methods.
 3. Sets the `model_selection_type`, it can be `1` for EE vs EUT or `2`, for weakEE vs EUT, ignored in other modes.
-4. This sets the data pooling: 1 - no pooling, 2 partial pooling, 3 full pooling and is ignored in other modes.
+4. This sets the data pooling: 1 - no pooling, 2 partial pooling, 3 full pooling and is ignored in other modes. The options 2.1 and 2.2 run partial pooling on the first / second half of the dataset.
 4. This sets the submission method. It can be `1` for simply sourcing the shell script or `2` for commiting the script via SLURM.
 5. Which JAGS, set this to run multiple JAGS models at the same time.
 
@@ -138,6 +138,8 @@ This step is mostly for convenience, it moves and renames the figures that are s
 
 To run the Bayesian regression analysis the script `additional_analysis.py` need to be run to create the data frames
 for the subsequent analysis in R (`regression_Analysis.R`), which uses the BAS package.
+
+`r_analyses` scripts should be run from the folder. Using the terminal e.g.: `R -f regression_analysis.R`
 
 For privacy reasons, we are not sharing the demographic and questionnaire data, at this point.
 
