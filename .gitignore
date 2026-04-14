@@ -7,6 +7,7 @@ playground_notebook.ipynb
 paper_figures
 sh_scripts
 slurm-*
+.conda
 provenance.txt
 codebase/VBA_toolbox
 model_comparison_test.ipynb
