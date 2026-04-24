@@ -168,55 +168,175 @@ def main():
     all_df = pd.read_csv(
         f"{config['data directory']}/all_active_phase_data.csv", sep="\t"
     )
-    all_df["previous_side"] = all_df.selected_side_map.shift(1)
-    all_df["previous_win"] = all_df.delta_wealth.shift(1) > 0
+
+    x1_left = all_df['wealth'] + all_df['x1_1']
+    x2_left = all_df['wealth'] + all_df['x1_2']
+    x1_right = all_df['wealth'] + all_df['x2_1']
+    x2_right = all_df['wealth'] + all_df['x2_2']
+
+    left_mean = (x1_left + x2_left) / 2
+    right_mean = (x1_right + x2_right) / 2
+
+    left_var = ((x1_left - left_mean) ** 2 + (x2_left - left_mean) ** 2) / 2
+    right_var = ((x1_right - right_mean) ** 2 + (x2_right - right_mean) ** 2) / 2
+
+    selected_var = all_df.selected_side_map * left_var + (1 - all_df.selected_side_map) * right_var
+    unselected_var = (1 - all_df.selected_side_map) * left_var  + all_df.selected_side_map * right_var
+
+    selected_mean = all_df.selected_side_map * left_mean + (1 - all_df.selected_side_map) * right_mean
+    unselected_mean = (1 - all_df.selected_side_map) * left_mean  + all_df.selected_side_map * right_mean
+
+
+    all_df["previous_side"] = all_df.groupby(["participant_id", "eta"]).selected_side_map.shift(1)
+    all_df["previous_win"] = all_df.groupby(["participant_id", "eta"]).delta_wealth.shift(1) > 0
     all_df["stay"] = all_df.previous_side == all_df.selected_side_map
+
+    all_df["risky_choice"] = selected_var.values > unselected_var.values
+    all_df["previous_risky"] = all_df.groupby(["participant_id", "eta"]).risky_choice.shift(1)
+    all_df["risk_stay"] = all_df["risky_choice"] == all_df["previous_risky"]
+
+    all_df["better_mean"] = selected_mean.values > unselected_mean.values
+    all_df["previous_mean"] = all_df.groupby(["participant_id", "eta"]).better_mean.shift(1)
+    all_df["mean_stay"] = all_df["better_mean"] == all_df["previous_mean"]
+
     clean_df = all_df.query("not (previous_side.isna() or selected_side_map.isna())")
-    stay_prob = (
+
+    stay_prob_side = (
         clean_df.groupby(["previous_win", "participant_id", "eta"])["stay"]
         .mean()
         .reset_index()
     )
 
-    fig, axes = plt.subplots(
-        1, 1, figsize=(fig_size[0] * 1.5, fig_size[1] * 1.5), sharex=True, sharey=True
+    stay_prob_var = (
+        clean_df.groupby(["previous_win", "participant_id", "eta"])["risk_stay"]
+        .mean()
+        .reset_index()
+    )
+
+    stay_prob_risky = (
+        clean_df.query("previous_risky == 1").groupby(["previous_win", "participant_id", "eta"])["risk_stay"]
+        .mean()
+        .reset_index()
+    )
+
+    def logit(p):
+        return np.log(p / (1 - p))
+
+    def do_ttest(stay_df, outcome='stay', eta = 0):
+
+        df = pg.ttest(logit(stay_df.query("previous_win==1 and eta == @eta")[outcome].values + np.finfo(float).eps),
+                logit(stay_df.query("previous_win==0 and eta == @eta")[outcome].values + np.finfo(float).eps),
+                paired=True)
+
+        delta = (logit(stay_df.query("previous_win==1 and eta == @eta")[outcome].values + np.finfo(float).eps)  -
+                logit(stay_df.query("previous_win==0 and eta == @eta")[outcome].values + np.finfo(float).eps))
+
+        return df, delta
+
+    t1, delta1 = do_ttest(stay_prob_side, eta=0)
+    t1.insert(0, "Hypothesis", "P(stay side | eta = 0, previous win = 1) != P(stay side | eta = 0, previous win = 0)")
+    t2, delta2 = do_ttest(stay_prob_side, eta=1)
+    t2.insert(0, "Hypothesis", "P(stay | eta = 1, previous win = 1) != P(stay | eta = 1, previous win = 0)")
+
+    t3, delta3 = do_ttest(stay_prob_var, eta=0, outcome="risk_stay")
+    t3.insert(0, "Hypothesis", "P(stay variance | eta = 0, previous win = 1) != P(stay variance | eta = 0, previous win = 0)")
+    t4, delta4 = do_ttest(stay_prob_var, eta=1, outcome="risk_stay")
+    t4.insert(0, "Hypothesis", "P(stay variance| eta = 1, previous win = 1) != P(stay  variance| eta = 1, previous win = 0)")
+
+    t5, delta5 = do_ttest(stay_prob_risky, eta=0, outcome="risk_stay")
+    t5.insert(0, "Hypothesis", "P(stay risky | eta = 0, previous win = 1) != P(stay risky | eta = 0, previous win = 0)")
+    t6, delta6 = do_ttest(stay_prob_risky, eta=1, outcome="risk_stay")
+    t6.insert(0, "Hypothesis", "P(stay risky | eta = 1, previous win = 1) != P(stay risky | eta = 1, previous win = 0)")
+
+    new_df_dict = {
+        "delta": [],
+        "session": [],
+        "test": []}
+
+    for d, s, t in zip([delta1, delta2, delta3, delta4, delta5, delta6], ['additive', 'multiplicative'] * 3,
+                    ['Stay: Same side'] * 2 + ["Stay: Same variance"] * 2 + ["Stay: Higher variance"] * 2):
+        new_df_dict["delta"].extend(d.tolist())
+        new_df_dict["session"].extend([s] * len(d.tolist()))
+        new_df_dict["test"].extend([t] * len(d.tolist()))
+
+    new_df_dict = pd.DataFrame(new_df_dict)
+
+
+    fig = plt.figure(
+        figsize=(fig_size[0] * 1.5 * 3, fig_size[1] * 1.5)
+    )
+
+    ax1 = plt.subplot2grid((1, 4), (0, 0), colspan=3)
+    ax2 = plt.subplot2grid((1, 4), (0, 3))
+
+    axes = [ax1, ax2]
+
+    sns.stripplot(
+        data=new_df_dict,
+        x="test",
+        y="delta",
+        hue="session",
+        dodge=True,
+        ax=axes[0],
+        label=None,
+    )
+
+    axes[0].set(ylim=[-2, 2])
+
+    x_coords = axes[0].get_xticks()
+    x_coords_err = np.array([[x1 - 0.3, x1 + 0.3] for x1 in x_coords]).ravel()
+
+    for d, t, xc in zip([delta1, delta2, delta3, delta4, delta5, delta6], [t1, t2, t3, t4, t5, t6], x_coords_err):
+        axes[0].scatter(xc, d.mean(), color="black")
+        axes[0].errorbar(xc, d.mean(), yerr=np.abs(t["CI95%"].values[0][:, None] - d.mean()), color="black", capsize=3)
+
+    axes[0].axhline(0, color="black", alpha=0.5, linestyle="--")
+
+    axes[0].spines[["top", "right"]].set_visible(False)
+    axes[0].set(
+        xlabel="",
+        ylabel="Delta logit(p(stay))"
     )
 
     sns.stripplot(
-        data=stay_prob,
-        x="previous_win",
-        y="stay",
-        hue="eta",
+        data=new_df_dict.query("test == 'Stay: Higher variance'"),
+        x="test",
+        y="delta",
+        hue="session",
         dodge=True,
-        ax=axes,
+        ax=axes[1],
         label=None,
     )
-    sns.boxplot(data=stay_prob, x="previous_win", y="stay", hue="eta", ax=axes)
 
-    axes.spines[["top", "right"]].set_visible(False)
-    axes.legend(["Additive", "Multiplicative"])
-    axes.set(
-        ylabel="P(stay)",
-        xlabel="Previous trial outcome",
-        xticklabels=["no reward", "reward"],
+    x_coords = axes[1].get_xticks()
+    x_coords_err = np.array([[x1 - 0.3, x1 + 0.3] for x1 in x_coords]).ravel()
+
+    for d, t, xc in zip([delta5, delta6], [t5, t6], x_coords_err):
+        axes[1].scatter(xc, d.mean(), color="black")
+        axes[1].errorbar(xc, d.mean(), yerr=np.abs(t["CI95%"].values[0][:, None] - d.mean()), color="black", capsize=3)
+
+    axes[1].axhline(0, color="black", alpha=0.5, linestyle="--")
+
+    axes[1].spines[["top", "right"]].set_visible(False)
+    axes[1].set(
+        xlabel="",
+        ylabel="Delta logit(p(stay))"
     )
 
+
+    axes[0].set(title = "Overview Delta p(stay)")
+    axes[1].set(title = "Zoomed out: Delta p(stay | Higher variance)")
+
+    plt.tight_layout()
+
+
     fig.savefig(
-        os.path.join(config["figure directory"], "Rev3_stay_win_lose_shift.pdf"),
+        os.path.join(config["figure directory"], "Rev3_rl_heuristics.pdf"),
         dpi=600,
         bbox_inches="tight",
     )
-    fig = []
-    t1 = pg.ttest(stay_prob.query("eta == 0.0 and previous_win==0")["stay"], 0.5)
-    t1.insert(0, "Hypothesis", "P(stay | eta = 0, previous win = 0) != 0.5")
-    t2 = pg.ttest(stay_prob.query("eta == 1.0 and previous_win==0")["stay"], 0.5)
-    t2.insert(0, "Hypothesis", "P(stay | eta = 1, previous win = 0) != 0.5")
-    t3 = pg.ttest(stay_prob.query("eta == 0.0 and previous_win==1")["stay"], 0.5)
-    t3.insert(0, "Hypothesis", "P(stay | eta = 0, previous win = 1) != 0.5")
-    t4 = pg.ttest(stay_prob.query("eta == 1.0 and previous_win==1")["stay"], 0.5)
-    t4.insert(0, "Hypothesis", "P(stay | eta = 1, previous win = 1) != 0.5")
 
-    results = pd.concat([t1, t2, t3, t4])
+    results = pd.concat([t1, t2, t3, t4, t5, t6])
     results["BF01"] = 1 / results["BF10"].astype(float)
     results["Test"] = "win stay / lose shift"
 
